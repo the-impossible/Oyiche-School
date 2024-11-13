@@ -20,13 +20,15 @@ This project is a comprehensive School Management System designed for primary an
 - `templates/` - HTML templates for views across the system
 static/ - CSS, JavaScript, and images
 
-**Setup & Installation**
-Requirements
-Python 3.10+
-Django 4.0+
-MySQL
-Steps
-Clone the Repository
+## Setup & Installation
+
+# Requirements
+
+- Python 3.10+
+- Django 4.0+
+- MySQL
+- Steps
+- Clone the Repository
 
 **License**
-This project is licensed under the MIT License.
+This project is licensed under the OYICHE-TECH License.
