@@ -1,0 +1,82 @@
+{% load static %}
+<div class="top-bar-area address-one-lines inc-transparent-nav bg-dark text-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9 address-info">
+                <div class="info box">
+                    <ul>
+                        <li>
+                            Have any question?  +2349152670310
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope-open"></i>
+                            info@oyichetech.com
+                        </li>
+                        <li>
+                            <i class="fas fa-clock"></i>
+                            Mon - Sat <span>8:00 - 5:00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="user-login text-end col-lg-3">
+                <a href="#"><i class="fas fa-edit"></i> Enroll Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Header Top -->
+
+<!-- Header -->
+<header>
+    <!-- Start Navigation -->
+    <nav class="navbar mobile-sidenav navbar-sticky navbar-default validnavs navbar-fixed dark no-background">
+
+        <div class="container d-flex justify-content-between align-items-center">
+
+
+            <div class="navbar-brand-left">
+                <!-- Start Header Navigation -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <a class="navbar-brand" href="{% url 'basic:home' %}">
+                    <img src="{% static 'frontend/img/logo.png' %} " class="logo" alt="Logo">
+                    </a>
+                </div>
+                <!-- End Header Navigation -->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="navbar-menu">
+
+                <img src="{% static 'frontend/img/logo.png' %}" alt="Logo">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
+                    <i class="fa fa-times"></i>
+                </button>
+
+                <ul class="nav navbar-nav navbar-right" data-in="fadeInDown" data-out="fadeOutUp">
+                    <li><a href="{% url 'basic:home' %}" class="active">Home</a></li>
+
+                    <li>
+                        <a href="{% url 'basic:about' %}">About</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'basic:blog' %}">Blog</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'basic:contact' %}">Contact</a>
+                    </li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+
+            <!-- Main Nav -->
+        </div>
+        <!-- Overlay screen for menu -->
+        <div class="overlay-screen"></div>
+        <!-- End Overlay screen for menu -->
+
+    </nav>
+    <!-- End Navigation -->
+</header>

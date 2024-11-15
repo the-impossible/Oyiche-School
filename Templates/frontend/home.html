@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Home {% endblock title %}
+{% block head %} {% include 'partials/frontend/head.html' %} {% endblock head %}
+{% block body %}
+    <!-- Preloader Start -->
+    <div class="se-pre-con"></div>
+    <!-- Preloader Ends -->
+
+    <!-- Start Header  -->
+    {% block nav %}{% include 'partials/frontend/nav.html' %}{% endblock nav %}
+    <!-- End Header -->
+
+    <!-- Start Banner -->
+    <div class="banner-area standard text-default bg-gray-hard">
+
+        <div class="item">
+            <div class="box-table">
+                <div class="box-cell">
+                    <div class="container">
+                        <div class="row item-flex center">
+
+                            <div class="col-lg-6">
+                                <div class="content-box">
+                                    <h1>Seamless School Management</h1>
+                                    <p>
+                                        Transform the way you manage your school. Oyiche School Management System simplifies student enrollment, grading, performance tracking, and administrative tasks. With multi-school support, automated reports, and an intuitive interface, Oyiche School helps educators focus on what truly matters—enhancing the learning experience. Start organizing and optimizing your school today!.
+                                    </p>
+                                    <a href="#" class="btn btn-dark effect btn-sm mt-3">
+                                        <i class="fas fa-chart-bar"></i> Get Started
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 thumb">
+                                <img src="{% static 'frontend/img/about/3.jpg' %}" alt="Thumb">
+                                <img src="{% static 'frontend/img/about/2.jpg' %}" alt="Thumb">
+                                <div class="join">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <div class="fun-fact">
+                                        <h4 class="timer" data-to="20" data-speed="5000"></h4>
+                                        <span class="medium">Schools Enrolled</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Banner -->
+
+   {% include 'partials/frontend/why_choose_us.html' %}
+
+    <!-- Start What Learn -->
+    <div class="what-learn-area bg-dark default-padding">
+        <div class="container">
+            <div class="content-box">
+                <div class="row">
+
+                    <div class="col-12 info text-light text-center mb-5">
+                        <h2>Other Features</h2>
+                        <p>
+                            we empower educators to focus on what matters most—student success
+                        </p>
+                    </div>
+
+                    <div class="col-lg-12 categories">
+                        <div class="row">
+                            <!-- Single Item -->
+                            <div class="col-lg-4 col-md-4 single-item">
+                                <div class="item">
+                                    <a href="#">
+                                        <i class="flaticon-feature"></i>
+                                        <div class="info">
+                                            <h4>Centralized Management</h4>
+                                            <span>A single dashboard</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- End Single Item -->
+                            <!-- Single Item -->
+                            <div class="col-lg-4 col-md-4 single-item">
+                                <div class="item">
+                                    <a href="#">
+                                        <i class="flaticon-interaction"></i>
+                                        <div class="info">
+                                            <h4>Grading & Analysis</h4>
+                                            <span>generate student performance</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- End Single Item -->
+                            <!-- Single Item -->
+                            <div class="col-lg-4 col-md-4 single-item">
+                                <div class="item">
+                                    <a href="#">
+                                        <i class="flaticon-conveyor"></i>
+                                        <div class="info">
+                                            <h4>Positioning & Ranking</h4>
+                                            <span>Automatically rank students</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- End Single Item -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End What Learn -->
+
+    <!-- Start Fun Factor
+    ============================================= -->
+    <div class="fun-factor-area default-padding bottom-less text-center bg-gray shadow dark-hard" style="background-image: url({% static 'frontend/img/banner/1.jpg);">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 item">
+                    <div class="fun-fact">
+                        <div class="icon">
+                            <i class="flaticon-contract"></i>
+                        </div>
+                        <div class="info">
+                            <span class="timer" data-to="212" data-speed="5000"></span>
+                            <span class="medium">Reports Generated</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 item">
+                    <div class="fun-fact">
+                        <div class="icon">
+                            <i class="flaticon-professor"></i>
+                        </div>
+                        <div class="info">
+                            <span class="timer" data-to="128" data-speed="5000"></span>
+                            <span class="medium">Schools Enrolled</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 item">
+                    <div class="fun-fact">
+                        <div class="icon">
+                            <i class="flaticon-online"></i>
+                        </div>
+                        <div class="info">
+                            <span class="timer" data-to="8970" data-speed="5000"></span>
+                            <span class="medium">Subject Registered</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 item">
+                    <div class="fun-fact">
+                        <div class="icon">
+                            <i class="flaticon-reading"></i>
+                        </div>
+                        <div class="info">
+                            <span class="timer" data-to="640" data-speed="5000"></span>
+                            <span class="medium">Cources</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Fun Factor -->
+
+    <!-- Start Blog
+    ============================================= -->
+    <div id="blog" class="blog-area default-padding bottom-less">
+        <div class="container">
+            <div class="row">
+                <div class="site-heading text-center">
+                    <div class="col-lg-8 offset-lg-2">
+                        <h2>Latest News</h2>
+                        <p>
+                            Able an hope of body. Any nay shyness article matters own removal nothing his forming. Gay own additions education satisfied the perpetual. If he cause manor happy. Without farther she exposed saw man led. Along on happy could cease green oh.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="blog-items">
+                <div class="row">
+
+                    <!-- Single Item -->
+                    <div class="col-lg-4 single-item">
+                        <div class="item">
+                            <div class="thumb">
+                                <a href="#"><img src="{% static 'frontend/img/blog/1.jpg' %}" alt="Thumb"></a>
+                                <div class="date">
+                                    <h4><span>24</span> Nov, 2018</h4>
+                                </div>
+                            </div>
+                            <div class="info">
+                                <h4>
+                                    <a href="#">Objection happiness something</a>
+                                </h4>
+                                <p>
+                                    Sitting mistake towards his few country ask. You delighted two rapturous six depending objection happiness something the partiality unaffected
+                                </p>
+                                <a href="#">Read More <i class="fas fa-angle-double-right"></i></a>
+                                <div class="meta">
+                                    <ul>
+                                        <li>
+                                            <a href="#"><i class="fas fa-user"></i> Author</a>
+                                        </li>
+                                        <li>
+                                            <a href="#"><i class="fas fa-comments"></i> 23 Comments</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Single Item -->
+                    <!-- Single Item -->
+                    <div class="col-lg-4 single-item">
+                        <div class="item">
+                            <div class="thumb">
+                                <a href="#"><img src="{% static 'frontend/img/blog/2.jpg' %}" alt="Thumb"></a>
+                                <div class="date">
+                                    <h4><span>12</span> Sep, 2018</h4>
+                                </div>
+                            </div>
+                            <div class="info">
+                                <h4>
+                                    <a href="#">Meant to learn of vexed</a>
+                                </h4>
+                                <p>
+                                    Sitting mistake towards his few country ask. You delighted two rapturous six depending objection happiness something the partiality unaffected
+                                </p>
+                                <a href="#">Read More <i class="fas fa-angle-double-right"></i></a>
+                                <div class="meta">
+                                    <ul>
+                                        <li>
+                                            <a href="#"><i class="fas fa-user"></i> Author</a>
+                                        </li>
+                                        <li>
+                                            <a href="#"><i class="fas fa-comments"></i> 23 Comments</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Single Item -->
+                    <!-- Single Item -->
+                    <div class="col-lg-4 single-item">
+                        <div class="item">
+                            <div class="thumb">
+                                <a href="#"><img src="{% static 'frontend/img/blog/3.jpg' %}" alt="Thumb"></a>
+                                <div class="date">
+                                    <h4><span>29</span> Dec, 2018</h4>
+                                </div>
+                            </div>
+                            <div class="info">
+                                <h4>
+                                    <a href="#">Delightful up dissimilar</a>
+                                </h4>
+                                <p>
+                                    Sitting mistake towards his few country ask. You delighted two rapturous six depending objection happiness something the partiality unaffected
+                                </p>
+                                <a href="#">Read More <i class="fas fa-angle-double-right"></i></a>
+                                <div class="meta">
+                                    <ul>
+                                        <li>
+                                            <a href="#"><i class="fas fa-user"></i> Author</a>
+                                        </li>
+                                        <li>
+                                            <a href="#"><i class="fas fa-comments"></i> 23 Comments</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Single Item -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Blog -->
+
+        <!-- Start Testimonials
+    ============================================= -->
+    <div class="testimonials-area carousel-shadow default-padding bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="site-heading text-center">
+                    <div class="col-lg-8 offset-lg-2">
+                        <h2>Students Review</h2>
+                        <p>
+                            Able an hope of body. Any nay shyness article matters own removal nothing his forming. Gay own additions education satisfied the perpetual. If he cause manor happy. Without farther she exposed saw man led. Along on happy could cease green oh.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="clients-review-carousel owl-carousel owl-theme">
+                <!-- Single Item -->
+                <div class="item">
+                    <div class="row align-items-center">
+                        <div class="col-lg-5 thumb">
+                            <img src="{% static 'frontend/img/team/2.jpg' %}" alt="Thumb">
+                        </div>
+                        <div class="col-lg-7 info">
+                            <p>
+                                Procuring continued suspicion its ten. Pursuit brother are had fifteen distant has. Early had add equal china quiet visit. Appear an manner as no limits either praise..
+                            </p>
+                            <h4>Druna Patia</h4>
+                            <span>Biology Student</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Single Item -->
+                <!-- Single Item -->
+                <div class="item">
+                    <div class="row align-items-center">
+                        <div class="col-lg-5 thumb">
+                            <img src="{% static 'frontend/img/team/3.jpg' %}" alt="Thumb">
+                        </div>
+                        <div class="col-lg-7 info">
+                            <p>
+                                Procuring continued suspicion its ten. Pursuit brother are had fifteen distant has. Early had add equal china quiet visit. Appear an manner as no limits either praise..
+                            </p>
+                            <h4>Astron Brun</h4>
+                            <span>Science Student</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Single Item -->
+                <!-- Single Item -->
+                <div class="item">
+                    <div class="row align-items-center">
+                        <div class="col-lg-5 thumb">
+                            <img src="{% static 'frontend/img/team/4.jpg' %}" alt="Thumb">
+                        </div>
+                        <div class="col-lg-7 info">
+                            <p>
+                                Procuring continued suspicion its ten. Pursuit brother are had fifteen distant has. Early had add equal china quiet visit. Appear an manner as no limits either praise..
+                            </p>
+                            <h4>Paol Druva</h4>
+                            <span>Development Student</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Single Item -->
+                <!-- Single Item -->
+                <div class="item">
+                    <div class="row align-items-center">
+                        <div class="col-lg-5 thumb">
+                            <img src="{% static 'frontend/img/team/7.jpg' %}" alt="Thumb">
+                        </div>
+                        <div class="col-lg-7 info">
+                            <p>
+                                Procuring continued suspicion its ten. Pursuit brother are had fifteen distant has. Early had add equal china quiet visit. Appear an manner as no limits either praise..
+                            </p>
+                            <h4>Druna Patia</h4>
+                            <span>Biology Student</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Single Item -->
+            </div>
+        </div>
+    </div>
+    <!-- End Testimonials -->
+
+    <!-- Start Footer -->
+    {% include 'partials/frontend/footer.html' %}
+    <!-- End Footer -->
+
+    <!-- Start Script -->
+    {% include 'partials/frontend/script.html' %}
+    <!-- End Script -->
+
+{% endblock body %}
