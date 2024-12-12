@@ -1,0 +1,27 @@
+{% load static %}
+
+<!-- Start Main project js, jQuery, Bootstrap -->
+<script src="{% static 'backend/bundles/lib.vendor.bundle.js' %}"></script>
+
+<!-- Start all plugin js -->
+<script src="{% static 'backend/bundles/counterup.bundle.js' %}"></script>
+<script src="{% static 'backend/bundles/apexcharts.bundle.js' %}"></script>
+<script src="{% static 'backend/bundles/summernote.bundle.js' %}"></script>
+
+<!-- Start project main js  and page js -->
+<script src="{% static 'backend/js/core.js' %}"></script>
+<script src="{% static 'backend/js/page/index.js' %}"></script>
+<script src="{% static 'backend/js/page/summernote.js' %}"></script>
+<script>
+    window.setTimeout(function() {
+        $(".alert").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+
+        $("#remove").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+
+    }, 10000);
+
+</script>
