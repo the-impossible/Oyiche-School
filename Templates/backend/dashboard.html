@@ -17,10 +17,10 @@
     <!-- Start Theme panel do not add in project -->
     {% include 'partials/backend/theme.html' %}
 
-    <!-- Start Quick menu with more functio -->
+    <!-- Start Quick menu with more function -->
     {% include 'partials/backend/quick-menu.html' %}
 
-    <!-- Start Main leftbar navigation -->
+    <!-- Start Main left-bar navigation -->
     {% include 'partials/backend/sidebar-main.html' %}
 
     <!-- Start project content area -->
@@ -36,8 +36,7 @@
                     <div class="header-action">
                         <h1 class="page-title">Dashboard</h1>
                         <ol class="breadcrumb page-breadcrumb">
-                            <li class="breadcrumb-item"><a href="#">Ericsson</a></li>
-                            <li class="breadcrumb-item"><a href="#">University</a></li>
+                            {% include 'partials/backend/breadcrumb.html' %}
                             <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
                         </ol>
                     </div>

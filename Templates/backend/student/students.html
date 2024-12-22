@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Dashboard {% endblock title %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Setting panel -->
+    {% include 'partials/backend/settings.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center ">
+                    <div class="header-action">
+                        <h1 class="page-title">Students</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item active" aria-current="page">Students</li>
+                        </ol>
+                    </div>
+                    <ul class="nav nav-tabs page-header-tab">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#Student-all">All Student</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#Student-add">Add</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="Student-all">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+
+                                    <div class="col-lg-5 col-md-4 col-sm-6">
+                                        <select class="form-control input-height" name="department">
+                                            <option value="">Select Class</option>
+                                            <option value="Category 1">Computer</option>
+                                            <option value="Category 2">Mechanical</option>
+                                            <option value="Category 3">Mathematics</option>
+                                            <option value="Category 3">Commerce</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-5 col-md-4 col-sm-6">
+                                        <select class="form-control input-height" name="department">
+                                            <option value="">Select Class Letters</option>
+                                            <option value="Category 1">Computer</option>
+                                            <option value="Category 2">Mechanical</option>
+                                            <option value="Category 3">Mathematics</option>
+                                            <option value="Category 3">Commerce</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                        <a href="javascript:void(0);" class="btn btn-sm btn-primary btn-block" title="">Get students</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive card">
+                            <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Reg No.</th>
+                                        <th>Name</th>
+                                        <th></th>
+                                        <th>Department</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Admission Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>A25</td>
+                                        <td class="w60">
+                                            <img class="avatar" src="../assets/images/xs/avatar1.jpg" alt="">
+                                        </td>
+                                        <td><span class="font-16">Ken Smith</span></td>
+                                        <td>Science</td>
+                                        <td>ken@gmail.com</td>
+                                        <td>(417) 646-7483</td>
+                                        <td>04 Aug, 2024</td>
+                                        <td>
+                                            <button type="button" class="btn btn-icon btn-sm" title="View"><i class="fa fa-eye"></i></button>
+                                            <button type="button" class="btn btn-icon btn-sm" title="Edit"><i class="fa fa-edit"></i></button>
+                                            <button type="button" class="btn btn-icon btn-sm js-sweetalert" title="Delete" data-type="confirm"><i class="fa fa-trash-o text-danger"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="Student-add">
+                        <div class="row clearfix">
+                            <div class="col-lg-8 col-md-12 col-sm-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Basic Information</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <form class="card-body">
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">First Name <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control" placeholder="Enter First name">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Last Name <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control" placeholder="Enter Last name">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Roll No <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Email</label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Registration Date <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input data-provide="datepicker" data-date-autoclose="true" class="form-control" placeholder="">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Class <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <select class="form-control input-height" name="department">
+                                                    <option value="">Select...</option>
+                                                    <option value="Category 1">Computer</option>
+                                                    <option value="Category 2">Mechanical</option>
+                                                    <option value="Category 3">Mathematics</option>
+                                                    <option value="Category 3">Commerce</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Gender <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <select class="form-control input-height" name="gender">
+                                                    <option value="">Select...</option>
+                                                    <option value="Category 1">Male</option>
+                                                    <option value="Category 2">Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Mobile No. <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Parents Name <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Parents Mobile No. <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Date Of Birth  <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Address <span class="text-danger">*</span></label>
+                                            <div class="col-md-9">
+                                                <input type="text" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-md-3 col-form-label">Profile Picture</label>
+                                            <div class="col-md-9">
+                                                <input type="file" class="dropify">
+                                                <small id="fileHelp" class="form-text text-muted">This is some placeholder block-level help text for the above input. It's a bit lighter and easily wraps to a new line.</small>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-12 col-sm-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Account Information</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row clearfix">
+                                            <div class="col-sm-12">
+                                                <div class="form-group">
+                                                    <label>User Name</label>
+                                                    <input type="text" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Password</label>
+                                                    <input type="text" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Confirm Password</label>
+                                                    <input type="text" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                <button type="submit" class="btn btn-outline-secondary">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Account Information</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>Facebook</label>
+                                            <input type="text" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Twitter</label>
+                                            <input type="text" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>LinkedIN</label>
+                                            <input type="text" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Behance</label>
+                                            <input type="text" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>dribbble</label>
+                                            <input type="text" class="form-control">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                        <button type="submit" class="btn btn-outline-secondary">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Start main footer -->
+        {% include 'partials/backend/footer.html' %}
+    </div>
+</div>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<!-- End Script -->
+
+{% endblock body %}

@@ -13,3 +13,5 @@ urlpatterns = [
 
     path('dashboard', DashboardView.as_view(), name="dashboard"),
 ]
+
+handler404 = "oyiche_auth.views.custom_404_view"

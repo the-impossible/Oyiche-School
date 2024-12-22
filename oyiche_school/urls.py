@@ -8,6 +8,7 @@ urlpatterns = [
     path('way/to/admin/', admin.site.urls),
     path('', include('oyiche_basic.urls', namespace='basic')),
     path('auth/', include('oyiche_auth.urls', namespace='auth')),
+    path('sch/', include('oyiche_schMGT.urls', namespace='sch')),
 ]
 
 if settings.DEBUG:

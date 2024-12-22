@@ -2,11 +2,16 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 import uuid
+from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponseNotFound
+from django.template.loader import render_to_string
 
 # My app imports
-
+from oyiche_schMGT.models import *
 
 # Create your models here.
+
+
 class UserType(models.Model):
     user_title = models.CharField(max_length=20, unique=True)
     user_description = models.CharField(max_length=100, blank=True, null=True)
@@ -103,6 +108,36 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+
+    def get_school_name(self):
+        try:
+            if str(self.userType) == 'school':
+                # Fetching SchoolInformation by principal_id
+                school = SchoolInformation.objects.get(principal_id=self.user_id)
+                return school.school_username
+
+            elif str(self.userType) == 'student':
+                # Fetching StudentInformation and related school
+                student = StudentInformation.objects.get(user_id=self.user_id)
+                return student.school.school_username
+
+            elif str(self.userType) == 'admin':
+                return 'Oyiche'
+
+            # If userType does not match any expected value
+            return None
+
+        except SchoolInformation.DoesNotExist:
+            # Redirecting to 404 page if SchoolInformation not found
+            raise Http404("School Information not Found! contact Host.")
+
+        except StudentInformation.DoesNotExist:
+            # Redirecting to 404 page if StudentInformation not found
+            raise Http404("School Information not Found! contact School.")
+
+        except Exception as e:
+            # Handling any other exception and redirecting to login page
+            return redirect('auth:login')  # Redirect to login page in case of unexpected errors
 
     class Meta:
         db_table = 'Users'

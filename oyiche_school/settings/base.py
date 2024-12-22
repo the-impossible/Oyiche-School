@@ -19,8 +19,6 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -31,7 +29,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
+    "crispy_bootstrap5",
     'oyiche_auth',
+    'oyiche_schMGT',
+    'oyiche_files',
 ]
 
 MIDDLEWARE = [
@@ -44,6 +46,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CRISPY FORM
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 AUTH_USER_MODEL = "oyiche_auth.User"
 ROOT_URLCONF = 'oyiche_school.urls'

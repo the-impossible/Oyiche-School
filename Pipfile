@@ -8,6 +8,11 @@ django = "*"
 python-decouple = "*"
 pillow = "*"
 whitenoise = "*"
+pandas = "*"
+django-crispy-forms = "*"
+crispy-bootstrap5 = "*"
+crispy-bootstrap4 = "*"
+openpyxl = "*"
 
 [dev-packages]
 
