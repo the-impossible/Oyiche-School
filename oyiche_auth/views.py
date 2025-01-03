@@ -66,3 +66,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 def custom_404_view(request, exception=None):
     error_message = str(exception) if exception else "Page not found"
     return render(request, "404.html", {"error_message": error_message}, status=404)
+
+class LogoutView(LoginRequiredMixin, View):
+    login_url = 'auth:login'
+    def post(self, request):
+        logout(request)
+        messages.success(request, 'You are successfully logged out, to continue login again')
+        return redirect('auth:login')
