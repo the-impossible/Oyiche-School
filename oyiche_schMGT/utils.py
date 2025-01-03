@@ -58,21 +58,31 @@ class BatchAccountCreationThread(threading.Thread):
             female_gender = gender_map.get('Female')
 
             # Get session
-            session = self.school.academic_infos.filter(is_current=True).first().academic_session.session[-2:]
+            session = self.school.academic_infos.filter(is_current=True).first()
             student_count = StudentEnrollment.objects.filter(
                     student__school=self.school, school_academic_information__academic_session=session).count()
             local_counter = student_count
 
             def generateID(self):
 
-                nonlocal local_counter
-
                 # Get school username
                 school_username = self.school.school_username.upper()
-                # Generate the new student ID
-                _counter = local_counter + 1
-                student_id = f"{school_username}{session}{str(_counter).zfill(4)}"
-                local_counter = _counter
+
+                nonlocal local_counter
+                is_taken = True
+                student_id = ''
+
+                while is_taken:
+                    # Generate the new student ID
+                    _counter = local_counter + 1
+                    student_id = f"{school_username}{session.academic_session.session[-2:]}{str(_counter).zfill(4)}"
+                    user = User.objects.filter(username=student_id).exists()
+
+                    if not user:
+                        is_taken = False
+
+                    local_counter = _counter
+
                 return student_id
 
             for index, row in df.iterrows():
@@ -159,3 +169,30 @@ class AccountCreation(View):
 
 
 Creation = AccountCreation()
+
+def generateID(self, school):
+
+    session = school.academic_infos.filter(is_current=True).first()
+    student_count = StudentEnrollment.objects.filter(
+                    student__school=school, school_academic_information__academic_session=session.academic_session).count()
+
+    # Get school username
+    school_username = school.school_username.upper()
+    # Generate the new student ID
+
+    is_taken = True
+    student_id = ''
+    counter = student_count + 1
+
+    while is_taken:
+        _counter = counter
+        student_id = f"{school_username}{session.academic_session.session[-2:]}{str(_counter).zfill(4)}"
+
+        user = User.objects.filter(username=student_id).exists()
+
+        if not user:
+            is_taken = False
+        else:
+            counter += 1
+
+    return student_id
