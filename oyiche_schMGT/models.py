@@ -45,6 +45,9 @@ class AcademicSession(models.Model):
     session = models.CharField(max_length=20, unique=True)
     session_description = models.CharField(
         max_length=100, blank=True, null=True)
+    school_info = models.ForeignKey(
+        to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_session", blank=True, null=True)
+    is_current = models.BooleanField(default=False)
 
     def __str__(self):
         return self.session
@@ -74,6 +77,9 @@ class AcademicStatus(models.Model):
 class AcademicTerm(models.Model):
     term = models.CharField(max_length=20, unique=True)
     term_description = models.CharField(max_length=100, blank=True, null=True)
+    school_info = models.ForeignKey(
+        to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_term", blank=True, null=True)
+    is_current = models.BooleanField(default=False)
 
     def __str__(self):
         return self.term
@@ -81,40 +87,6 @@ class AcademicTerm(models.Model):
     class Meta:
         db_table = 'Academic Term'
         verbose_name_plural = 'Academic Term'
-
-# Letter (A, B) -> JS1A
-
-
-class ClassLetter(models.Model):
-    class_letter = models.CharField(max_length=10, unique=True)
-
-    def __str__(self):
-        return self.class_letter
-
-    class Meta:
-        db_table = 'Class Letter'
-        verbose_name_plural = 'Class Letters'
-
-# Term (First Term, Second Term)
-
-
-class StudentClass(models.Model):
-    student_class = models.CharField(max_length=20)
-    class_letters = models.ForeignKey(
-        to="ClassLetter", on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.student_class} {self.class_letters}"
-
-    class Meta:
-        db_table = 'Student Class'
-        verbose_name_plural = 'Student Classes'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['student_class', 'class_letters'],
-                name='unique_student_class_with_letter'
-            )
-        ]
 
 # Gender (Male, Female)
 
@@ -146,9 +118,9 @@ class SchoolInformation(models.Model):
     school_logo = models.ImageField(
         null=True, blank=True, upload_to="uploads/logos/")
     school_address = models.CharField(max_length=200, db_index=True)
-    school_category = models.OneToOneField(
+    school_category = models.ForeignKey(
         to="SchoolCategory", on_delete=models.CASCADE)
-    school_type = models.OneToOneField(
+    school_type = models.ForeignKey(
         to="SchoolType", on_delete=models.CASCADE)
     date_created = models.DateField(auto_now_add=True)
 
@@ -207,11 +179,13 @@ class StudentEnrollment(models.Model):
     student = models.ForeignKey(
         to="StudentInformation", on_delete=models.CASCADE, related_name="student_information")
     student_class = models.ForeignKey(
-        to="StudentClass", on_delete=models.CASCADE, related_name="student_enrollment_class")
+        to="SchoolClasses", on_delete=models.CASCADE, related_name="student_enrollment_class")
     promoted_class = models.ForeignKey(
-        to="StudentClass", on_delete=models.CASCADE, blank=True, null=True, related_name="promoted_class")
-    school_academic_information = models.ForeignKey(
-        to="SchoolAcademicInformation", on_delete=models.CASCADE)
+        to="SchoolClasses", on_delete=models.CASCADE, blank=True, null=True, related_name="promoted_class")
+    academic_session = models.ForeignKey(
+        to="AcademicSession", on_delete=models.CASCADE, related_name='student_academic_session', blank=True, null=True)
+    academic_term = models.ForeignKey(
+        to="AcademicTerm", on_delete=models.CASCADE, related_name='student_academic_term', blank=True, null=True)
     academic_status = models.ForeignKey(
         to="AcademicStatus", on_delete=models.CASCADE)
     date_created = models.DateField(auto_now_add=True)
@@ -224,21 +198,33 @@ class StudentEnrollment(models.Model):
         verbose_name_plural = 'Student Enrollments'
 
 
-class SchoolAcademicInformation(models.Model):
-    academic_id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, unique=True, editable=False)
-    school = models.ForeignKey(
-        to=SchoolInformation, on_delete=models.CASCADE, related_name='academic_infos')
-    academic_session = models.ForeignKey(
-        to=AcademicSession, on_delete=models.CASCADE, related_name='academic_session')
-    academic_term = models.ForeignKey(
-        to=AcademicTerm, on_delete=models.CASCADE, related_name='academic_term')
-    is_current = models.BooleanField(default=True)
+# School Classes (JS1, JS2)
+class SchoolClasses(models.Model):
+    class_name = models.CharField(max_length=20, unique=True)
+    school_info = models.ForeignKey(
+        to=SchoolInformation, on_delete=models.CASCADE, related_name="school_class")
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.school.school_username}:{self.academic_session}"
+        return f"{self.school_info.school_username} {self.class_name}"
 
     class Meta:
-        db_table = 'School Academic Information'
-        verbose_name_plural = 'School Academic Information'
+        db_table = 'School Classes'
+        verbose_name_plural = 'School Classes'
+
+# Class Subjects (English, Mathematics)
+
+
+class ClassSubjects(models.Model):
+
+    subject_name = models.CharField(max_length=10, unique=True)
+    school_class = models.ForeignKey(
+        to='SchoolClasses', on_delete=models.CASCADE, related_name='school_subject_class')
+    date_created = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.school_class} {self.subject_name}'
+
+    class Meta:
+        db_table = 'Class Subjects'
+        verbose_name_plural = 'Class Subjects'

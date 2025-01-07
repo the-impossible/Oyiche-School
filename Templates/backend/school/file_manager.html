@@ -95,7 +95,7 @@
                                     {% csrf_token %}
                                     <div class="row">
                                         <div class="col-lg-3 col-md-4 col-sm-6">
-                                            {{ form.student_class|as_crispy_field }}
+                                            {{ form.class_name|as_crispy_field }}
                                         </div>
 
                                         <div class="col-lg-3 col-md-4 col-sm-6">
@@ -214,8 +214,8 @@
                                                         <td class="text-center">
                                                             <span class="folder-name">
 
-                                                                {% if object.student_class %}
-                                                                {{object.student_class}}
+                                                                {% if object.class_name %}
+                                                                {{object.class_name}}
                                                                 {% else %}
                                                                 <b >-</b>
                                                                 {% endif %}

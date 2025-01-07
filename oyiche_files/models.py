@@ -37,7 +37,8 @@ class FileTemplateType(models.Model):
 def path_and_rename(instance, filename):
     path = 'uploads/xslx/'
     ext = filename.split('.')[-1]
-    filename = f'{instance.student_class}_{instance.file_type}.{ext}' if instance.student_class else f'{instance.file_type}.{ext}'
+
+    filename = f'{instance.class_name.class_name}_{instance.file_type}.{ext}' if instance.class_name else f'{instance.file_type}.{ext}'
     return f'{path}{filename}'
 
 
@@ -45,8 +46,8 @@ class FilesManager(models.Model):
     file_id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     file = models.FileField(upload_to=path_and_rename)
-    student_class = models.ForeignKey(
-        to=StudentClass, on_delete=models.CASCADE, blank=True, null=True)
+    class_name = models.ForeignKey(
+        to=SchoolClasses, on_delete=models.CASCADE, blank=True, null=True)
     file_type = models.ForeignKey(to=FileType, on_delete=models.CASCADE)
     school = models.ForeignKey(to=SchoolInformation, on_delete=models.CASCADE)
     processing_status = models.CharField(

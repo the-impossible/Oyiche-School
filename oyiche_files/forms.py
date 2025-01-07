@@ -58,6 +58,17 @@ class FileHandler:
 
 class FilesManagerForm(forms.ModelForm):
 
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(FilesManagerForm, self).__init__(*args, **kwargs)
+
+        if self.school:
+            self.fields['class_name'].queryset = SchoolClasses.objects.filter(
+                school_info=self.school)
+            self.fields['class_name'].label_from_instance = lambda obj: obj.class_name
+        else:
+            self.fields['class_name'].queryset = SchoolClasses.objects.none()
+
     file = forms.FileField(widget=forms.FileInput(
         attrs={
             'class': 'form-control',
@@ -66,7 +77,7 @@ class FilesManagerForm(forms.ModelForm):
         }
     ))
 
-    student_class = forms.ModelChoiceField(queryset=StudentClass.objects.all(), empty_label="(Select student class)", required=False, widget=forms.Select(
+    class_name = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=False, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -83,9 +94,13 @@ class FilesManagerForm(forms.ModelForm):
 
         uploaded_file = cleaned_data.get('file')
         file_type = cleaned_data.get('file_type')
-        student_class = cleaned_data.get('student_class')
+        class_name = cleaned_data.get('class_name')
 
-        if str(file_type) == 'Registration' and not student_class:
+        # * class_name * Select a valid choice. That choice is not one of the available choices. * __all__ * File Type 'Registration' requires student class.
+
+        print(f"CLASSNAME: {class_name}")
+
+        if str(file_type) == 'Registration' and not class_name:
             raise forms.ValidationError(
                 "File Type 'Registration' requires student class.")
 
@@ -105,4 +120,4 @@ class FilesManagerForm(forms.ModelForm):
 
     class Meta:
         model = FilesManager
-        fields = ('file', 'student_class', 'file_type')
+        fields = ('file', 'class_name', 'file_type')

@@ -57,10 +57,13 @@ class BatchAccountCreationThread(threading.Thread):
             male_gender = gender_map.get('Male')
             female_gender = gender_map.get('Female')
 
-            # Get session
-            session = self.school.academic_infos.filter(is_current=True).first()
+            # Get session & term
+            session = self.school.school_academic_session.filter(
+                is_current=True).first()
+            term = self.school.school_academic_term.filter(
+                is_current=True).first()
             student_count = StudentEnrollment.objects.filter(
-                    student__school=self.school, school_academic_information__academic_session=session).count()
+                student__school=self.school, academic_session=session, academic_term=term).count()
             local_counter = student_count
 
             def generateID(self):
@@ -113,8 +116,6 @@ class BatchAccountCreationThread(threading.Thread):
             # Create Student Profile -> StudentInformation
 
             academic_status = AcademicStatus.objects.get(status="active")
-            school_academic_info = SchoolAcademicInformation.objects.get(
-                school=self.school)
 
             # Use Atomic transaction
             with transaction.atomic():
@@ -135,10 +136,10 @@ class BatchAccountCreationThread(threading.Thread):
                     student_profile_list)
 
                 # Prepare student enrollment info for bulk creating
-                student_class = self.file.student_class
+                student_class = self.file.class_name
                 for profile in student_profile_account:
                     student_enrollment_list.append(StudentEnrollment(
-                        student=profile, academic_status=academic_status, school_academic_information=school_academic_info, student_class=student_class))
+                        student=profile, academic_status=academic_status, academic_session=session, academic_term=term, student_class=student_class))
 
                 # Create student enrollment info
                 student_enrollment_info = StudentEnrollment.objects.bulk_create(
@@ -170,11 +171,14 @@ class AccountCreation(View):
 
 Creation = AccountCreation()
 
+
 def generateID(self, school):
 
-    session = school.academic_infos.filter(is_current=True).first()
+    session = self.school.school_academic_session.filter(
+        is_current=True).first()
+    term = self.school.school_academic_term.filter(is_current=True).first()
     student_count = StudentEnrollment.objects.filter(
-                    student__school=school, school_academic_information__academic_session=session.academic_session).count()
+        student__school=school, academic_session=session, academic_term=term).count()
 
     # Get school username
     school_username = school.school_username.upper()
@@ -186,7 +190,7 @@ def generateID(self, school):
 
     while is_taken:
         _counter = counter
-        student_id = f"{school_username}{session.academic_session.session[-2:]}{str(_counter).zfill(4)}"
+        student_id = f"{school_username}{session.session[-2:]}{str(_counter).zfill(4)}"
 
         user = User.objects.filter(username=student_id).exists()
 

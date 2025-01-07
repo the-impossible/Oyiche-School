@@ -10,10 +10,10 @@
             <nav class="sidebar-nav">
                 <ul class="metismenu">
                     <li class="active"><a href="{% url 'auth:dashboard' %}"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
-                    <li><a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a></li>
+                    <li><a href="{% url 'sch:school_classes' %}"><i class="fa fa-bullhorn"></i><span>Classes</span></a></li>
                     <li><a href="courses.html"><i class="fa fa-graduation-cap"></i><span>Subjects</span></a></li>
-                    <li><a href="library.html"><i class="fa fa-book"></i><span>Reports</span></a></li>
-                    <li><a href="holiday.html"><i class="fa fa-bullhorn"></i><span>Session</span></a></li>
+                    <li><a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a></li>
+                    <li><a href="{% url 'sch:upload_report' %}"><i class="fa fa-book"></i><span>Reports</span></a></li>
                     <li class="g_heading">Extra</li>
                     <li><a href="events.html"><i class="fa fa-user-circle-o"></i><span>Profile</span></a></li>
                     <li><a href="{% url 'sch:file_manager' %}"><i class="fa fa-folder"></i><span>FileManager</span></a></li>

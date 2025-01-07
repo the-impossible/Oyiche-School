@@ -10,13 +10,46 @@ from oyiche_schMGT.utils import *
 
 class GetStudentForm(forms.Form):
 
-    student_class = forms.ModelChoiceField(queryset=StudentClass.objects.all(), empty_label="(Select student class)", required=True, widget=forms.Select(
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(GetStudentForm, self).__init__(*args, **kwargs)
+
+        if self.school:
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school)
+            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name
+
+            self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
+
+        else:
+            self.fields['student_class'].queryset = SchoolClasses.objects.none()
+
+    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
     ))
 
-    academic_session = forms.ModelChoiceField(queryset=AcademicSession.objects.all(), empty_label="(Select academic session)", required=True, widget=forms.Select(
+    academic_session = forms.ModelChoiceField(queryset=AcademicSession.objects.none(), empty_label="(Select academic session)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+class UploadReportForm(forms.Form):
+
+    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.all(), empty_label="(Select student class)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    class_subject = forms.ModelChoiceField(queryset=AcademicSession.objects.all(), empty_label="(Select academic session)", required=True, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -145,7 +178,18 @@ class StudentInformationForm(forms.ModelForm):
 
 class StudentEnrollmentForm(forms.ModelForm):
 
-    student_class = forms.ModelChoiceField(queryset=StudentClass.objects.all(), empty_label="(Select student class)", required=True, widget=forms.Select(
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(StudentEnrollmentForm, self).__init__(*args, **kwargs)
+
+        if self.school:
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school)
+            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name
+
+        else:
+            self.fields['student_class'].queryset = SchoolClasses.objects.none()
+
+    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -226,4 +270,17 @@ class EditUserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'phone', 'pic',)
+
+
+class SchoolClassesForm(forms.ModelForm):
+    class_name = forms.CharField(help_text='enter class name', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    class Meta:
+        model = SchoolClasses
+        fields = ('class_name',)
 

@@ -21,9 +21,8 @@ class SchoolInformationAdmin(admin.ModelAdmin):
     fieldsets = ()
 
 admin.site.register(Gender)
-admin.site.register(ClassLetter)
 admin.site.register(StudentInformation)
-admin.site.register(StudentClass)
+admin.site.register(SchoolClasses)
 admin.site.register(SchoolInformation, SchoolInformationAdmin)
 admin.site.register(SchoolCategory)
 admin.site.register(SchoolType)
@@ -31,5 +30,5 @@ admin.site.register(AcademicSession)
 admin.site.register(AcademicStatus)
 admin.site.register(AcademicTerm)
 admin.site.register(StudentEnrollment)
-admin.site.register(SchoolAcademicInformation)
+# admin.site.register(SchoolAcademicInformation)
 
