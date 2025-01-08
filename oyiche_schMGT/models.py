@@ -200,17 +200,28 @@ class StudentEnrollment(models.Model):
 
 # School Classes (JS1, JS2)
 class SchoolClasses(models.Model):
-    class_name = models.CharField(max_length=20, unique=True)
+    class_name = models.CharField(max_length=20)
     school_info = models.ForeignKey(
         to=SchoolInformation, on_delete=models.CASCADE, related_name="school_class")
-    date_created = models.DateField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.school_info.school_username} {self.class_name}"
 
+    def save(self, *args, **kwargs):
+        # Normalize class_name to lowercase for case-insensitivity
+        self.class_name = self.class_name.lower()
+        super(SchoolClasses, self).save(*args, **kwargs)
+
     class Meta:
         db_table = 'School Classes'
         verbose_name_plural = 'School Classes'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school_info", "class_name"],
+                name="unique_class_per_school",
+            )
+        ]
 
 # Class Subjects (English, Mathematics)
 

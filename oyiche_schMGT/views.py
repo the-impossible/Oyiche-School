@@ -7,6 +7,7 @@ from django.views import View
 import pandas as pd
 from urllib.parse import urlencode
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db import IntegrityError
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -410,6 +411,7 @@ class UploadReportView(LoginRequiredMixin, View):
 
 
 class SchoolClassesView(LoginRequiredMixin, ListView):
+
     model = SchoolClasses
     template_name = "backend/classes/school_classes.html"
     form = SchoolClassesForm
@@ -421,32 +423,83 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
         return SchoolClasses.objects.none()
 
     def get_context_data(self, **kwargs):
+        school = get_school(self.request)
+
         context = super(SchoolClassesView, self).get_context_data(**kwargs)
 
-        context['form'] = self.form
+        context['form'] = self.form(school=school)
+
         return context
 
     def post(self, request, *args, **kwargs):
 
         school = get_school(request=request) #Get school info
-        form = self.form(request.POST)
-        self.object_list = self.get_queryset()
 
-        if form.is_valid():
-            data = form.save(commit=False)
-            data.school_info = school
+        if 'create' in request.POST:
 
-            class_name = form.cleaned_data.get('class_name')
+            form = self.form(request.POST, school=school)
+            self.object_list = self.get_queryset()
 
-            data.save()
-            messages.success(request, f"{class_name} successfully created")
-            return redirect("sch:school_classes")
+            if form.is_valid():
+                data = form.save(commit=False)
+                data.school_info = school
+
+                class_name = form.cleaned_data.get('class_name')
+
+                data.save()
+                messages.success(request, f"{class_name} successfully created")
+                return redirect("sch:school_classes")
+
+            else:
+                # If form is invalid, re-render the page with errors
+                context = self.get_context_data()
+                context['form'] = form
+                messages.error(request, form.errors.as_text())
+                return self.render_to_response(context)
+
+        elif 'delete' in request.POST:
+
+            class_id = request.POST.get('class_id')
+
+            try:
+                SchoolClasses.objects.get(school_info=school, pk=class_id).delete()
+                messages.success(
+                    request, "Class has been deleted successfully!!")
+            except SchoolClasses.DoesNotExist:
+                messages.error(request, "Failed to delete class!!")
+
+            return redirect('sch:school_classes')
+
+        elif 'edit' in request.POST:
+
+            class_id = request.POST.get('class_id')
+            class_name = request.POST.get('class_name')
+
+
+            try:
+                school_class = SchoolClasses.objects.get(school_info=school, pk=class_id)
+                school_class.class_name = class_name
+                school_class.save()
+
+                messages.success(
+                    request, "Class has been updated successfully!!")
+            except SchoolClasses.DoesNotExist:
+                messages.error(request, "Failed to update class!!")
+            except IntegrityError:
+                messages.error(
+                    request, f"Failed to update class: Class name '{class_name}' already exists!"
+                )
+
+            except Exception as e:
+                messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+            return redirect('sch:school_classes')
 
         else:
-            # If form is invalid, re-render the page with errors
-            context = self.get_context_data()
-            context['form'] = form
-            messages.error(request, form.errors.as_text())
-            return self.render_to_response(context)
+            messages.error(request=request,
+                           message="couldn't handle request, Try again!!")
+            return redirect('sch:school_classes')
+
+
 
 

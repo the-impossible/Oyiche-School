@@ -273,6 +273,12 @@ class EditUserForm(forms.ModelForm):
 
 
 class SchoolClassesForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(SchoolClassesForm, self).__init__(*args, **kwargs)
+
+
     class_name = forms.CharField(help_text='enter class name', widget=forms.TextInput(
         attrs={
             'class': 'form-control',
@@ -280,7 +286,16 @@ class SchoolClassesForm(forms.ModelForm):
         }
     ))
 
+    def clean_class_name(self):
+        class_name = self.cleaned_data.get('class_name').lower()
+
+        if SchoolClasses.objects.filter(school_info=self.school, class_name=class_name).exists():
+            raise forms.ValidationError(f"The class name '{class_name}' already exists for this school.")
+
+        return class_name
+
     class Meta:
         model = SchoolClasses
         fields = ('class_name',)
+
 
