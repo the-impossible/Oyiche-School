@@ -299,3 +299,30 @@ class SchoolClassesForm(forms.ModelForm):
         fields = ('class_name',)
 
 
+class SchoolSubjectForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(SchoolSubjectForm, self).__init__(*args, **kwargs)
+
+
+    subject_name = forms.CharField(help_text='enter subject name', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    def clean_subject_name(self):
+        subject_name = self.cleaned_data.get('subject_name').lower()
+
+        if SchoolSubject.objects.filter(school_info=self.school, subject_name=subject_name).exists():
+            raise forms.ValidationError(f"The subject '{subject_name}' already exists for this school.")
+
+        return subject_name
+
+    class Meta:
+        model = SchoolSubject
+        fields = ('subject_name',)
+
+

@@ -223,19 +223,49 @@ class SchoolClasses(models.Model):
             )
         ]
 
-# Class Subjects (English, Mathematics)
+# School Subjects (English, Mathematics)
 
 
-class ClassSubjects(models.Model):
-
-    subject_name = models.CharField(max_length=10, unique=True)
-    school_class = models.ForeignKey(
-        to='SchoolClasses', on_delete=models.CASCADE, related_name='school_subject_class')
-    date_created = models.DateField(auto_now_add=True)
+class SchoolSubject(models.Model):
+    subject_name = models.CharField(max_length=20)
+    school_info = models.ForeignKey(
+        to=SchoolInformation, on_delete=models.CASCADE, related_name="school_subject")
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.school_class} {self.subject_name}'
+        return f"{self.school_info.school_username} {self.subject_name}"
+
+    def save(self, *args, **kwargs):
+        # Normalize subject_name to lowercase for case-insensitivity
+        self.subject_name = self.subject_name.lower()
+        super(SchoolSubject, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'Class Subjects'
-        verbose_name_plural = 'Class Subjects'
+        db_table = 'School Subject'
+        verbose_name_plural = 'School Subject'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school_info", "subject_name"],
+                name="unique_subject_per_school",
+            )
+        ]
+
+
+# School Class Subjects (SF:-> English, SF:-> Mathematics)
+
+
+class SchoolClassSubjects(models.Model):
+
+    school_class = models.ForeignKey(
+        to='SchoolClasses', on_delete=models.CASCADE, related_name='school_class')
+    school_subject = models.ForeignKey(
+        to='SchoolSubject', on_delete=models.CASCADE, related_name='school_subject')
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.school_class} {self.school_subject}'
+
+    class Meta:
+        db_table = 'School Class Subjects'
+        verbose_name_plural = 'School Class Subjects'
+

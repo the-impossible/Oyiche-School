@@ -11,7 +11,7 @@
                 <ul class="metismenu">
                     <li class="active"><a href="{% url 'auth:dashboard' %}"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
                     <li><a href="{% url 'sch:school_classes' %}"><i class="fa fa-building"></i><span>Classes</span></a></li>
-                    <li><a href="courses.html"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a></li>
+                    <li><a href="{% url 'sch:school_subject' %}"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a></li>
                     <li><a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a></li>
                     <li><a href="{% url 'sch:upload_report' %}"><i class="fa fa-book"></i><span>Reports</span></a></li>
                     <li class="g_heading">Extra</li>

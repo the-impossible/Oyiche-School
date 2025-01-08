@@ -459,10 +459,10 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
 
         elif 'delete' in request.POST:
 
-            class_id = request.POST.get('class_id')
+            subject_id = request.POST.get('subject_id')
 
             try:
-                SchoolClasses.objects.get(school_info=school, pk=class_id).delete()
+                SchoolClasses.objects.get(school_info=school, pk=subject_id).delete()
                 messages.success(
                     request, "Class has been deleted successfully!!")
             except SchoolClasses.DoesNotExist:
@@ -472,7 +472,7 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
 
         elif 'edit' in request.POST:
 
-            class_id = request.POST.get('class_id')
+            subject_id = request.POST.get('class_id')
             class_name = request.POST.get('class_name')
 
 
@@ -499,6 +499,97 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
             messages.error(request=request,
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_classes')
+
+
+class SchoolSubjectView(LoginRequiredMixin, ListView):
+
+    model = SchoolSubject
+    template_name = "backend/classes/school_subject.html"
+    form = SchoolSubjectForm
+
+    def get_queryset(self):
+        school = get_school(self.request)
+        if school:
+            return SchoolSubject.objects.filter(school_info=school).order_by('-date_created')
+        return SchoolSubject.objects.none()
+
+    def get_context_data(self, **kwargs):
+        school = get_school(self.request)
+
+        context = super(SchoolSubjectView, self).get_context_data(**kwargs)
+
+        context['form'] = self.form(school=school)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        school = get_school(request=request) #Get school info
+
+        if 'create' in request.POST:
+
+            form = self.form(request.POST, school=school)
+            self.object_list = self.get_queryset()
+
+            if form.is_valid():
+                data = form.save(commit=False)
+                data.school_info = school
+
+                subject_name = form.cleaned_data.get('subject_name')
+
+                data.save()
+                messages.success(request, f"{subject_name} successfully created")
+                return redirect("sch:school_subject")
+
+            else:
+                # If form is invalid, re-render the page with errors
+                context = self.get_context_data()
+                context['form'] = form
+                messages.error(request, form.errors.as_text())
+                return self.render_to_response(context)
+
+        elif 'delete' in request.POST:
+
+            subject_id = request.POST.get('subject_id')
+
+            try:
+                SchoolSubject.objects.get(school_info=school, pk=subject_id).delete()
+                messages.success(
+                    request, "Subject has been deleted successfully!!")
+            except SchoolSubject.DoesNotExist:
+                messages.error(request, "Failed to delete subject!!")
+
+            return redirect('sch:school_subject')
+
+        elif 'edit' in request.POST:
+
+            subject_id = request.POST.get('subject_id')
+            subject_name = request.POST.get('subject_name')
+
+
+            try:
+                school_subject = SchoolSubject.objects.get(school_info=school, pk=subject_id)
+                school_subject.subject_name = subject_name
+                school_subject.save()
+
+                messages.success(
+                    request, "Subject has been updated successfully!!")
+            except SchoolSubject.DoesNotExist:
+                messages.error(request, "Failed to update subject!!")
+            except IntegrityError:
+                messages.error(
+                    request, f"Failed to update subject: Subject name '{school_subject.subject_name}' already exists!"
+                )
+
+            except Exception as e:
+                messages.error(request, f"An unexpected error occurred: {str(e)}")
+
+            return redirect('sch:school_subject')
+
+        else:
+            messages.error(request=request,
+                           message="couldn't handle request, Try again!!")
+            return redirect('sch:school_subject')
 
 
 

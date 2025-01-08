@@ -21,4 +21,6 @@ urlpatterns = [
 
      # School Classes
      path("school_classes", SchoolClassesView.as_view(), name="school_classes"),
+     path("school_subject", SchoolSubjectView.as_view(), name="school_subject"),
+
 ]
