@@ -592,5 +592,82 @@ class SchoolSubjectView(LoginRequiredMixin, ListView):
             return redirect('sch:school_subject')
 
 
+class SubjectClassView(LoginRequiredMixin, ListView):
+
+    model = SchoolClassSubjects
+    template_name = "backend/classes/subject_class.html"
+    form = SchoolClassSubjectForm
+
+    def get_queryset(self, **kwargs):
+        school = get_school(self.request)
+        class_id = self.kwargs.get('class_id')
+        if school:
+            return SchoolClassSubjects.objects.filter(school_info=school, school_class=class_id).order_by('-date_created')
+        return SchoolClassSubjects.objects.none()
+
+    def get_context_data(self, **kwargs):
+        school = get_school(self.request)
+        class_id = self.kwargs.get('class_id')
+        context = super(SubjectClassView, self).get_context_data(**kwargs)
+
+        context['form'] = self.form(school=school, school_class=class_id)
+        context['class_name'] = SchoolClasses.objects.get(pk=class_id).class_name
+
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        school = get_school(request=request) #Get school info
+        class_id = self.kwargs.get('class_id')
+        class_name = SchoolClasses.objects.get(pk=class_id)
+
+
+        if 'create' in request.POST:
+
+            form = self.form(request.POST, school=school, school_class=class_id)
+
+            self.object_list = self.get_queryset()
+
+            if form.is_valid():
+                data = form.save(commit=False)
+                data.school_info = school
+                data.school_class = class_name
+
+                subject_name = form.cleaned_data.get('school_subject').subject_name
+
+                data.save()
+                messages.success(request, f"{subject_name.title()} has been assigned to {class_name.class_name.upper()}!")
+                return redirect("sch:subject_class", class_id)
+
+            else:
+                # If form is invalid, re-render the page with errors
+                context = self.get_context_data()
+                context['form'] = form
+                messages.error(request, form.errors.as_text())
+                return self.render_to_response(context)
+
+        elif 'delete' in request.POST:
+
+            subject_id = request.POST.get('subject_id')
+
+            try:
+                school_subject = SchoolClassSubjects.objects.get(school_info=school, pk=subject_id)
+                school_subject.delete()
+                messages.success(
+                    request, f"{school_subject.school_subject.subject_name.title()} has been removed from {class_name.class_name.upper()} successfully!")
+            except SchoolClassSubjects.DoesNotExist:
+                messages.error(request, "Failed to delete subject!")
+
+            return redirect("sch:subject_class", class_id)
+
+
+        else:
+            messages.error(request=request,
+                           message="couldn't handle request, Try again!!")
+            return redirect("sch:subject_class", class_id)
+
+
+
 
 

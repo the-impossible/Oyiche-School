@@ -94,7 +94,7 @@
                                               {% for object in object_list %}
                                                 <tr>
                                                     <td>{{forloop.counter }}</td>
-                                                    <td>{{ object.class_name|upper }}</td>
+                                                    <td><a href="{% url 'sch:subject_class' object.pk %}">{{ object.class_name|upper }}</a></td>
                                                     <td>{{ object.date_created|date }}</td>
                                                     <td>
                                                       <button type="button" class="btn btn-sm" title="Edit" data-toggle="modal" data-target="#editClass{{forloop.counter}}"><i class="fa fa-edit text-primary"></i></button>

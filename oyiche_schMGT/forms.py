@@ -325,4 +325,47 @@ class SchoolSubjectForm(forms.ModelForm):
         model = SchoolSubject
         fields = ('subject_name',)
 
+class SchoolClassSubjectForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+
+        self.school = kwargs.pop('school', '')
+        self.school_class = kwargs.pop('school_class', '')
+
+        super(SchoolClassSubjectForm, self).__init__(*args, **kwargs)
+
+        if self.school and self.school_class:
+            # Get all subjects already assigned to the given school and class
+            assigned_subjects = SchoolClassSubjects.objects.filter(
+                school_info=self.school,
+                school_class=self.school_class
+            ).values_list('school_subject', flat=True)
+
+            # Exclude these subjects from the queryset for school_subject
+            self.fields['school_subject'].queryset = SchoolSubject.objects.filter(
+                school_info=self.school
+            ).exclude(id__in=assigned_subjects)
+
+            # Customize the display of the subject names
+            self.fields['school_subject'].label_from_instance = lambda obj: obj.subject_name.upper()
+
+
+    school_subject = forms.ModelChoiceField(queryset=SchoolSubject.objects.none(), empty_label="(Select subject)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    # def clean_school_subject(self):
+    #     subject_name = self.cleaned_data.get('subject_name').lower()
+
+    #     if SchoolSubject.objects.filter(school_info=self.school, subject_name=subject_name).exists():
+    #         raise forms.ValidationError(f"The subject '{subject_name}' already exists for this school.")
+
+    #     return school_subject
+
+    class Meta:
+        model = SchoolClassSubjects
+        fields = ('school_subject',)
+
 

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Assign Subject to Class {% endblock title %}
+{% load crispy_forms_tags %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Setting panel -->
+    {% include 'partials/backend/settings.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+							{% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center ">
+                    <div class="header-action">
+                        <h1 class="page-title">Assign Subject to {{class_name|upper}}</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item" aria-current="page"><a href="{% url 'sch:school_classes' %}">all classes</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{class_name|upper}}</li>
+                        </ol>
+                    </div>
+                    <ul class="nav nav-tabs page-header-tab">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#Student-all">All {{class_name|upper}} Subjects </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="Student-all">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-4 col-sm-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Assign Subject</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="" method="post">
+                                          {% csrf_token %}
+                                          <div class="row">
+                                            <div class="col-12">
+                                              {{form|crispy}}
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary btn-block" name="create">Assign</button>
+                                          </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8 col-md-8 col-sm-12">
+                                <div class="table-responsive card">
+                                    <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+                                        <thead>
+                                            <tr>
+                                                <th>SN</th>
+                                                <th>Subject</th>
+                                                <th>Date Created</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            {% if object_list %}
+                                              {% for object in object_list %}
+                                                <tr>
+                                                    <td>{{forloop.counter }}</td>
+                                                    <td>{{ object.school_subject.subject_name|title }}</td>
+                                                    <td>{{ object.date_created|date }}</td>
+                                                    <td>
+                                                      <button type="button" class="btn btn-sm" title="Delete" data-toggle="modal" data-target="#deleteStudent{{forloop.counter}}"><i class="fa fa-trash-o text-danger"></i></button>
+
+                                                      <div class="modal fade" id="deleteStudent{{forloop.counter}}" tabindex="-1" aria-labelledby="deleteStudent" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="deleteStudent{{forloop.counter}}" >
+                                                          <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+                                                            <div class="modal-header">
+                                                              <h6 class="modal-title">Delete {{ object.school_subject.subject_name|title }}?</h6>
+                                                              <button type="button" class="close" data-dismiss="modal"><span>×</span>
+                                                              </button>
+                                                            </div>
+                                                            <form action="" method="post">
+                                                              {% csrf_token %}
+                                                              <div class="modal-body">
+                                                                <div class="row">
+                                                                  <div class="col-12">
+                                                                    <input type="hidden" name="subject_id" value="{{ object.pk }}">
+                                                                      <p>Are you sure you want to remove {{ object.school_subject.subject_name|title }} from {{ class_name|upper }} ?</p>
+                                                                      <br>
+                                                                      <p><b>Subject Name</b>: {{ object.school_subject.subject_name|title }}</p>
+                                                                      <br>
+                                                                      </div>
+                                                                  </div>
+                                                                  </div>
+
+                                                                <div class="modal-footer">
+                                                                  <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                                  <button type="submit" class="btn btn-primary btn-block text-white" name="delete">Delete</button>
+                                                                </div>
+                                                            </form>
+                                                          </div>
+                                                          </div>
+                                                      </div>
+
+                                                    </td>
+                                                </tr>
+                                              {% endfor %}
+                                            {% else %}
+                                            {% include 'partials/backend/empty_list.html' %}
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Start main footer -->
+        {% include 'partials/backend/footer.html' %}
+    </div>
+</div>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<!-- End Script -->
+
+{% endblock body %}

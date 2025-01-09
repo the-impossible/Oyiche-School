@@ -258,12 +258,14 @@ class SchoolClassSubjects(models.Model):
 
     school_class = models.ForeignKey(
         to='SchoolClasses', on_delete=models.CASCADE, related_name='school_class')
+    school_info = models.ForeignKey(
+        to=SchoolInformation, on_delete=models.CASCADE, related_name="school_class_subject", blank=True, null=True)
     school_subject = models.ForeignKey(
         to='SchoolSubject', on_delete=models.CASCADE, related_name='school_subject')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.school_class} {self.school_subject}'
+        return f'{self.school_info.username} {self.school_class} {self.school_subject}'
 
     class Meta:
         db_table = 'School Class Subjects'
