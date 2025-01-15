@@ -178,6 +178,8 @@ class StudentEnrollment(models.Model):
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     student = models.ForeignKey(
         to="StudentInformation", on_delete=models.CASCADE, related_name="student_information")
+    # school_info = models.ForeignKey(
+    #     to="SchoolInformation", on_delete=models.CASCADE, related_name="school_information", blank=True, null=True)
     student_class = models.ForeignKey(
         to="SchoolClasses", on_delete=models.CASCADE, related_name="student_enrollment_class")
     promoted_class = models.ForeignKey(

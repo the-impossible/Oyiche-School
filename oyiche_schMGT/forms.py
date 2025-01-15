@@ -56,6 +56,28 @@ class FileHandler:
                 ca2 = int(row.iloc[3])  # Second CA
                 ca3 = int(row.iloc[4])  # Third CA
                 exam = int(row.iloc[5])  # Exam
+
+                # Check if the values are well in range
+                if ca1 < 0 or ca1 > 10:
+                    raise forms.ValidationError(
+                        f"First CA score must be between 0 and 10 in row {index + 1}"
+                    )
+
+                if ca2 < 0 or ca2 > 10:
+                    raise forms.ValidationError(
+                        f"Second CA score must be between 0 and 10 in row {index + 1}"
+                    )
+
+                if ca3 < 0 or ca3 > 10:
+                    raise forms.ValidationError(
+                        f"Third CA score must be between 0 and 10 in row {index + 1}"
+                    )
+
+                if exam < 0 or exam > 70:
+                    raise forms.ValidationError(
+                        f"Exam score must be between 0 and 70 in row {index + 1}"
+                    )
+
             except (ValueError, TypeError):
                 raise forms.ValidationError(
                     f"Invalid numeric value in row {index + 1}. Ensure CA1, CA2, CA3, and Exam are numbers."
@@ -595,3 +617,128 @@ class UploadStudentSubjectGradeForm(forms.Form):
             raise forms.ValidationError(f"File validation failed: {str(e)}")
 
         return cleaned_data
+
+class StudentScoreGradeForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+
+        self.school = kwargs.pop('school', '')
+        self.school_class = kwargs.pop('school_class', '')
+
+        self.session = AcademicSession.objects.get(school_info=self.school, is_current=True)
+        self.term = AcademicTerm.objects.get(school_info=self.school, is_current=True)
+
+        super(StudentScoreGradeForm, self).__init__(*args, **kwargs)
+
+        # if self.school and self.student and self.session and self.term:
+        if self.school and self.school_class:
+
+            # Get all subjects already assigned to the given school and class
+            all_subjects = SchoolClassSubjects.objects.filter(school_info=self.school, school_class=self.school_class)
+
+            # Get all student for the class and school
+            all_students = StudentEnrollment.objects.filter(student_class=self.school_class, student__school=self.school).values_list('student', flat=True)
+
+            # Customize the display of the subject names
+            self.fields['subject'].queryset = all_subjects
+            self.fields['subject'].label_from_instance = lambda obj: obj.school_subject.subject_name.upper()
+
+            self.fields['student'].queryset = StudentInformation.objects.filter(pk__in=all_students)
+            self.fields['student'].label_from_instance = lambda obj: f'{obj.user.username.upper()} {obj.student_name.title()}'
+
+    student = forms.ModelChoiceField(queryset=StudentEnrollment.objects.none(), empty_label="(Select student)", required=False, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height custom_searchable',
+            'style': 'width: 100%; height: 100px;',
+        }
+    ))
+
+    subject = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", required=False, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height custom_searchable',
+            'style': 'width: 100%; height: 100px;',
+        }
+    ))
+
+    first_ca = forms.CharField(help_text='student first CA', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    second_ca = forms.CharField(help_text='student second CA', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    third_ca = forms.CharField(help_text='student third CA', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    exam = forms.CharField(help_text='student exam score', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    def clean_first_ca(self):
+        first_ca = int(self.cleaned_data.get('first_ca'))
+
+        if first_ca < 0 or first_ca > 10:
+            raise forms.ValidationError("First CA score must be between 0 and 10")
+
+        return first_ca
+
+    def clean_second_ca(self):
+        second_ca = int(self.cleaned_data.get('second_ca'))
+
+        if second_ca < 0 or second_ca > 10:
+            raise forms.ValidationError("Second CA score must be between 0 and 10")
+
+        return second_ca
+
+    def clean_third_ca(self):
+        third_ca = int(self.cleaned_data.get('third_ca'))
+
+        if third_ca < 0 or third_ca > 10:
+            raise forms.ValidationError("Third CA score must be between 0 and 10")
+
+        return third_ca
+
+    def clean_exam(self):
+        exam = int(self.cleaned_data.get('exam'))
+
+        if exam < 0 or exam > 70:
+            raise forms.ValidationError("Exam score must be between 0 and 70")
+
+        return exam
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        student = cleaned_data.get('student')
+        subject = cleaned_data.get('subject')
+
+        if StudentScores.objects.filter(
+            student=student,
+            school_info=self.school,
+            session=self.session,
+            term=self.term,
+            subject=subject
+        ).exists():
+            raise forms.ValidationError(
+                f"Grade for {subject.school_subject.subject_name.upper()} already exists for student ID: {student.user.username}"
+            )
+
+        return cleaned_data
+
+    class Meta:
+        model = StudentScores
+        fields = ('student', 'subject', 'first_ca', 'second_ca', 'third_ca', 'exam',)

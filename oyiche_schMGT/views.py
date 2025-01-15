@@ -794,6 +794,7 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
 
     template_name = "backend/grades/upload_student_subject_grades.html"
     form = UploadStudentSubjectGradeForm
+    form2 = StudentScoreGradeForm
 
     # Context variables
     object_list = None
@@ -807,9 +808,11 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
 
         self.school = get_school(request)
         self.form = self.form(school=self.school, school_class=class_id)
+        self.form2 = self.form2(school=self.school, school_class=class_id)
 
         context = {
             'form': self.form,
+            'form2': self.form2,
             'all_student': self.all_student,
             'add_student': self.add_student,
             'class_name': SchoolClasses.objects.get(pk=class_id),
@@ -820,6 +823,7 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
     def post(self, request, class_id):
 
         self.school = get_school(request)
+        class_name = SchoolClasses.objects.get(pk=class_id)
 
         if 'upload_grade' in request.POST:
 
@@ -867,7 +871,7 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
                         'form': form,
                         'all_student': 'active',
                         'add_student': self.add_student,
-                        'class_name': SchoolClasses.objects.get(pk=class_id),
+                        'class_name': class_name,
                         'object_list': self.object_list,
                     }
 
@@ -878,12 +882,66 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
             else:
                 messages.error(request=request, message=form.errors.as_text())
 
+        elif 'single_upload' in request.POST:
+            form2 = self.form2(data=request.POST, school=self.school, school_class=class_id)
+
+            print(f"TESTING ONE")
+            if form2.is_valid():
+                data = form2.save(commit=False)
+                data.school_info = self.school
+                print(f"TESTING TWO")
+
+                try:
+
+                    # Get submitted session, term & subject
+                    print(f"Session testing kp")
+                    session = AcademicSession.objects.get(school_info=self.school, is_current=True)
+                    print(f"Session: {session}")
+                    term = AcademicTerm.objects.get(school_info=self.school, is_current=True)
+
+                    data.session = session
+                    data.term = term
+                    data.calculate_grade_and_total_score()
+                    data.save()
+
+                    messages.success(request, "Grade uploaded successfully!!")
+
+                    context = {
+                        'form': self.form(school=self.school, school_class=class_id),
+                        'form2': self.form2(school=self.school, school_class=class_id),
+                        'all_student': '',
+                        'add_student': 'active',
+                        'class_name': class_name,
+                        'object_list': self.object_list,
+                    }
+
+                    return render(request, template_name=self.template_name, context=context)
+
+                except AcademicSession.DoesNotExist:
+                    messages.error(request, "Academic Session not Found!!")
+                except AcademicTerm.DoesNotExist:
+                    messages.error(request, "Academic Term not found!!")
+            else:
+
+                context = {
+                    'form': self.form(school=self.school, school_class=class_id),
+                    'form2': form2,
+                    'all_student': '',
+                    'add_student': 'active',
+                    'class_name': SchoolClasses.objects.get(pk=class_id),
+                    'object_list': self.object_list,
+                }
+                return render(request, template_name=self.template_name, context=context)
+
         context = {
-            'form': form,
+            'form': self.form(school=self.school, school_class=class_id),
+            'form2': self.form2(school=self.school, school_class=class_id),
             'all_student': 'active',
             'add_student': self.add_student,
             'class_name': SchoolClasses.objects.get(pk=class_id),
+            'object_list': self.object_list,
         }
+
 
         return render(request, template_name=self.template_name, context=context)
 
