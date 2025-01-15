@@ -30,5 +30,6 @@ admin.site.register(AcademicSession)
 admin.site.register(AcademicStatus)
 admin.site.register(AcademicTerm)
 admin.site.register(StudentEnrollment)
-# admin.site.register(SchoolAcademicInformation)
+admin.site.register(SchoolGrades)
+admin.site.register(StudentScores)
 

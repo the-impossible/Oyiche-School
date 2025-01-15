@@ -1,0 +1,53 @@
+{% include 'partials/backend/messages.html' %}
+<div class="table-responsive card">
+    <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+        <thead>
+            <tr>
+                <th>SN</th>
+                <th>Grade</th>
+                <th>Min Score</th>
+                <th>Max Score</th>
+                <th>Description</th>
+                <th>Date Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% if object_list %}
+              {% for object in object_list %}
+                <tr>
+                    <td>{{forloop.counter }}</td>
+                    <td>{{ object.grade_letter }}</td>
+                    <td>{{ object.min_score }}</td>
+                    <td>{{ object.max_score }}</td>
+                    <td>{{ object.grade_description }}</td>
+                    <td>{{ object.date_created|date }}</td>
+                    <td>
+                        <a href="" class="btn btn-sm" title="Edit" hx-get="{% url "sch:grade_edit_form" object.pk %}" hx-target="#gradeDialog"><i class="fa fa-edit text-primary"></i></a>
+
+                        <a href="" class="btn btn-sm" title="Delete" hx-get="{% url "sch:grade_delete" object.pk %}" hx-target="#deleteDialog"><i class="fa fa-trash-o text-danger"></i></a>
+
+                    </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+            {% include 'partials/backend/empty_list.html' %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    window.setTimeout(function() {
+        $(".alert").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+
+        $("#remove").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+
+    }, 10000);
+
+</script>

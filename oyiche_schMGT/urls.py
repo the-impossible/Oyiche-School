@@ -24,4 +24,14 @@ urlpatterns = [
      path("school_subject", SchoolSubjectView.as_view(), name="school_subject"),
      path("subject_class/<str:class_id>", SubjectClassView.as_view(), name="subject_class"),
 
+     # School Grades
+     path("school_grade", SchoolGradesView.as_view(), name="school_grade"),
+     path("list_school_grades", ListGradesView.as_view(), name="list_school_grades"),
+     path("grade_edit_form/<str:grade_id>", GradesEditView.as_view(), name="grade_edit_form"),
+     path("grade_delete/<str:grade_id>", GradesDeleteView.as_view(), name="grade_delete"),
+
+     # School Options
+     path("school_options/<str:class_id>", SchoolClassOptions.as_view(), name="school_options"),
+     path("upload_student_subject_grades/<str:class_id>", UploadStudentSubjectGrades.as_view(), name="upload_student_subject_grades"),
+
 ]

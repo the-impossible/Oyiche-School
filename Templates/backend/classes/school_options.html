@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} School Options {% endblock title %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Setting panel -->
+    {% include 'partials/backend/settings.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+                {% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="header-action">
+                        <h1 class="page-title">{{ object.class_name|upper }} Class Features</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item" aria-current="page"><a href="{% url "sch:school_classes" %}">Class List</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Class Features</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+                <div class="row clearfix row-deck">
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card overflow-hidden">
+                            <div class="card-body">
+                                <a href="{% url 'sch:subject_class' object.pk %} ">
+                                    <div class="mb-3 h6">Assign Subjects</div>
+                                </a>
+                                <div><span class="h1 font700"><i class="fa fa-puzzle-piece"></i></span> </div>
+                                    <small class="text-muted">Add subjects to classes</small>
+                                </div>
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card overflow-hidden">
+                            <div class="card-body">
+                                <a href="{% url 'sch:upload_student_subject_grades' object.pk %} ">
+                                    <div class="mb-3 h6">Upload Subject Grades</div>
+                                </a>
+                                <div><span class="h1 font700"><i class="fa fa-flickr"></i></span> </div>
+                                <small class="text-muted">upload student grades for each subject</small>
+                            </div>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% include 'partials/backend/footer.html' %}
+    </div>
+
+</div>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<!-- End Script -->
+
+{% endblock body %}
