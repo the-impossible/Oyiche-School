@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from oyiche_schMGT.views import *
 
 app_name = "sch"
@@ -32,6 +32,12 @@ urlpatterns = [
 
      # School Options
      path("school_options/<str:class_id>", SchoolClassOptions.as_view(), name="school_options"),
-     path("upload_student_subject_grades/<str:class_id>", UploadStudentSubjectGrades.as_view(), name="upload_student_subject_grades"),
+     re_path(r'^manage_student_grades/(?P<class_id>[\w-]+)/(?P<subject_id>[\w-]+)?$',
+            ManageStudentSubjectGrades.as_view(), name="manage_student_grades"),
+     path("score_edit_form/<str:score_id>", StudentScoreEditView.as_view(), name="score_edit_form"),
+     path("score_delete/<str:pk>", StudentScoreDeleteView.as_view(), name="score_delete"),
+
+     # Compute Results
+     path("compute_results/<str:class_id>", ComputeResultView.as_view(), name="compute_results"),
 
 ]

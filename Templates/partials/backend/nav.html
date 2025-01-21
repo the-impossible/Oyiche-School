@@ -110,7 +110,7 @@
                     </div>
                     <div class="dropdown d-flex">
                         <a href="javascript:void(0)" class="chip ml-3" data-toggle="dropdown">
-                            <span class="avatar" style="background-image: url(../assets/images/xs/avatar5.jpg)"></span> George</a>
+                            <span class="avatar" style="background-image: url({{request.user.pic.url}})"></span> {{request.user.username}}</a>
                         <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                             <a class="dropdown-item" href="page-profile.html"><i class="dropdown-icon fe fe-user"></i> Profile</a>
                             <a class="dropdown-item" href="app-setting.html"><i class="dropdown-icon fe fe-settings"></i> Settings</a>

@@ -62,20 +62,38 @@
                                 </div>
                             </div>
                     </div>
+
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="card overflow-hidden">
                             <div class="card-body">
-                                <a href="{% url 'sch:upload_student_subject_grades' object.pk %} ">
-                                    <div class="mb-3 h6">Upload Subject Grades</div>
+                                <a href="{% url 'sch:manage_student_grades' object.pk %} ">
+                                    <div class="mb-3 h6">Manage Grades</div>
                                 </a>
-                                <div><span class="h1 font700"><i class="fa fa-flickr"></i></span> </div>
-                                <small class="text-muted">upload student grades for each subject</small>
+                                <div><span class="h1 font700"><i class="fa fa-cogs"></i></span> </div>
+                                <small class="text-muted">create, edit, and manage student grades</small>
                             </div>
                             <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     </div>
+{% comment "" %}
+<div class="col-lg-3 col-md-6 col-sm-6">
+    <div class="card overflow-hidden">
+        <div class="card-body">
+            <a href="{% url 'sch:compute_results' object.pk %} ">
+                <div class="mb-3 h6">Compute Results</div>
+            </a>
+            <div><span class="h1 font700"><i class="fa fa-file"></i></span> </div>
+            <small class="text-muted">Auto compute and re-compute results</small>
+        </div>
+        <div class="progress" style="height: 4px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</div>
+{% endcomment %}
+
                 </div>
             </div>
         </div>

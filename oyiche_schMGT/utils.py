@@ -78,7 +78,7 @@ class BatchAccountCreationThread(threading.Thread):
                 while is_taken:
                     # Generate the new student ID
                     _counter = local_counter + 1
-                    student_id = f"{school_username}{session.academic_session.session[-2:]}{str(_counter).zfill(4)}"
+                    student_id = f"{school_username}{session.session[-2:]}{str(_counter).zfill(4)}"
                     user = User.objects.filter(username=student_id).exists()
 
                     if not user:

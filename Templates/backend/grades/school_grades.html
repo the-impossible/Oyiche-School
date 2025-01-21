@@ -101,6 +101,26 @@
   </div>
 </div>
 
+<div class="modal fade" id="error" style="display:none;" tabindex="-1" aria-labelledby="error" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="errorDialog" hx-target="this">
+      <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+          <div class="modal-header">
+            <h6 class="modal-title text-danger">Error </h6>
+            <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+          </div>
+          <div class="modal-body">
+              {% include 'partials/backend/messages.html' %}
+
+          <div class="row">
+              <div class="col-12">
+              <p>Something went wrong, Failed to get Grade!</p>
+              </div>
+          </div>
+          </div>
+        </div>
+  </div>
+</div>
+
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->
@@ -108,27 +128,35 @@
 <script>
 	var modal = new bootstrap.Modal(document.getElementById('grade'));
 	var modalDelete = new bootstrap.Modal(document.getElementById('delete'));
+	var modalError = new bootstrap.Modal(document.getElementById('error'));
+  
 	htmx.on('htmx:afterSwap', (e) => {
 		if (e.detail.target.id === 'gradeDialog'){
-		modal.show();
+		  modal.show();
 	  }
 
     if (e.detail.target.id === 'deleteDialog'){
-		modalDelete.show();
+		  modalDelete.show();
 	  }
 
 	})
 
 	htmx.on('htmx:beforeSwap', (e) => {
 	  if (e.detail.target.id === 'gradeDialog' && !e.detail.xhr.response){
-		modal.hide();
+		  modal.hide();
 		}
 
     if (e.detail.target.id === 'deleteDialog' && !e.detail.xhr.response){
-		modalDelete.hide();
+		  modalDelete.hide();
 		}
 
 	})
+
+  document.addEventListener('htmx:responseError', function (event) {
+    if (event.detail.xhr.status === 404) {
+        modalError.show()
+    }
+  });
 
 </script>
 

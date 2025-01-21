@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, ListView, DeleteView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import pandas as pd
 from urllib.parse import urlencode
 from django.contrib.messages.views import SuccessMessageMixin
@@ -38,7 +38,6 @@ def get_school(request):
             return None
     finally:
         return school
-
 
 class StudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/students.html"
@@ -302,7 +301,6 @@ class EditStudentPageView(LoginRequiredMixin, View):
             messages.error(request=request, message="Fix Form Errors!!")
             return render(request=request, template_name=self.template_name, context=context)
 
-
 class SchoolFileUploadView(LoginRequiredMixin, ListView):
 
     school = None
@@ -356,7 +354,6 @@ class SchoolFileUploadView(LoginRequiredMixin, ListView):
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
 
-
 class BatchCreateView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -379,7 +376,6 @@ class BatchCreateView(LoginRequiredMixin, View):
         finally:
             return redirect('sch:file_manager')
 
-
 class DeleteFileView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -390,7 +386,6 @@ class DeleteFileView(LoginRequiredMixin, View):
             messages.error(self.request, "File Not Found!!")
         finally:
             return redirect('sch:file_manager')
-
 
 class UploadReportView(LoginRequiredMixin, View):
     template_name = "backend/student/upload_report.html"
@@ -408,7 +403,6 @@ class UploadReportView(LoginRequiredMixin, View):
         self.view_report = ''
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'upload_report': self.upload_report, 'view_report': self.view_report})
-
 
 class SchoolClassesView(LoginRequiredMixin, ListView):
 
@@ -500,7 +494,6 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_classes')
 
-
 class SchoolSubjectView(LoginRequiredMixin, ListView):
 
     model = SchoolSubject
@@ -590,7 +583,6 @@ class SchoolSubjectView(LoginRequiredMixin, ListView):
             messages.error(request=request,
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_subject')
-
 
 class SubjectClassView(LoginRequiredMixin, ListView):
 
@@ -702,7 +694,6 @@ class SchoolGradesView(LoginRequiredMixin, TemplateView):
 
         return redirect("sch:school_grade")
 
-
 class ListGradesView(LoginRequiredMixin, ListView):
     model = SchoolGrades
     template_name = "backend/grades/partials/grade_list.html"
@@ -724,14 +715,14 @@ class GradesEditView(LoginRequiredMixin, View):
 
             return render(request=request, template_name="backend/grades/partials/grade_form.html", context={'form': grade_form, 'object': grade})
         except SchoolGrades.DoesNotExist:
-            messages.error(request, "Grade not found!!")
-            return redirect('sch:school_grade')
+            return JsonResponse({'error': 'Student Score not found!'}, status=404)
 
     def post(self, request, grade_id):
 
         school = get_school(request=request) #Get school info
 
         try:
+
             grade = SchoolGrades.objects.get(school_info=school, pk=grade_id)
             form = SchoolGradeEditForm(request.POST, instance=grade, school=school)
 
@@ -739,6 +730,7 @@ class GradesEditView(LoginRequiredMixin, View):
                 form.save()
                 grade_letter = form.cleaned_data.get('grade_letter')
                 messages.success(request, f"Grade: {grade_letter} successfully edited!!")
+
             else:
                 # If form is invalid, re-render the page with errors
                 messages.error(request, form.errors.as_text())
@@ -790,44 +782,74 @@ class SchoolClassOptions(LoginRequiredMixin, View):
             messages.error(request, "Class not found!!")
             return redirect('sch:school_classes')
 
-class UploadStudentSubjectGrades(LoginRequiredMixin, View):
+class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
-    template_name = "backend/grades/upload_student_subject_grades.html"
+    template_name = "backend/grades/manage_student_grades.html"
     form = UploadStudentSubjectGradeForm
     form2 = StudentScoreGradeForm
+    form3 = GetStudentSubjectGradeForm
 
     # Context variables
     object_list = None
+    grade_list = None
     all_student = ''
     add_student = ''
+    manage_all = ''
 
-    def get(self, request, class_id):
+    def get(self, request, class_id, subject_id=None):
 
-        self.all_student = 'active'
+        self.manage_all = 'active'
+        self.all_student = ''
         self.add_student = ''
 
         self.school = get_school(request)
         self.form = self.form(school=self.school, school_class=class_id)
         self.form2 = self.form2(school=self.school, school_class=class_id)
+        self.form3 = self.form3(school=self.school, school_class=class_id)
+
+        if subject_id:
+            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+
+            self.grade_list = self.grade_list
 
         context = {
             'form': self.form,
             'form2': self.form2,
+            'form3': self.form3,
+            'manage_all': self.manage_all,
             'all_student': self.all_student,
             'add_student': self.add_student,
             'class_name': SchoolClasses.objects.get(pk=class_id),
+            'grade_list': self.grade_list,
         }
 
         return render(request, template_name=self.template_name, context=context)
 
-    def post(self, request, class_id):
+    def post(self, request, class_id, subject_id=None):
 
         self.school = get_school(request)
         class_name = SchoolClasses.objects.get(pk=class_id)
 
+        if subject_id:
+            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+
+            self.grade_list = self.grade_list
+
+
         if 'upload_grade' in request.POST:
 
             form = self.form(data=request.POST, files=request.FILES, school=self.school, school_class=class_id)
+
+            context = {
+                'form': self.form(school=self.school, school_class=class_id),
+                'form2': self.form2(school=self.school, school_class=class_id),
+                'form3': self.form3(school=self.school, school_class=class_id),
+                'all_student': 'active',
+                'manage_all': self.manage_all,
+                'add_student': self.add_student,
+                'class_name': class_name,
+                'object_list': self.object_list,
+            }
 
             if form.is_valid():
 
@@ -866,37 +888,44 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
 
                     messages.success(request, "Grades uploaded successfully!!")
                     # Return upload grades
-                    self.object_list = StudentScores.objects.filter(school_info=self.school, session=session, term=term, subject=subject)
-                    context = {
-                        'form': form,
-                        'all_student': 'active',
-                        'add_student': self.add_student,
-                        'class_name': class_name,
-                        'object_list': self.object_list,
-                    }
+                    self.object_list = StudentScores.objects.filter(school_info=self.school, session=session, term=term, subject=subject).order_by('-date_created')
+                    context['object_list'] = self.object_list
 
                     return render(request, template_name=self.template_name, context=context)
                 except SchoolClassSubjects.DoesNotExist:
                     messages.error(request, "Subject not found!!")
 
+                    return render(request, template_name=self.template_name, context=context)
+
             else:
                 messages.error(request=request, message=form.errors.as_text())
+
+                context['form'] = form
+
+                return render(request, template_name=self.template_name, context=context)
 
         elif 'single_upload' in request.POST:
             form2 = self.form2(data=request.POST, school=self.school, school_class=class_id)
 
-            print(f"TESTING ONE")
+            context = {
+                'form': self.form(school=self.school, school_class=class_id),
+                'form2': self.form2(school=self.school, school_class=class_id),
+                'form3': self.form3(school=self.school, school_class=class_id),
+                'all_student': '',
+                'manage_all': '',
+                'add_student': 'active',
+                'class_name': class_name,
+                'object_list': self.object_list,
+            }
+
             if form2.is_valid():
                 data = form2.save(commit=False)
                 data.school_info = self.school
-                print(f"TESTING TWO")
 
                 try:
 
                     # Get submitted session, term & subject
-                    print(f"Session testing kp")
                     session = AcademicSession.objects.get(school_info=self.school, is_current=True)
-                    print(f"Session: {session}")
                     term = AcademicTerm.objects.get(school_info=self.school, is_current=True)
 
                     data.session = session
@@ -906,14 +935,6 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
 
                     messages.success(request, "Grade uploaded successfully!!")
 
-                    context = {
-                        'form': self.form(school=self.school, school_class=class_id),
-                        'form2': self.form2(school=self.school, school_class=class_id),
-                        'all_student': '',
-                        'add_student': 'active',
-                        'class_name': class_name,
-                        'object_list': self.object_list,
-                    }
 
                     return render(request, template_name=self.template_name, context=context)
 
@@ -921,33 +942,113 @@ class UploadStudentSubjectGrades(LoginRequiredMixin, View):
                     messages.error(request, "Academic Session not Found!!")
                 except AcademicTerm.DoesNotExist:
                     messages.error(request, "Academic Term not found!!")
-            else:
 
-                context = {
-                    'form': self.form(school=self.school, school_class=class_id),
-                    'form2': form2,
-                    'all_student': '',
-                    'add_student': 'active',
-                    'class_name': SchoolClasses.objects.get(pk=class_id),
-                    'object_list': self.object_list,
-                }
                 return render(request, template_name=self.template_name, context=context)
 
+            else:
+
+                context['form2'] = form2
+                return render(request, template_name=self.template_name, context=context)
+
+        elif 'get_grades' in request.POST:
+
+            form3 = self.form3(data=request.POST, school=self.school, school_class=class_id)
+
+            context = {
+                'form': self.form(school=self.school, school_class=class_id),
+                'form2': self.form2(school=self.school, school_class=class_id),
+                'form3': self.form3(school=self.school, school_class=class_id),
+                'manage_all': 'active',
+                'all_student': '',
+                'add_student': self.add_student,
+                'class_name': class_name,
+                'object_list': self.object_list,
+                'grade_list': self.grade_list,
+            }
+
+            if form3.is_valid():
+                subject_name = form3.cleaned_data.get('subject_name').school_subject
+
+                self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_name, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+
+                context['grade_list'] = self.grade_list
+
+            else:
+
+                context['form3'] = form3
+
+            return render(request, template_name=self.template_name, context=context)
+
+        messages.error(request=request, message="couldn't handle request, Try again!!")
         context = {
             'form': self.form(school=self.school, school_class=class_id),
             'form2': self.form2(school=self.school, school_class=class_id),
-            'all_student': 'active',
+            'form3': self.form3(school=self.school, school_class=class_id),
+            'manage_all': 'active',
+            'all_student': '',
             'add_student': self.add_student,
             'class_name': SchoolClasses.objects.get(pk=class_id),
             'object_list': self.object_list,
         }
 
-
         return render(request, template_name=self.template_name, context=context)
 
+class StudentScoreEditView(LoginRequiredMixin, View):
 
+    def get(self, request, score_id):
+        school = get_school(request)
 
+        try:
+            score = StudentScores.objects.get(school_info=school, pk=score_id)
+            score_form = StudentScoreGradeEditForm(instance=score)
 
+            return render(request=request, template_name="backend/grades/partials/score_form.html", context={'form': score_form, 'object': score})
 
+        except StudentScores.DoesNotExist:
 
+            return JsonResponse({'error': 'Student Score not found!'}, status=404)
 
+    def post(self, request, score_id):
+        school = get_school(request=request) #Get school info
+
+        try:
+            score = StudentScores.objects.get(school_info=school, pk=score_id)
+            form = StudentScoreGradeEditForm(request.POST, instance=score)
+
+            if form.is_valid():
+
+                data = form.save()
+                data.calculate_grade_and_total_score()
+                data.save()
+
+                messages.success(request, f"{score.student.student_name}: score has been successfully edited!!")
+
+            else:
+                # If form is invalid, re-render the page with errors
+                messages.error(request, form.errors.as_text())
+
+            return redirect('sch:manage_student_grades', score.subject.school_class.pk, score.subject.school_subject.pk)
+
+        except SchoolGrades.DoesNotExist:
+            messages.error(request, "Student Grade not found Try Again!!")
+            return redirect('sch:school_classes')
+
+class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    login_url = 'auth:login'
+    model = StudentScores
+    success_message = ""
+
+    def get_success_url(self):
+
+        score = self.object
+
+        self.success_message = f"{score.student.student_name} {score.subject.school_subject.subject_name.title()} scores has been deleted successfully!"
+
+        # Redirect to the appropriate URL using the object's details
+        return reverse('sch:manage_student_grades', kwargs={
+            'class_id': score.subject.school_class.pk,
+            'subject_id': score.subject.school_subject.pk
+        })
+
+class ComputeResultView(TemplateView):
+    template_name = "backend/results/compute_result.html"
