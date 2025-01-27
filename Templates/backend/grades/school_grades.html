@@ -31,6 +31,7 @@
 
         <!-- Start Page title and tab -->
         <div class="section-body">
+            {% include 'partials/backend/messages.html' %}
             <div class="container-fluid">
                 <div class="d-flex justify-content-between align-items-center ">
                     <div class="header-action">
@@ -129,7 +130,7 @@
 	var modal = new bootstrap.Modal(document.getElementById('grade'));
 	var modalDelete = new bootstrap.Modal(document.getElementById('delete'));
 	var modalError = new bootstrap.Modal(document.getElementById('error'));
-  
+
 	htmx.on('htmx:afterSwap', (e) => {
 		if (e.detail.target.id === 'gradeDialog'){
 		  modal.show();

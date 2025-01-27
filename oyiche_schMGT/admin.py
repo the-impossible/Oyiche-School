@@ -32,4 +32,6 @@ admin.site.register(AcademicTerm)
 admin.site.register(StudentEnrollment)
 admin.site.register(SchoolGrades)
 admin.site.register(StudentScores)
+admin.site.register(StudentPerformance)
+admin.site.register(SchoolClassSubjects)
 

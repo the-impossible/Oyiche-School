@@ -2,6 +2,7 @@
 {% load static %}
 {% block title %} Compute Result {% endblock title %}
 {% load crispy_forms_tags %}
+{% load my_tags %}
 {% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
 {% block body %}
 
@@ -35,17 +36,15 @@
 							{% include 'partials/backend/messages.html' %}
                 <div class="d-flex justify-content-between align-items-center ">
                     <div class="header-action">
-                        <h1 class="page-title">{{class_name.class_name|upper}} Subject Grades</h1>
+                        <h1 class="page-title">Compute {{class_name.class_name|upper}} Result</h1>
                         <ol class="breadcrumb page-breadcrumb">
                             {% include 'partials/backend/breadcrumb.html' %}
-                            <li class="breadcrumb-item" aria-current="page"><a href="">Class Features</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Subject Grades</li>
+                            <li class="breadcrumb-item" aria-current="page"><a href="{% url 'sch:school_options' class_name.pk %}">{{class_name.class_name|upper}} Class Features</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Class Result</li>
                         </ol>
                     </div>
                     <ul class="nav nav-tabs page-header-tab">
-                        <li class="nav-item"><a class="nav-link {{ manage_all }}" data-toggle="tab" href="#manage-all">Manage Grades </a></li>
-                        <li class="nav-item"><a class="nav-link {{ all_student }}" data-toggle="tab" href="#Student-all">Bulk Upload </a></li>
-                        <li class="nav-item"><a class="nav-link {{ add_student }}" data-toggle="tab" href="#Student-add">Single Upload</a></li>
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#manage-all">Result Computation </a></li>
                     </ul>
                 </div>
             </div>
@@ -54,17 +53,23 @@
         <div class="section-body mt-4">
             <div class="container-fluid">
                 <div class="tab-content">
-                    <div class="tab-pane {{ manage_all }}" id="manage-all">
+                    <div class="tab-pane active" id="manage-all">
                         <div class="card">
                             <div class="card-body">
+                                <p>Note: result is currently been computed for <b>{{ academic_term }}</b> of the <b>{{ academic_session }}</b>  academic session if not correct, click here to <a href="">update </a>school details</p>
+                                <p><strong>Where</strong>: <b>T.MARKS =</b> Total Marks, <b>T.SUB = </b> Total Subjects,  <b>AVG = </b> Average,  <b>C.AVG = </b> Class Average,  <b>POS = </b> Term Position</p>
                               <form action="" method="post">
                                 {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-lg-4 col-md-4 col-sm-4">
-                                        {{form3.subject_name|as_crispy_field}}
-                                    </div>
-                                    <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
-                                      <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_grades">Get grades</button>
+                                <div class="row justify-content-end">
+                                    {% comment %} <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
+                                        <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_grades"><i class="fa fa-file text-white"></i> Get Results</button>
+                                    </div> {% endcomment %}
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
+                                        {% if queryset %}
+                                        <button type="button" class="btn btn-sm btn-info btn-block" data-toggle="modal" data-target="#reComputeResult" compute="re-compute"><i class="fa fa-refresh text-white"></i> Re-Compute Result</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-info btn-block" data-toggle="modal" data-target="#computeResult"><i class="fa fa-check-square text-white"></i> Compute Result</button>
+                                        {% endif %}
                                     </div>
                                 </div>
                               </form>
@@ -79,73 +84,46 @@
                                       <th></th>
                                       <th>StudentID.</th>
                                       <th>Name</th>
-                                      <th>Subject</th>
-                                      <th>CA1</th>
-                                      <th>CA2</th>
-                                      <th>CA3</th>
-                                      <th>Exam</th>
-                                      <th>Total</th>
-                                      <th>Grade</th>
+                                      {% for subject in subjects %}
+                                      <th title="{{ subject.0|upper }}">{{ subject.0|truncatechars:5|upper }}</th>
+                                      {% endfor %}
+                                      <th>T Marks</th>
+                                      <th>T.Sub</th>
+                                      <th>AVG</th>
+                                      <th>C.AVG</th>
+                                      <th>POS</th>
                                       <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
 
-                                    {% if grade_list %}
-                                        {% for object in grade_list %}
+                                <tbody>
+                                    {% if queryset %}
+                                        {% for object in queryset %}
                                             <tr>
                                                 <td>{{forloop.counter }}</td>
                                                 <td class="w60">
                                                     <img class="avatar" src="{{ object.student.user.pic.url }}" alt="">
                                                 </td>
                                                 <td>{{ object.student.user.username }}</td>
-                                                <td>{{ object.student.student_name }}</td>
-                                                <td>{{ object.subject.school_subject.subject_name|upper }}</td>
-                                                <td>{{ object.first_ca }}</td>
-                                                <td>{{ object.second_ca }}</td>
-                                                <td>{{ object.third_ca }}</td>
-                                                <td>{{ object.exam }}</td>
-                                                <td>{{ object.total_score }}</td>
-                                                <td>{{ object.grade.grade_letter }}</td>
+                                                <td><p title="{{ object.student.student_name|truncatechars:15 }}">{{ object.student.student_name|truncatechars:15 }}</p></td>
+                                                {% for subject_name, subject_id in subjects %}
+                                                    <td>
+                                                        {% with object.student.student_scores.all|get_score_for_subject:subject_id as score %}
+                                                            {% if score %}
+                                                                {{ score.total_score }}
+                                                            {% else %}
+                                                                N/A
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </td>
+                                                {% endfor %}
+                                                <td>{{ object.total_marks_obtained }}</td>
+                                                <td>{{ object.total_subject }}</td>
+                                                <td>{{ object.student_average }}</td>
+                                                <td>{{ object.class_average }}</td>
+                                                <td>{{ object.term_position }}</td>
                                                 <td>
-                                                    <a href="" class="btn btn-sm" title="Edit" hx-get="{% url "sch:score_edit_form" object.pk %}" hx-target="#gradeDialog"><i class="fa fa-edit text-primary"></i></a>
-
-                                                    <button type="button" class="btn btn-sm" title="Delete" data-toggle="modal" data-target="#deleteStudent{{forloop.counter}}"><i class="fa fa-trash-o text-danger"></i></button>
-
-                                                      <div class="modal fade" id="deleteStudent{{forloop.counter}}" tabindex="-1" aria-labelledby="deleteStudent" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="deleteStudent{{forloop.counter}}" >
-                                                          <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
-                                                            <div class="modal-header">
-                                                              <h6 class="modal-title text-danger">Delete Score </h6>
-                                                              <button type="button" class="close" data-dismiss="modal"><span>×</span>
-                                                              </button>
-                                                            </div>
-
-                                                            <form action="{% url "sch:score_delete" object.pk %}" method="post">
-                                                              {% csrf_token %}
-                                                              <div class="modal-body">
-
-                                                                <div class="row">
-                                                                  <div class="col-12">
-                                                                    <input type="hidden" name="subject_id" value="{{ object.pk }}">
-                                                                      <p>Are you sure you want to Delete <b>{{ object.student.student_name|title }} {{ object.subject.school_subject.subject_name|title }}</b> Score?</p>
-                                                                      <br>
-                                                                      <p><b>Score For</b>: {{ object.subject.school_subject.subject_name|title }} Subject</p>
-                                                                      <br>
-                                                                      <p><b>NB: This action is irreversible, you will have to add the grade back manually</b></p>
-                                                                      </div>
-                                                                  </div>
-                                                                  </div>
-
-                                                                <div class="modal-footer">
-                                                                  <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                                                                  <button type="submit" class="btn btn-primary btn-block text-white" name="delete">Delete</button>
-                                                                </div>
-                                                            </form>
-
-                                                          </div>
-                                                          </div>
-                                                      </div>
+                                                    <a href="" class="btn btn-sm btn-primary" title="Edit"><i class="fa fa-eye text-white"></i> View</a>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -154,96 +132,6 @@
                                     {% endif %}
                                 </tbody>
                             </table>
-                        </div>
-
-                    </div>
-                    <div class="tab-pane {{ all_student }}" id="Student-all">
-                        <div class="card">
-                            <div class="card-body">
-                              <form action="" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-lg-3 col-md-3 col-sm-3">
-                                        {{form.subject_name|as_crispy_field}}
-                                    </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-3">
-                                      {{form.file|as_crispy_field}}
-                                    </div>
-                                    <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
-                                      <button type="submit" class="btn btn-sm btn-primary btn-block" name="upload_grade">Upload grades</button>
-                                    </div>
-                                </div>
-                              </form>
-                            </div>
-                        </div>
-                        <div class="table-responsive card">
-                            <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
-                                <thead>
-                                    <tr>
-                                      <th>SN</th>
-                                      <th></th>
-                                      <th>StudentID.</th>
-                                      <th>Name</th>
-                                      <th>Subject</th>
-                                      <th>CA1</th>
-                                      <th>CA2</th>
-                                      <th>CA3</th>
-                                      <th>Exam</th>
-                                      <th>Total</th>
-                                      <th>Grade</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                    {% if object_list %}
-                                        {% for object in object_list %}
-                                            <tr>
-                                                <td>{{forloop.counter }}</td>
-                                                <td class="w60">
-                                                    <img class="avatar" src="{{ object.student.user.pic.url }}" alt="">
-                                                </td>
-                                                <td>{{ object.student.user.username }}</td>
-                                                <td>{{ object.student.student_name }}</td>
-                                                <td>{{ object.subject.school_subject.subject_name|upper }}</td>
-                                                <td>{{ object.first_ca }}</td>
-                                                <td>{{ object.second_ca }}</td>
-                                                <td>{{ object.third_ca }}</td>
-                                                <td>{{ object.exam }}</td>
-                                                <td>{{ object.total_score }}</td>
-                                                <td>{{ object.grade.grade_letter }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                    {% include 'partials/backend/empty_list.html' %}
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="tab-pane {{ add_student }}" id="Student-add">
-                        <div class="row clearfix">
-                          <div class="col-lg-8 col-md-12 col-sm-12">
-                            <div class="card">
-                              <div class="card-header">
-                                  <h3 class="card-title">Student Grade Information</h3>
-                                  <div class="card-options ">
-                                      <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
-                                      <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
-                                  </div>
-                              </div>
-                              <form class="card-body" method="post" enctype="multipart/form-data">
-                                  {% csrf_token %}
-                                {{ form2|crispy }}
-                                <div class="form-group row ">
-                                    <div class="col-12 mt-2 mb-2">
-                                        <button type="submit" class="btn btn-primary btn-block" name="single_upload">Upload Grade</button>
-                                    </div>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                          <div class="col-lg-4 col-md-12 col-sm-12">
-                          </div>
                         </div>
                     </div>
                 </div>
@@ -254,9 +142,67 @@
     </div>
 </div>
 
-<div class="modal fade" id="grade" style="display:none;" tabindex="-1" aria-labelledby="grade" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="gradeDialog" hx-target="this">
 
+<div class="modal fade" id="computeResult" style="display:none;" tabindex="-1" aria-labelledby="computeResult" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="computeResult">
+        <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+            <div class="modal-header">
+              <h6 class="modal-title text-danger">Compute Result </h6>
+              <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                        <p>Kindly note that you are about to compute result for:</p>
+                        <br>
+                        <p><b>Class:</b> JSS2</p>
+                        <p><b>Academic Term:</b> First</p>
+                        <p><b>Academic Session:</b> 2024/2025</p>
+                        <br>
+                        <b>If you are unsure kindly cancel otherwise compute</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-block text-white" name="compute">Compute</button>
+                </div>
+            </form>
+          </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reComputeResult" style="display:none;" tabindex="-1" aria-labelledby="reComputeResult" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="reComputeResult">
+        <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+            <div class="modal-header">
+              <h6 class="modal-title text-danger">Re-Compute Result </h6>
+              <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                        <p>Kindly note that you are about to re-compute result for:</p>
+                        <br>
+                        <p><b>Class:</b> JSS2</p>
+                        <p><b>Academic Term:</b> First</p>
+                        <p><b>Academic Session:</b> 2024/2025</p>
+                        <br>
+                        <b>Note this will re-compute all student result in the above details</b>
+                        <b>If you are unsure kindly cancel otherwise re-compute</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-block text-white" name="re-compute">Re-compute</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

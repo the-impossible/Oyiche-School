@@ -65,7 +65,7 @@ class FilesManagerForm(forms.ModelForm):
         if self.school:
             self.fields['class_name'].queryset = SchoolClasses.objects.filter(
                 school_info=self.school)
-            self.fields['class_name'].label_from_instance = lambda obj: obj.class_name
+            self.fields['class_name'].label_from_instance = lambda obj: obj.class_name.upper()
         else:
             self.fields['class_name'].queryset = SchoolClasses.objects.none()
 

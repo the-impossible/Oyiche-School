@@ -146,7 +146,7 @@
                                                         </td>
                                                         <td>
                                                           <a data-toggle="modal" data-target="#viewStatus{{forloop.counter}}" href="javascript:void(0);">
-                                                            <span class="folder-name">{{object.file|cut:'uploads/xslx/'}}</span>
+                                                            <span class="folder-name">{{object.file|cut:'uploads/xslx/'|title}}</span>
                                                           </a>
 
 																													<div class="modal fade" id="viewStatus{{forloop.counter}}" tabindex="-1" aria-labelledby="viewStatus" aria-hidden="true">

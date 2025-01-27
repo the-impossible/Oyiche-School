@@ -9,6 +9,7 @@ import pandas as pd
 from urllib.parse import urlencode
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import IntegrityError
+from django.db.models import Prefetch
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -112,18 +113,23 @@ class StudentPageView(LoginRequiredMixin, View):
                 student_class = SchoolClasses.objects.get(
                     pk=request.POST.get('student_class'))
                 academic_session = AcademicSession.objects.get(
-                    pk=request.POST.get('academic_session'))
+                    is_current=True,
+                    school_info=self.school,
+                )
                 status = request.POST.get('academic_status')
-                if status:
+                print(f'STATUS: {status}')
+
+                if status != 'None' and status !='' and status is not None:
                     academic_status = AcademicStatus.objects.get(
-                        pk=request.POST.get('academic_status'))
+                        pk=request.POST.get('academic_status')
+                    )
 
             query = {
                 'student_class': student_class,
                 'academic_session': academic_session,
             }
 
-            if academic_status is not None:
+            if status != 'None' and status !='' and status is not None:
                 query['academic_status'] = academic_status
 
             student_in_class_and_in_session = StudentEnrollment.objects.filter(
@@ -453,10 +459,10 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
 
         elif 'delete' in request.POST:
 
-            subject_id = request.POST.get('subject_id')
+            class_id = request.POST.get('class_id')
 
             try:
-                SchoolClasses.objects.get(school_info=school, pk=subject_id).delete()
+                SchoolClasses.objects.get(school_info=school, pk=class_id).delete()
                 messages.success(
                     request, "Class has been deleted successfully!!")
             except SchoolClasses.DoesNotExist:
@@ -466,7 +472,7 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
 
         elif 'edit' in request.POST:
 
-            subject_id = request.POST.get('class_id')
+            class_id = request.POST.get('class_id')
             class_name = request.POST.get('class_name')
 
 
@@ -660,7 +666,7 @@ class SubjectClassView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect("sch:subject_class", class_id)
 
-class SchoolGradesView(LoginRequiredMixin, TemplateView):
+class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
 
     model = SchoolGrades
     template_name = "backend/grades/school_grades.html"
@@ -688,9 +694,11 @@ class SchoolGradesView(LoginRequiredMixin, TemplateView):
             data.save()
             grade_letter = form.cleaned_data.get('grade_letter')
             messages.success(request, f"Grade: {grade_letter} successfully created!!")
+            return redirect("sch:school_grade")
         else:
             # If form is invalid, re-render the page with errors
             messages.error(request, form.errors.as_text())
+            return render(request=request, template_name=self.template_name, context={'form':form, 'school':school})
 
         return redirect("sch:school_grade")
 
@@ -808,7 +816,7 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
         self.form3 = self.form3(school=self.school, school_class=class_id)
 
         if subject_id:
-            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-average')
 
             self.grade_list = self.grade_list
 
@@ -831,10 +839,9 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
         class_name = SchoolClasses.objects.get(pk=class_id)
 
         if subject_id:
-            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+            self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-average')
 
             self.grade_list = self.grade_list
-
 
         if 'upload_grade' in request.POST:
 
@@ -867,18 +874,50 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
                     subject = SchoolClassSubjects.objects.get(school_subject=request.POST.get('subject_name'), school_info=self.school, school_class=class_id)
 
+                    highest_score = 0
+                    lowest_score = float('inf')
+
+                    # Pre-fetch all student data for efficiency
+                    student_usernames = df.iloc[:,0].str.upper().tolist()
+                    students = StudentInformation.objects.filter(user__username__in=student_usernames)
+                    student_map = {student.user.username:student for student in students}
+
                     # Loop through the data
-                    for index, row in df.iterrows():
+                    for _, row in df.iterrows():
 
                         ca1 = row.iloc[2]
                         ca2 = row.iloc[3]
                         ca3 = row.iloc[4]
                         exam = row.iloc[5]
 
-                        student=StudentInformation.objects.get(user__username=row.iloc[0].upper())
+                        username  = row.iloc[0].upper()
+                        student = student_map[username]
 
-                        score = StudentScores(first_ca=ca1, second_ca=ca2, third_ca=ca3, exam=exam, student=student, school_info=self.school, session=session, term=term, subject=subject)
+                        if not student:
+                            continue #Skip if student doesn't exist
+
+                        score = StudentScores(
+                            first_ca=ca1,
+                            second_ca=ca2,
+                            third_ca=ca3,
+                            exam=exam,
+                            student=student,
+                            school_info=self.school,
+                            session=session,
+                            term=term,
+                            subject=subject
+                        )
+
+                        # Perform calculation in memory
                         score.calculate_grade_and_total_score()
+                        score.calculate_highest_and_lowest_score()
+
+                        score.calculate_average()
+                        score.calculate_positions()
+
+                        # Update highest and lowest score dynamically
+                        highest_score = max(score.total_score, highest_score)
+                        lowest_score = min(score.total_score, lowest_score)
 
                         grade_list.append(score)
 
@@ -886,9 +925,21 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
                     with transaction.atomic():
                         StudentScores.objects.bulk_create(grade_list)
 
+                    scores = StudentScores.objects.filter(
+                        school_info=self.school,
+                        session=session,
+                        term=term,
+                        subject=subject
+                    )
+                    scores.first().calculate_positions()
+                    scores.update(
+                        highest_score=highest_score,
+                        lowest_score=lowest_score
+                    )
+
                     messages.success(request, "Grades uploaded successfully!!")
                     # Return upload grades
-                    self.object_list = StudentScores.objects.filter(school_info=self.school, session=session, term=term, subject=subject).order_by('-date_created')
+                    self.object_list = StudentScores.objects.filter(school_info=self.school, session=session, term=term, subject=subject).order_by('-average')
                     context['object_list'] = self.object_list
 
                     return render(request, template_name=self.template_name, context=context)
@@ -930,11 +981,14 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
                     data.session = session
                     data.term = term
+
                     data.calculate_grade_and_total_score()
+                    data.calculate_average()
                     data.save()
+                    data.calculate_highest_and_lowest_score()
+                    data.calculate_positions()
 
                     messages.success(request, "Grade uploaded successfully!!")
-
 
                     return render(request, template_name=self.template_name, context=context)
 
@@ -969,7 +1023,7 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
             if form3.is_valid():
                 subject_name = form3.cleaned_data.get('subject_name').school_subject
 
-                self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_name, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-date_created')
+                self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_name, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-average')
 
                 context['grade_list'] = self.grade_list
 
@@ -1017,9 +1071,12 @@ class StudentScoreEditView(LoginRequiredMixin, View):
 
             if form.is_valid():
 
-                data = form.save()
+                data = form.save(commit=False)
                 data.calculate_grade_and_total_score()
+                data.calculate_average()
                 data.save()
+                data.calculate_highest_and_lowest_score()
+                data.calculate_positions()
 
                 messages.success(request, f"{score.student.student_name}: score has been successfully edited!!")
 
@@ -1033,22 +1090,205 @@ class StudentScoreEditView(LoginRequiredMixin, View):
             messages.error(request, "Student Grade not found Try Again!!")
             return redirect('sch:school_classes')
 
-class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, View):
     login_url = 'auth:login'
     model = StudentScores
     success_message = ""
 
-    def get_success_url(self):
+    def post(self, request, pk):
 
-        score = self.object
+        school = get_school(request=request)
+        subject = request.POST['subject']
+        class_id = request.POST['class_id']
 
-        self.success_message = f"{score.student.student_name} {score.subject.school_subject.subject_name.title()} scores has been deleted successfully!"
+        try:
+            # Delete the score
+            score = StudentScores.objects.get(pk=pk, school_info=school)
+            score.delete()
 
-        # Redirect to the appropriate URL using the object's details
-        return reverse('sch:manage_student_grades', kwargs={
-            'class_id': score.subject.school_class.pk,
-            'subject_id': score.subject.school_subject.pk
-        })
+            # Success message
+            messages.success(request, f"{score.student.student_name} {score.subject.school_subject.subject_name.title()} scores have been deleted successfully!")
 
-class ComputeResultView(TemplateView):
+            score.calculate_highest_and_lowest_score()
+            score.calculate_positions()
+
+            # Redirect to the appropriate URL using the object's details
+            return redirect(reverse('sch:manage_student_grades', kwargs={
+                'class_id': score.subject.school_class.pk,
+                'subject_id': score.subject.school_subject.pk
+            }))
+
+        except StudentScores.DoesNotExist:
+
+            messages.error(request, 'Failed to delete student score')
+
+            return redirect(reverse('sch:manage_student_grades', kwargs={
+                'class_id': class_id,
+                'subject_id': subject
+            }))
+
+class ComputeResultView(LoginRequiredMixin, ListView):
     template_name = "backend/results/compute_result.html"
+    model = StudentPerformance
+
+    def get_queryset(self):
+        school = get_school(self.request)
+        class_id = self.kwargs.get('class_id')
+
+        if school and class_id:
+
+             # Get all subjects assigned to the class
+            subjects = SchoolClassSubjects.objects.filter(
+                school_info=school,
+                school_class=class_id
+            ).values_list('school_subject__subject_name', 'id',)
+
+
+
+            # Get student performance with scores for each subject
+            queryset = (
+                StudentPerformance.objects.filter(
+                    school_info=school,
+                    current_enrollment__student_class=class_id,
+                    current_enrollment__academic_session__is_current=True,
+                    current_enrollment__academic_term__is_current=True,
+                )
+                .select_related('student', 'current_enrollment')
+                .prefetch_related(
+                    Prefetch(
+                        'student__student_scores',
+                        queryset=StudentScores.objects.filter(
+                            school_info=school,
+                            term__is_current=True,
+                            session__is_current=True,
+                        )
+                    )
+                )
+                .order_by('-student_average')
+            )
+
+            return queryset, subjects
+
+        return StudentPerformance.objects.none(), []
+
+
+    def get_context_data(self, **kwargs):
+        class_id = self.kwargs.get('class_id', '')
+        context = super().get_context_data(**kwargs)
+
+        queryset, subjects = self.get_queryset()
+        context['queryset'] = queryset
+        context['subjects'] = subjects
+        context["class_name"] = SchoolClasses.objects.get(pk=class_id)
+        context['academic_session'] = AcademicSession.objects.filter(is_current=True).first()
+        context['academic_term'] = AcademicTerm.objects.filter(is_current=True).first()
+        return context
+
+    def post(self, request, class_id):
+
+        # All required variables
+        academic_term = AcademicTerm.objects.filter(is_current=True).first()
+        academic_session = AcademicSession.objects.filter(is_current=True).first()
+        class_detail = SchoolClasses.objects.get(pk=class_id)
+        school = get_school(self.request)
+
+        def perform_computation(which, student_performance_list):
+
+            # Create performances and calculate student averages
+            with transaction.atomic():
+                # Bulk create student performances
+
+                if which == 'compute':
+                    performances = StudentPerformance.objects.bulk_create(student_performance_list)
+
+                if which == 're-compute':
+                    performances = student_performance_list
+
+                # Calculate student averages and other individual data
+                for performance in performances:
+                    performance.calculate_student_average_total_marks_total_subject()
+
+                # Bulk update all student-related fields
+                StudentPerformance.objects.bulk_update(
+                    performances,
+                    ['total_marks_obtained', 'total_subject', 'student_average']
+                )
+
+                # Calculate class averages after all student averages are ready
+                for performance in performances:
+                    performance.calculate_class_average()
+
+                # Bulk update all class average fields
+                StudentPerformance.objects.bulk_update(
+                    performances,
+                    ['class_average']
+                )
+
+                # Calculate term positions
+                first_performance = StudentPerformance.objects.filter(
+                    school_info=school,
+                    current_enrollment__student_class=class_detail,
+                    current_enrollment__academic_term=academic_term,
+                    current_enrollment__academic_session=academic_session
+                ).first()
+
+
+                if first_performance: first_performance.calculate_term_position()
+
+
+
+        # List to hold the student performance instance for bulk creation
+        student_performance_list = []
+
+        # Get all students enrolled in the class
+        enrolled_class = StudentEnrollment.objects.filter(
+            academic_session=academic_session,
+            academic_term=academic_term,
+            student_class=class_detail,
+            academic_status__status="active",
+        )
+
+        # Validate if student exist in the enrolled class
+        if not enrolled_class:
+            messages.error(request, f"No student enrolled into {class_detail.class_name.upper()} class!!")
+            return redirect('sch:compute_results', class_id)
+
+        if 'compute' in request.POST:
+
+            # Create Performance for each student
+            student_performance_list = [
+                StudentPerformance(
+                    school_info=school,
+                    student=student.student,
+                    current_enrollment=student
+                )
+                for student in enrolled_class
+            ]
+
+            perform_computation(which='compute', student_performance_list=student_performance_list)
+
+            messages.success(request=request, message=f'computation successful!')
+            return redirect('sch:compute_results', class_id)
+
+        elif 're-compute' in request.POST:
+            # Create Performance for each student
+            student_performance_list = StudentPerformance.objects.filter(
+                school_info=school,
+                current_enrollment__student_class=class_detail,
+                current_enrollment__academic_term=academic_term,
+                current_enrollment__academic_session=academic_session,
+            )
+
+            perform_computation(which='re-compute', student_performance_list=student_performance_list)
+
+            messages.success(request=request, message=f'computation successful!')
+            return redirect('sch:compute_results', class_id)
+
+
+        messages.error(request=request, message="Couldn't handle request, Try again!!")
+        return redirect('sch:compute_results', class_id)
+
+
+
+
+

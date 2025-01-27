@@ -6,13 +6,15 @@ name = "pypi"
 [packages]
 django = "*"
 python-decouple = "*"
-pillow = "*"
 whitenoise = "*"
 pandas = "*"
 django-crispy-forms = "*"
-crispy-bootstrap5 = "*"
 crispy-bootstrap4 = "*"
 openpyxl = "*"
+psycopg2-binary = "*"
+pymysql = "*"
+crispy-bootstrap5 = "*"
+pillow = "*"
 
 [dev-packages]
 

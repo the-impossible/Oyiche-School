@@ -103,7 +103,7 @@
                                                         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="editClass{{forloop.counter}}">
                                                           <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
                                                             <div class="modal-header">
-                                                              <h6 class="modal-title">Edit Class: {{ object.class_name }}</h6>
+                                                              <h6 class="modal-title">Edit Class: {{ object.class_name|upper }}</h6>
                                                               <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
                                                             </div>
                                                             <form action="" method="post">
@@ -112,7 +112,7 @@
                                                                 <div class="row">
                                                                   <div class="col-12">
                                                                     <p>Enter Class name</p>
-                                                                    <input type="text" name="class_name" class="form-control" value="{{ object.class_name }}">
+                                                                    <input type="text" name="class_name" class="form-control" value="{{ object.class_name|upper }}">
                                                                     <input type="hidden" name="class_id" class="form-control" value="{{ object.pk }}">
                                                                   </div>
                                                                 </div>
@@ -133,7 +133,7 @@
                                                           <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="deleteStudent{{forloop.counter}}" >
                                                             <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
                                                               <div class="modal-header">
-                                                                <h6 class="modal-title">Delete Class: {{ object.class_name }}</h6>
+                                                                <h6 class="modal-title">Delete Class: {{ object.class_name|upper }}</h6>
                                                                 <button type="button" class="close" data-dismiss="modal"><span>×</span>
                                                                 </button>
                                                               </div>
@@ -145,7 +145,7 @@
                                                                       <input type="hidden" name="class_id" value="{{ object.pk }}">
                                                                         <p>Are you sure you want to delete this class?</p>
                                                                         <br>
-                                                                        <p><b>Class Name</b>: {{ object.class_name }}</p>
+                                                                        <p><b>Class Name</b>: {{ object.class_name|upper }}</p>
                                                                         <br>
                                                                         <p><b>NB: This action is irreversible</b></p>
                                                                         </div>

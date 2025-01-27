@@ -285,7 +285,7 @@ class StudentEnrollmentForm(forms.ModelForm):
 
         if self.school:
             self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school)
-            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name
+            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 
         else:
             self.fields['student_class'].queryset = SchoolClasses.objects.none()
@@ -493,6 +493,17 @@ class SchoolGradeForm(forms.ModelForm):
         }
     ))
 
+    def clean(self):
+        cleaned_data = super().clean()
+        min_score = cleaned_data.get('min_score')
+        max_score = cleaned_data.get('max_score')
+
+        if min_score is not None and max_score is not None:
+            if int(min_score) > int(max_score):
+                raise forms.ValidationError("Minimum score grade cannot be greater than Maximum score.")
+
+        return cleaned_data
+
     def clean_grade_letter(self):
         grade_letter = self.cleaned_data.get('grade_letter').upper()
 
@@ -506,6 +517,9 @@ class SchoolGradeForm(forms.ModelForm):
 
         if int(min_score) < 0:
             raise forms.ValidationError("Minimum score cannot be less than 0")
+
+        if int(min_score) > 100:
+            raise forms.ValidationError("Minimum score cannot be greater than 100")
 
         return min_score
 
@@ -587,7 +601,7 @@ class UploadStudentSubjectGradeForm(forms.Form):
         }
     ))
 
-    subject_name = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", required=False, widget=forms.Select(
+    subject_name = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -641,14 +655,14 @@ class StudentScoreGradeForm(forms.ModelForm):
             self.fields['student'].queryset = StudentInformation.objects.filter(pk__in=all_students)
             self.fields['student'].label_from_instance = lambda obj: f'{obj.user.username.upper()} {obj.student_name.title()}'
 
-    student = forms.ModelChoiceField(queryset=StudentEnrollment.objects.none(), empty_label="(Select student)", required=False, widget=forms.Select(
+    student = forms.ModelChoiceField(queryset=StudentEnrollment.objects.none(), empty_label="(Select student)", widget=forms.Select(
         attrs={
             'class': 'form-control input-height custom_searchable',
             'style': 'width: 100%;',
         }
     ))
 
-    subject = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", required=False, widget=forms.Select(
+    subject = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", widget=forms.Select(
         attrs={
             'class': 'form-control input-height custom_searchable',
             'style': 'width: 100%; height: 100px;',
@@ -766,7 +780,7 @@ class GetStudentSubjectGradeForm(forms.Form):
             self.fields['subject_name'].queryset = SchoolClassSubjects.objects.none()
 
 
-    subject_name = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", required=False, widget=forms.Select(
+    subject_name = forms.ModelChoiceField(queryset=SchoolClassSubjects.objects.none(), empty_label="(Select subject name)", widget=forms.Select(
         attrs={
             'class': 'form-control input-height custom_searchable',
             'style': 'width: 100%;',

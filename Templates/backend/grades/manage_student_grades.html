@@ -85,6 +85,8 @@
                                       <th>CA3</th>
                                       <th>Exam</th>
                                       <th>Total</th>
+                                      <th>Average</th>
+                                      <th>Position</th>
                                       <th>Grade</th>
                                       <th>Action</th>
                                     </tr>
@@ -96,16 +98,18 @@
                                             <tr>
                                                 <td>{{forloop.counter }}</td>
                                                 <td class="w60">
-                                                    <img class="avatar" src="{{ object.student.user.pic.url }}" alt="">
+                                                    <img class="avatar" src="{{ object.student.user.pic.url }}" alt="img">
                                                 </td>
                                                 <td>{{ object.student.user.username }}</td>
-                                                <td>{{ object.student.student_name }}</td>
-                                                <td>{{ object.subject.school_subject.subject_name|upper }}</td>
+                                                <td title="{{ object.student.student_name }}">{{ object.student.student_name|truncatechars:15 }}</td>
+                                                <td>{{ object.subject.school_subject.subject_name|upper|truncatechars:8 }}</td>
                                                 <td>{{ object.first_ca }}</td>
                                                 <td>{{ object.second_ca }}</td>
                                                 <td>{{ object.third_ca }}</td>
                                                 <td>{{ object.exam }}</td>
                                                 <td>{{ object.total_score }}</td>
+                                                <td>{{ object.average }}</td>
+                                                <td>{{ object.position }}</td>
                                                 <td>{{ object.grade.grade_letter }}</td>
                                                 <td>
                                                     <a href="" class="btn btn-sm" title="Edit" hx-get="{% url "sch:score_edit_form" object.pk %}" hx-target="#gradeDialog"><i class="fa fa-edit text-primary"></i></a>
@@ -127,7 +131,9 @@
 
                                                                 <div class="row">
                                                                   <div class="col-12">
-                                                                    <input type="hidden" name="subject_id" value="{{ object.pk }}">
+                                                                    <input type="hidden" name="class_id" value="{{ object.subject.school_class.pk }}">
+                                                                    <input type="hidden" name="subject" value="{{ object.subject.school_subject.pk }}">
+
                                                                       <p>Are you sure you want to Delete <b>{{ object.student.student_name|title }} {{ object.subject.school_subject.subject_name|title }}</b> Score?</p>
                                                                       <br>
                                                                       <p><b>Score For</b>: {{ object.subject.school_subject.subject_name|title }} Subject</p>

@@ -1,5 +1,7 @@
 # My Django imports
 from django.db import models
+from django.db.models import Min, Max, F, Window
+from django.db.models.functions import Rank
 from django.conf import settings
 import uuid
 
@@ -321,7 +323,12 @@ class StudentScores(models.Model):
     second_ca = models.IntegerField(default=0)
     third_ca = models.IntegerField(default=0)
     exam = models.IntegerField(default=0)
+    average = models.FloatField(default=0)
     total_score = models.IntegerField(default=0)
+    position = models.CharField(max_length=10, blank=True, null=True)
+
+    highest_score = models.IntegerField(default=0)
+    lowest_score = models.IntegerField(default=0)
 
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -339,12 +346,118 @@ class StudentScores(models.Model):
             max_score__gte=self.total_score
         ).first()
 
+        print(f'GRADE: {self.grade}')
+
+    def calculate_average(self):
+        term =  self.term
+
+        try:
+
+            # Get First Term, Second Term and Third Term in one query
+            terms = AcademicTerm.objects.filter(term__in=['First Term', 'Second Term', 'Third Term']).values('term', 'id')
+            term_dict = {term['term']: term['id'] for term in terms}
+
+            if len(term_dict) != 3:
+                raise ValueError("One or More Academic Term is missing!")
+
+            scores = StudentScores.objects.filter(
+                student=self.student,
+                session=self.session,
+                subject=self.subject,
+                term__in=term_dict.values()
+            ).values('term', 'average')
+
+            score_dict = {score['term']: score['average'] for score in scores}
+
+            # Handle missing term scores
+            first_term_average = score_dict.get(term_dict['First Term'], 0)
+            second_term_average = score_dict.get(term_dict['Second Term'], 0)
+            third_term_average = score_dict.get(term_dict['Third Term'], 0)
+
+            if str(term.term) == 'First Term':
+                self.average = self.total_score
+
+            elif str(term.term) == 'Second Term':
+                self.average = (first_term_average + second_term_average ) / 2
+
+            elif str(term.term) == 'Third Term':
+                self.average = (first_term_average + second_term_average + third_term ) / 3
+
+        except AcademicTerm.DoesNotExist:
+
+            raise ValueError("Academic Term does not exist!")
+
+    def calculate_highest_and_lowest_score(self):
+
+        # Calculate lowest_score and highest_score in only on query
+        score_aggregate = StudentScores.objects.filter(
+            session=self.session,
+            school_info=self.school_info,
+            term=self.term,
+            subject=self.subject
+        ).aggregate(
+            highest_score = Max('total_score'),
+            lowest_score = Min('total_score')
+        )
+
+        # Extract the lowest_score and highest_score
+        highest_score = score_aggregate.get('highest_score') or 0
+        lowest_score = score_aggregate.get('lowest_score') or 0
+
+        # Update all related student scores with the highest and lowest scores
+        StudentScores.objects.filter(
+            session=self.session,
+            school_info=self.school_info,
+            term=self.term,
+            subject=self.subject
+        ).update(highest_score=highest_score, lowest_score=lowest_score)
+
+    def calculate_positions(self):
+        """
+            Calculate positions for all student scores based on average.
+        """
+        # Retrieve all filtered records
+        scores = StudentScores.objects.filter(
+            session=self.session,
+            term=self.term,
+            subject=self.subject,
+            school_info=self.school_info
+        )
+
+        # Annotate records with their rank based on 'average'
+        ranked_scores = scores.annotate(
+            rank=Window(
+                expression=Rank(),
+                order_by=F('average').desc()  # Descending order of average
+            )
+        )
+
+        # Prepare bulk updates with formatted position
+        updates = []
+        for score in ranked_scores:
+            # Generate position with ordinal suffix
+            rank = score.rank
+            score.position = f"{rank}{self.get_position_suffix(rank)}"
+            updates.append(score)
+
+        # Bulk update positions
+        StudentScores.objects.bulk_update(updates, ['position'])
+
+    def get_position_suffix(self, rank):
+        """
+            Helper function to get the correct ordinal suffix for a rank (e.g., 1st, 2nd, 3rd).
+        """
+        if 10 <= rank % 100 <= 20:  # Special case for teens (11th, 12th, 13th, etc.)
+            return "th"
+        else:
+            suffix_map = {1: "st", 2: "nd", 3: "rd"}
+            return suffix_map.get(rank % 10, "th")
+
     class Meta:
         db_table = 'Student Scores'
         verbose_name_plural = 'Student Scores'
 
 # Student Performance
-
 
 class StudentPerformance(models.Model):
 
@@ -354,13 +467,120 @@ class StudentPerformance(models.Model):
         to='SchoolInformation', on_delete=models.CASCADE, related_name='school_student_performance', blank=True, null=True)
     current_enrollment = models.ForeignKey(to='StudentEnrollment', on_delete=models.CASCADE, blank=True, null=True, related_name='student_enrollment')
 
-    average_score = models.IntegerField(default=0)
-    term_position = models.IntegerField(default=0)
-    remark = models.CharField(max_length=500, blank=True, null=True)
+    total_marks_obtained = models.IntegerField(default=0)
+    total_subject = models.IntegerField(default=0)
+
+    student_average = models.FloatField(default=0)
+    class_average = models.FloatField(default=0)
+
+    term_position = models.CharField(max_length=20, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.student} | {self.average_score} | {self.term_position}'
+        return f'{self.student} | {self.student_average} | {self.class_average} | {self.term_position}'
+
+    def calculate_student_average_total_marks_total_subject(self):
+
+        """
+            Calculate the average score, total marks, and total subject for a student in the given term, class and session.
+        """
+
+        # Get all scores for the student in the current term and session
+        current_scores = StudentScores.objects.filter(
+            student=self.student,
+            school_info=self.school_info,
+            term=self.current_enrollment.academic_term,
+            session=self.current_enrollment.academic_session
+        )
+        # Calculate total scores
+        total_scores = sum(score.total_score for score in current_scores)
+
+        # Get the total number of subjects for the class
+        num_scores = SchoolClassSubjects.objects.filter(
+            school_info=self.school_info,
+            school_class=self.current_enrollment.student_class
+        ).count()
+
+        #  Set the calculated values
+        self.student_average = round(total_scores / num_scores, 2) if num_scores > 0 else 0
+        self.total_subject = num_scores
+        self.total_marks_obtained = total_scores
+
+    def calculate_class_average(self):
+        """
+            Calculate the class average for the student's class.
+            (Sum of all student averages for the class) / (Single student's average).
+        """
+
+        # Ensure the student's current enrollment and class are defined
+        if not self.current_enrollment:
+            raise ValueError("Student enrollment not found!")
+
+        # Filter all StudentPerformance records for the same school, class, session, and term
+        class_performances = StudentPerformance.objects.filter(
+            school_info=self.school_info,
+            current_enrollment__student_class=self.current_enrollment.student_class,
+            current_enrollment__academic_term=self.current_enrollment.academic_term,
+            current_enrollment__academic_session=self.current_enrollment.academic_session,
+        )
+
+        # Calculate the total of all student averages for the class
+        total_class_averages = sum(performance.student_average for performance in class_performances)
+
+        # Check to prevent division by zero
+        if self.student_average == 0:
+            raise ValueError("Cannot calculate class average as student's average is zero!")
+
+        # Calculate the class average
+        self.class_average = round(total_class_averages / self.student_average, 2)
+
+    def calculate_term_position(self):
+        """
+            The ranking is done based on the student's average in descending order.
+        """
+        # Ensure the student's current enrollment and class are defined
+        if not self.current_enrollment:
+            raise ValueError(f"{self.student} has no enrollment!")
+
+        # Annotate performances with rank based on descending student averages
+        class_performances = StudentPerformance.objects.filter(
+            school_info=self.school_info,
+            current_enrollment__student_class=self.current_enrollment.student_class,
+            current_enrollment__academic_term=self.current_enrollment.academic_term,
+            current_enrollment__academic_session=self.current_enrollment.academic_session
+        )
+
+        ranked_scores = class_performances.annotate(
+            rank=Window(
+                expression=Rank(),
+                order_by=F('student_average').desc()  # Descending order of average
+            )
+        )
+
+        # Prepare bulk updates with formatted position
+        updates = []
+        for score in ranked_scores:
+            # Generate position with ordinal suffix
+            rank = score.rank
+            score.term_position = f"{rank}{self.get_position_suffix(rank)}"
+            updates.append(score)
+
+        # Bulk update positions
+        StudentPerformance.objects.bulk_update(updates, ['term_position'])
+
+    def get_position_suffix(self, rank):
+        """
+            Helper function to get the correct ordinal suffix for a rank (e.g., 1st, 2nd, 3rd).
+        """
+        if 10 <= rank % 100 <= 20:  # Special case for teens (11th, 12th, 13th, etc.)
+            return "th"
+        else:
+            suffix_map = {1: "st", 2: "nd", 3: "rd"}
+            return suffix_map.get(rank % 10, "th")
+
+    def save(self, *args, **kwargs):
+        self.calculate_student_average_total_marks_total_subject()
+        super(StudentPerformance, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'Student Performance'
