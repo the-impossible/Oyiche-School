@@ -346,8 +346,6 @@ class StudentScores(models.Model):
             max_score__gte=self.total_score
         ).first()
 
-        print(f'GRADE: {self.grade}')
-
     def calculate_average(self):
         term =  self.term
 
