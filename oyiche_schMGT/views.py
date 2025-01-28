@@ -117,11 +117,11 @@ class StudentPageView(LoginRequiredMixin, View):
                     school_info=self.school,
                 )
                 status = request.POST.get('academic_status')
-                print(f'STATUS: {status}')
 
                 if status != 'None' and status !='' and status is not None:
                     academic_status = AcademicStatus.objects.get(
-                        pk=request.POST.get('academic_status')
+                        pk=request.POST.get('academic_status'),
+                        school_info=self.school,
                     )
 
             query = {
@@ -129,7 +129,7 @@ class StudentPageView(LoginRequiredMixin, View):
                 'academic_session': academic_session,
             }
 
-            if status != 'None' and status !='' and status is not None:
+            if academic_status != 'None' and academic_status !='' and academic_status is not None:
                 query['academic_status'] = academic_status
 
             student_in_class_and_in_session = StudentEnrollment.objects.filter(
@@ -167,7 +167,7 @@ class StudentPageView(LoginRequiredMixin, View):
             enrollment_form = self.enrollment_form(data=request.POST, school=self.school)
 
             # Get session, status & term
-            academic_status = AcademicStatus.objects.get(status="active")
+            academic_status = AcademicStatus.objects.get(status="active", school_info=self.school)
             session = self.school.school_academic_session.filter(is_current=True).first()
             term = self.school.school_academic_term.filter(is_current=True).first()
 
@@ -392,23 +392,6 @@ class DeleteFileView(LoginRequiredMixin, View):
             messages.error(self.request, "File Not Found!!")
         finally:
             return redirect('sch:file_manager')
-
-class UploadReportView(LoginRequiredMixin, View):
-    template_name = "backend/student/upload_report.html"
-
-    form = UploadReportForm
-
-    # Context variables
-    upload_report = ''
-    view_report = ''
-
-    def get(self, request):
-        school = get_school(request)
-
-        self.upload_report = 'active'
-        self.view_report = ''
-
-        return render(request=request, template_name=self.template_name, context={'form': self.form, 'upload_report': self.upload_report, 'view_report': self.view_report})
 
 class SchoolClassesView(LoginRequiredMixin, ListView):
 
@@ -1174,23 +1157,25 @@ class ComputeResultView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         class_id = self.kwargs.get('class_id', '')
+        school = get_school(self.request)
+
         context = super().get_context_data(**kwargs)
 
         queryset, subjects = self.get_queryset()
         context['queryset'] = queryset
         context['subjects'] = subjects
         context["class_name"] = SchoolClasses.objects.get(pk=class_id)
-        context['academic_session'] = AcademicSession.objects.filter(is_current=True).first()
-        context['academic_term'] = AcademicTerm.objects.filter(is_current=True).first()
+        context['academic_session'] = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        context['academic_term'] = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
         return context
 
     def post(self, request, class_id):
 
         # All required variables
-        academic_term = AcademicTerm.objects.filter(is_current=True).first()
-        academic_session = AcademicSession.objects.filter(is_current=True).first()
-        class_detail = SchoolClasses.objects.get(pk=class_id)
         school = get_school(self.request)
+        academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+        academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        class_detail = SchoolClasses.objects.get(pk=class_id)
 
         def perform_computation(which, student_performance_list):
 
@@ -1234,8 +1219,6 @@ class ComputeResultView(LoginRequiredMixin, ListView):
 
 
                 if first_performance: first_performance.calculate_term_position()
-
-
 
         # List to hold the student performance instance for bulk creation
         student_performance_list = []

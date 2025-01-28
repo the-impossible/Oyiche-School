@@ -41,7 +41,7 @@ class BatchAccountCreationThread(threading.Thread):
 
         if not duplicate_ids.empty:
             duplicate_error += ','.join(duplicate_ids)
-            self.file.processing_status = duplicate_error
+            self.file.processing_status = duplicate_error[:200]
         else:
             student_account_list = []
 
@@ -115,7 +115,7 @@ class BatchAccountCreationThread(threading.Thread):
 
             # Create Student Profile -> StudentInformation
 
-            academic_status = AcademicStatus.objects.get(status="active")
+            academic_status = AcademicStatus.objects.get(status="active", school_info=self.school)
 
             # Use Atomic transaction
             with transaction.atomic():

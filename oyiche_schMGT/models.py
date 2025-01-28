@@ -44,7 +44,7 @@ class SchoolCategory(models.Model):
 
 
 class AcademicSession(models.Model):
-    session = models.CharField(max_length=20, unique=True)
+    session = models.CharField(max_length=20)
     session_description = models.CharField(
         max_length=100, blank=True, null=True)
     school_info = models.ForeignKey(
@@ -57,14 +57,22 @@ class AcademicSession(models.Model):
     class Meta:
         db_table = 'Academic Session'
         verbose_name_plural = 'Academic Session'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school_info", "session"],
+                name="unique_session_per_school",
+            )
+        ]
 
 # Academic Status (active, completed)
 
 
 class AcademicStatus(models.Model):
-    status = models.CharField(max_length=20, unique=True)
+    status = models.CharField(max_length=20)
     status_description = models.CharField(
         max_length=100, blank=True, null=True)
+    school_info = models.ForeignKey(
+        to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_status", blank=True, null=True)
 
     def __str__(self):
         return self.status
@@ -72,12 +80,18 @@ class AcademicStatus(models.Model):
     class Meta:
         db_table = 'Academic Status'
         verbose_name_plural = 'Academic Status'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school_info", "status"],
+                name="unique_status_per_school",
+            )
+        ]
 
 # Term (First Term, Second Term)
 
 
 class AcademicTerm(models.Model):
-    term = models.CharField(max_length=20, unique=True)
+    term = models.CharField(max_length=20)
     term_description = models.CharField(max_length=100, blank=True, null=True)
     school_info = models.ForeignKey(
         to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_term", blank=True, null=True)
@@ -89,6 +103,13 @@ class AcademicTerm(models.Model):
     class Meta:
         db_table = 'Academic Term'
         verbose_name_plural = 'Academic Term'
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school_info", "term"],
+                name="unique_term_per_school",
+            )
+        ]
+
 
 # Gender (Male, Female)
 

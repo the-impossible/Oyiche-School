@@ -14,7 +14,7 @@
                     <li><a href="{% url 'sch:school_subject' %}"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a></li>
                     <li><a href="{% url 'sch:school_grade' %}"><i class="fa fa-flickr"></i><span>Grades</span></a></li>
                     <li><a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a></li>
-                    <li><a href="{% url 'sch:upload_report' %}"><i class="fa fa-book"></i><span>Reports</span></a></li>
+                    {% comment %} <li><a href="{% url 'sch:upload_report' %}"><i class="fa fa-book"></i><span>Reports</span></a></li> {% endcomment %}
                     <li class="g_heading">Extra</li>
                     <li><a href="events.html"><i class="fa fa-user-circle-o"></i><span>Profile</span></a></li>
                     <li><a href="{% url 'sch:file_manager' %}"><i class="fa fa-folder"></i><span>FileManager</span></a></li>

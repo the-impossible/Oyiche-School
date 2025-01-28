@@ -38,7 +38,7 @@
                         <h1 class="page-title">Assign Subject to {{class_name|upper}}</h1>
                         <ol class="breadcrumb page-breadcrumb">
                             {% include 'partials/backend/breadcrumb.html' %}
-                            <li class="breadcrumb-item" aria-current="page"><a href="{% url 'sch:school_options' class_id %}">Class List</a></li>
+                            <li class="breadcrumb-item" aria-current="page"><a href="{% url 'sch:school_classes' %}">Class List</a></li>
                             <li class="breadcrumb-item" aria-current="page"><a href="{% url "sch:school_options" class_id %}">Class Features</a></li>
                             <li class="breadcrumb-item active" aria-current="page">{{class_name|upper}}</li>
                         </ol>

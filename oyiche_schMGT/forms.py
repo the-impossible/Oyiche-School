@@ -123,9 +123,12 @@ class GetStudentForm(forms.Form):
             self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 
             self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
+            self.fields['academic_status'].queryset = AcademicStatus.objects.filter(school_info=self.school)
 
         else:
             self.fields['student_class'].queryset = SchoolClasses.objects.none()
+            self.fields['academic_session'].queryset = AcademicSession.objects.none()
+            self.fields['academic_status'].queryset = AcademicStatus.objects.none()
 
     student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
         attrs={
@@ -139,31 +142,12 @@ class GetStudentForm(forms.Form):
         }
     ))
 
-    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
+    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.none(), empty_label="(Select academic status)", required=False, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
     ))
 
-class UploadReportForm(forms.Form):
-
-    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.all(), empty_label="(Select student class)", required=True, widget=forms.Select(
-        attrs={
-            'class': 'form-control input-height',
-        }
-    ))
-
-    class_subject = forms.ModelChoiceField(queryset=AcademicSession.objects.all(), empty_label="(Select academic session)", required=True, widget=forms.Select(
-        attrs={
-            'class': 'form-control input-height',
-        }
-    ))
-
-    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
-        attrs={
-            'class': 'form-control input-height',
-        }
-    ))
 
 class UserForm(forms.ModelForm):
 

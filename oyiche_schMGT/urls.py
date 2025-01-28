@@ -16,9 +16,6 @@ urlpatterns = [
     path("delete_file/<str:file_id>",
          DeleteFileView.as_view(), name="delete_file"),
 
-    # Upload Report
-    path("upload_report", UploadReportView.as_view(), name="upload_report"),
-
      # School Classes
      path("school_classes", SchoolClassesView.as_view(), name="school_classes"),
      path("school_subject", SchoolSubjectView.as_view(), name="school_subject"),
