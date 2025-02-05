@@ -7,17 +7,53 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 # My app imports
 from oyiche_schMGT.models import *
+from oyiche_auth.forms import *
 
 # Create your views here.
 
 
-class RegisterView(TemplateView):
+class RegisterView(View):
     template_name = "backend/auth/register.html"
+    form = SchoolForm
 
+    def get(self, request):
+        context = {
+            'form': self.form
+        }
+        return render(request, self.template_name, context)
 
-class LoginView(TemplateView):
-    template_name = "backend/auth/login.html"
+    def post(self, request):
+        form = self.form(request.POST)
 
+        if form.is_valid():
+            data = form.save(commit=False)
+            email = form.clean_email()
+
+            # Validate password
+            password = form.clean_password()
+            password1 = request.POST.get('password1')
+
+            if password == password1:
+
+                data.userType = UserType.objects.get_or_create(user_title='school')[0]
+                data.save()
+                SchoolInformation.objects.create(
+                    principal_id=data,
+                    school_email=email
+                )
+                messages.success(request, "Account created successfully, You can login now")
+                return redirect('auth:login')
+            else:
+                messages.error(request, "password and confirm password doesn't match")
+
+                return render(request, self.template_name, {'form':form})
+
+        context = {
+            'form':form
+        }
+
+        messages.error(request, form.errors.as_text())
+        return render(request, self.template_name, context)
 
 class LoginView(View):
     def get(self, request):
@@ -50,10 +86,8 @@ class LoginView(View):
             messages.error(request, 'All fields are required!!')
             return redirect('auth:login')
 
-
 class ForgotPasswordView(TemplateView):
     template_name = "backend/auth/forgot-password.html"
-
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "backend/dashboard.html"

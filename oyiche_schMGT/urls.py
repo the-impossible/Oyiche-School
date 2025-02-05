@@ -37,4 +37,7 @@ urlpatterns = [
      # Compute Results
      path("compute_results/<str:class_id>", ComputeResultView.as_view(), name="compute_results"),
 
+     # School Details
+     path("manage_school_details", ManageSchoolDetailsView.as_view(), name="manage_school_details")
+
 ]

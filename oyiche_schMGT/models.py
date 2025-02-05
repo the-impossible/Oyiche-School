@@ -50,6 +50,7 @@ class AcademicSession(models.Model):
     school_info = models.ForeignKey(
         to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_session", blank=True, null=True)
     is_current = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.session
@@ -96,6 +97,8 @@ class AcademicTerm(models.Model):
     school_info = models.ForeignKey(
         to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_term", blank=True, null=True)
     is_current = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.term
@@ -133,22 +136,25 @@ class SchoolInformation(models.Model):
         default=uuid.uuid4, primary_key=True, unique=True, editable=False)
     principal_id = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    school_name = models.CharField(max_length=500, db_index=True)
+    school_name = models.CharField(max_length=500, db_index=True, blank=True, null=True)
     school_username = models.CharField(
-        max_length=20, db_index=True, unique=True)
+        max_length=20, db_index=True, unique=True, blank=True, null=True)
     school_email = models.CharField(
         max_length=100, db_index=True, unique=True, verbose_name="email address", blank=True, null=True)
     school_logo = models.ImageField(
         null=True, blank=True, upload_to="uploads/logos/")
-    school_address = models.CharField(max_length=200, db_index=True)
+    school_address = models.CharField(max_length=200, db_index=True, blank=True, null=True)
     school_category = models.ForeignKey(
-        to="SchoolCategory", on_delete=models.CASCADE)
+        to="SchoolCategory", on_delete=models.CASCADE, blank=True, null=True)
     school_type = models.ForeignKey(
-        to="SchoolType", on_delete=models.CASCADE)
+        to="SchoolType", on_delete=models.CASCADE, blank=True, null=True)
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return self.school_username
+        if self.school_username:
+            return self.school_username
+        else:
+            return f'{self.principal_id.username}'
 
     class Meta:
         db_table = 'School Information'
@@ -528,7 +534,7 @@ class StudentPerformance(models.Model):
     def calculate_class_average(self):
         """
             Calculate the class average for the student's class.
-            (Sum of all student averages for the class) / (Single student's average).
+            (Sum of all student averages for the class) / (Total Student in the class).
         """
 
         # Ensure the student's current enrollment and class are defined
@@ -551,7 +557,7 @@ class StudentPerformance(models.Model):
             raise ValueError("Cannot calculate class average as student's average is zero!")
 
         # Calculate the class average
-        self.class_average = round(total_class_averages / self.student_average, 2)
+        self.class_average = round(total_class_averages / class_performances.count(), 2)
 
     def calculate_term_position(self):
         """

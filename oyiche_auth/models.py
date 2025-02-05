@@ -142,3 +142,26 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = 'Users'
         verbose_name_plural = 'Users'
+
+
+class EmailSendCount(models.Model):
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, null=True)
+    count = models.IntegerField(default=0)
+
+    @property
+    def increaseCount(self):
+        self.count += 1
+
+    @property
+    def resetCount(self):
+        self.count = 0
+
+    @property
+    def getCount(self):
+        return self.count
+
+    def __str__(self):
+        return f'{self.user}, has used ({self.count})/({10})'
+
+    class Meta:
+        db_table = 'EmailCounter'

@@ -5,14 +5,27 @@
         <div class="hleft">
             <a class="header-brand" href="{% url "basic:home" %}"><i class="fa fa-graduation-cap brand-logo"></i></a>
             <div class="dropdown">
-                <a href="javascript:void(0)" class="nav-link icon menu_toggle"><i class="fe fe-align-center"></i></a>
-                <a href="app-social.html"  class="nav-link icon xs-hide"><i class="fe fe-share-2" data-toggle="tooltip" data-placement="right" title="Social Media"></i></a>
-                <a href="javascript:void(0)" class="nav-link icon right_tab"><i class="fe fe-align-right"></i></a>
-                <a href="javascript:void(0)" class="nav-link icon settingbar"><i class="fe fe-settings"></i></a>
+
+                <a href="javascript:void(0)" class="nav-link icon menu_toggle">
+                    <i class="fe fe-align-center"></i>
+                </a>
+
+                <a href="#"  class="nav-link icon ">
+                    <i class="fe fe-share-2" data-toggle="tooltip" data-placement="right" title="Social Media"></i>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link icon right_tab">
+                    <i class="fe fe-align-right"></i>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link icon settingbar" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fe fe-settings"></i>
+                </a>
+
             </div>
         </div>
         <div class="hright">
-            <a href="#" class="nav-link icon settingbar"><i class="fe fe-power"></i></a>
+            <a href="#" class="nav-link icon" data-toggle="modal" data-target="#logoutModal"><i class="fe fe-power"></i></a>
         </div>
     </div>
 </div>

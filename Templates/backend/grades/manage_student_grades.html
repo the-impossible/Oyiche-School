@@ -42,17 +42,30 @@
                             <li class="breadcrumb-item active" aria-current="page">Subject Grades</li>
                         </ol>
                     </div>
-                    <ul class="nav nav-tabs page-header-tab">
-                        <li class="nav-item"><a class="nav-link {{ manage_all }}" data-toggle="tab" href="#manage-all">Manage Grades </a></li>
-                        <li class="nav-item"><a class="nav-link {{ all_student }}" data-toggle="tab" href="#Student-all">Bulk Upload </a></li>
-                        <li class="nav-item"><a class="nav-link {{ add_student }}" data-toggle="tab" href="#Student-add">Single Upload</a></li>
-                    </ul>
+                    <div class="d-none d-lg-block">
+                        <ul class="nav nav-tabs page-header-tab">
+                            <li class="nav-item"><a class="nav-link {{ manage_all }}" data-toggle="tab" href="#manage-all">Manage Grades </a></li>
+                            <li class="nav-item"><a class="nav-link {{ all_student }}" data-toggle="tab" href="#Student-all">Bulk Upload </a></li>
+                            <li class="nav-item"><a class="nav-link {{ add_student }}" data-toggle="tab" href="#Student-add">Single Upload</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="section-body mt-4">
             <div class="container-fluid">
+
+                <div class="row">
+                    <div class="d-block d-lg-none mb-3 mx-2">
+                        <ul class="nav nav-tabs" >
+                            <li class="nav-item"><a class="nav-link {{ manage_all }}" data-toggle="tab" href="#manage-all">Manage Grades </a></li>
+                            <li class="nav-item"><a class="nav-link {{ all_student }}" data-toggle="tab" href="#Student-all">Bulk Upload </a></li>
+                            <li class="nav-item"><a class="nav-link {{ add_student }}" data-toggle="tab" href="#Student-add">Single Upload</a></li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="tab-content">
                     <div class="tab-pane {{ manage_all }}" id="manage-all">
                         <div class="card">

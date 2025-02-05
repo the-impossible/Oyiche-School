@@ -333,6 +333,8 @@ class SchoolFileUploadView(LoginRequiredMixin, ListView):
             FilesTemplates, template_type=FileTemplateType.objects.get(template_title="without studentID"))
         context['fees_template'] = get_object_or_404(
             FilesTemplates, template_type=FileTemplateType.objects.get(template_title="Fees"))
+        context['grading'] = get_object_or_404(
+            FilesTemplates, template_type=FileTemplateType.objects.get(template_title="grading"))
         # Page Form
         context['form'] = form
         return context
@@ -1248,10 +1250,16 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 for student in enrolled_class
             ]
 
-            perform_computation(which='compute', student_performance_list=student_performance_list)
+            try:
 
-            messages.success(request=request, message=f'computation successful!')
-            return redirect('sch:compute_results', class_id)
+                perform_computation(which='compute', student_performance_list=student_performance_list)
+
+                messages.success(request=request, message=f'computation successful!')
+                return redirect('sch:compute_results', class_id)
+            except ValueError as e:
+                messages.error(request=request, message=str(e))
+                return redirect('sch:compute_results', class_id)
+
 
         elif 're-compute' in request.POST:
             # Create Performance for each student
@@ -1262,15 +1270,110 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 current_enrollment__academic_session=academic_session,
             )
 
-            perform_computation(which='re-compute', student_performance_list=student_performance_list)
+            try:
 
-            messages.success(request=request, message=f'computation successful!')
-            return redirect('sch:compute_results', class_id)
+                perform_computation(which='re-compute', student_performance_list=student_performance_list)
 
+                messages.success(request=request, message=f'computation successful!')
+                return redirect('sch:compute_results', class_id)
+
+            except ValueError as e:
+                messages.error(request=request, message=str(e))
+                return redirect('sch:compute_results', class_id)
 
         messages.error(request=request, message="Couldn't handle request, Try again!!")
         return redirect('sch:compute_results', class_id)
 
+class ManageSchoolDetailsView(LoginRequiredMixin, View):
+
+    template_name = "backend/school/manage_school_details.html"
+
+    form = SchoolInformationForm
+    form2 = AcademicSessionForm
+    form3 = AcademicTermForm
+
+    # Context variables
+    object = None
+    session_list = None
+    term_list = None
+    context = {}
+
+    school_details = ''
+    school_session = ''
+    school_term = ''
+
+    def helper(self, request):
+
+        self.school_details = 'active'
+        self.school_session = ''
+        self.school_term = ''
+
+        self.school = get_school(request)
+
+        self.object = SchoolInformation.objects.filter(principal_id=request.user).first()
+        self.session_list = AcademicSession.objects.filter(school_info=self.school).order_by('-date_created')
+        self.term_list = AcademicTerm.objects.filter(school_info=self.school).order_by('-date_created')
+
+
+        self.context = {
+
+            'form': self.form,
+            'form2': self.form2,
+            'form3': self.form3,
+
+            'school_details': self.school_details,
+            'school_session': self.school_session,
+            'school_term': self.school_term,
+
+            'object': self.object,
+            'session_list': self.session_list,
+            'term_list': self.term_list,
+        }
+
+
+    def get(self, request):
+
+        self.form = self.form(instance=self.object)
+        self.context['form'] = form
+
+        self.helper(request)
+
+        return render(request, template_name=self.template_name, context=self.context)
+
+    def post(self, request):
+
+        self.helper(request)
+
+        context = {
+
+            'form': self.form,
+            'form2': self.form2,
+            'form3': self.form3,
+
+            'school_details': self.school_details,
+            'school_session': self.school_session,
+            'school_term': self.school_term,
+
+            'object': self.object,
+            'session_list': self.session_list,
+            'term_list': self.term_list,
+        }
+
+        self.school = get_school(request)
+        self.object = SchoolInformation.objects.filter(principal_id=request.user).first()
+
+
+        if 'update' in request.POST:
+
+            form = SchoolInformationForm(data=request.POST, instance=self.object, files=request.FILES)
+
+            if form.is_valid():
+
+                form.save()
+                messages.success(request=request, message="School information updated successfully!")
+
+
+        return render(request, template_name=self.template_name, context=context)
 
 
 

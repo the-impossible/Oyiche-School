@@ -1,6 +1,6 @@
 # My Django app imports
 from django import forms
-import openpyxl
+import openpyxl, re
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -147,7 +147,6 @@ class GetStudentForm(forms.Form):
             'class': 'form-control input-height',
         }
     ))
-
 
 class UserForm(forms.ModelForm):
 
@@ -373,6 +372,10 @@ class SchoolClassesForm(forms.ModelForm):
     def clean_class_name(self):
         class_name = self.cleaned_data.get('class_name').lower()
 
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', class_name):
+            raise forms.ValidationError("Class name must start with a letter and contain only hypens and underscore")
+
+
         if SchoolClasses.objects.filter(school_info=self.school, class_name=class_name).exists():
             raise forms.ValidationError(f"The class name '{class_name}' already exists for this school.")
 
@@ -486,7 +489,11 @@ class SchoolGradeForm(forms.ModelForm):
             if int(min_score) > int(max_score):
                 raise forms.ValidationError("Minimum score grade cannot be greater than Maximum score.")
 
+            if SchoolGrades.objects.filter(school_info=self.school, min_score=min_score, max_score=max_score).exists():
+                raise forms.ValidationError(f"Minimum and Maximum score already exist")
+
         return cleaned_data
+
 
     def clean_grade_letter(self):
         grade_letter = self.cleaned_data.get('grade_letter').upper()
@@ -517,6 +524,7 @@ class SchoolGradeForm(forms.ModelForm):
             raise forms.ValidationError("Maximum score cannot be greater than 100")
 
         return max_score
+
 
 
     class Meta:
@@ -836,3 +844,95 @@ class StudentScoreGradeEditForm(forms.ModelForm):
     class Meta:
         model = StudentScores
         fields = ('first_ca', 'second_ca', 'third_ca', 'exam',)
+
+class SchoolInformationForm(forms.ModelForm):
+
+    school_name = forms.CharField(help_text='Enter school name', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    school_username = forms.CharField(help_text='Enter school abbreviation', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    school_email = forms.EmailField(required=False, help_text='Enter a valid email address', empty_value=None, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'email'
+        }
+    ))
+
+    school_logo = forms.ImageField(required=False, widget=forms.FileInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'file',
+            'accept': 'image/png, image/jpeg'
+        }
+    ))
+
+    school_address = forms.CharField(help_text='Enter school address', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    school_category = forms.ModelChoiceField(queryset=SchoolCategory.objects.all(), empty_label="(Select school category)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    school_type = forms.ModelChoiceField(queryset=SchoolType.objects.all(), empty_label="(Select school type)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    class Meta:
+        model = SchoolInformation
+        fields = ('school_name', 'school_username', 'school_email', 'school_logo', 'school_address', 'school_category', 'school_type')
+
+class AcademicSessionForm(forms.ModelForm):
+
+    session = forms.CharField(help_text='Enter session', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    session_description = forms.CharField(help_text='Enter session description', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    is_current = forms.BooleanField(required=False, help_text='current session?')
+
+    class Meta:
+        model = AcademicSession
+        fields = ('session', 'session_description', 'is_current')
+
+class AcademicTermForm(forms.ModelForm):
+
+    term = forms.CharField(help_text='Enter Term', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    term_description = forms.CharField(help_text='Enter term description', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    is_current = forms.BooleanField(required=False, help_text='current term?')
+
+    class Meta:
+        model = AcademicTerm
+        fields = ('term', 'term_description', 'is_current')
+
