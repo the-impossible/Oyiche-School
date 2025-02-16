@@ -3,31 +3,63 @@
     <h5 class="brand-name">{{request.user.get_school_name}}<a href="javascript:void(0)" class="menu_option float-right"><i class="icon-grid font-16" data-toggle="tooltip" data-placement="left" title="Grid & List Toggle"></i></a></h5>
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#menu-uni">Main</a></li>
+        {% if request.user.userType|lower == 'school' %}
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu-admin">Admin</a></li>
+        {% endif %}
     </ul>
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="menu-uni" role="tabpanel">
             <nav class="sidebar-nav">
                 <ul class="metismenu">
-                    <li class="active"><a href="{% url 'auth:dashboard' %}"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
-                    <li><a href="{% url 'sch:manage_school_details' %}"><i class="fa fa-clock-o"></i><span>School Details</span></a></li>
-                    <li><a href="{% url 'sch:school_classes' %}"><i class="fa fa-building"></i><span>Classes</span></a></li>
-                    <li><a href="{% url 'sch:school_subject' %}"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a></li>
-                    <li><a href="{% url 'sch:school_grade' %}"><i class="fa fa-flickr"></i><span>Grades</span></a></li>
-                    <li><a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a></li>
-                    {% comment %} <li><a href="{% url 'sch:upload_report' %}"><i class="fa fa-book"></i><span>Reports</span></a></li> {% endcomment %}
+
+                    <li {% if request.path == '/auth/dashboard' %}class="active"{% endif %}><a href="{% url 'auth:dashboard' %}"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
+
+                    {% if request.user.userType|lower == 'school' %}
+
+                        <li {% if request.path == '/sch/manage_school_details' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:manage_school_details' %}"><i class="fa fa-clock-o"></i><span>School Details</span></a>
+                        </li>
+
+                        <li {% if request.path == '/sch/school_classes' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:school_classes' %}"><i class="fa fa-building"></i><span>Classes</span></a>
+                        </li>
+
+                        <li {% if request.path == '/sch/school_subject' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:school_subject' %}"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a>
+                        </li>
+
+                        <li {% if request.path == '/sch/school_grade' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:school_grade' %}"><i class="fa fa-flickr"></i><span>Grades</span></a>
+                        </li>
+
+                        <li {% if request.path == '/sch/students' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a>
+                        </li>
+
+                    {% endif %}
+
+                    {% if request.user.userType|lower == 'student' %}
+                        <li {% if request.path == '/sch/student_result' %}class="active"{% endif %}><a href="{% url "sch:student_result" %}"><i class="fa fa-book"></i><span>Reports</span></a></li>
+                    {% endif %}
+
                     <li class="g_heading">Extra</li>
-                    <li><a href="events.html"><i class="fa fa-user-circle-o"></i><span>Profile</span></a></li>
-                    <li><a href="{% url 'sch:file_manager' %}"><i class="fa fa-folder"></i><span>FileManager</span></a></li>
-                    <li><a style="cursor: pointer;" data-toggle="modal" data-target="#logoutModal"><i class="fa fa-power-off" aria-hidden="true"></i><span>Logout</span></a></li>
-                    {% comment %}
-                    <li><a href="app-contact.html"><i class="fa fa-address-book"></i><span>Contact</span></a></li>
-                    <li><a href="our-centres.html"><i class="fa fa-map"></i><span>OurCentres</span></a></li>
-                    <li><a href="gallery.html"><i class="fa fa-camera-retro"></i><span>Gallery</span></a></li>
-                    {% endcomment %}
+
+                    <li {% if request.path == '/auth/update_profile' %}class="active"{% endif %}>
+                        <a href="{% url "auth:update_profile" %}"><i class="fa fa-user-circle-o"></i><span>Profile</span></a>
+                    </li>
+
+                    {% if request.user.userType|lower == 'school' %}
+                        <li><a href="{% url 'sch:file_manager' %}"><i class="fa fa-folder"></i><span>FileManager</span></a></li>
+                    {% endif %}
+
+                    <li>
+                        <a style="cursor: pointer;" data-toggle="modal" data-target="#logoutModal"><i class="fa fa-power-off" aria-hidden="true"></i><span>Logout</span></a>
+                    </li>
+
                 </ul>
             </nav>
         </div>
+        {% if request.user.userType == 'school' %}
         <div class="tab-pane fade" id="menu-admin" role="tabpanel">
             <nav class="sidebar-nav">
                 <ul class="metismenu">
@@ -45,5 +77,6 @@
                 </ul>
             </nav>
         </div>
+        {% endif %}
     </div>
 </div>

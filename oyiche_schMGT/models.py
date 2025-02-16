@@ -14,9 +14,9 @@ from oyiche_auth.models import *
 
 
 class SchoolType(models.Model):
-    school_title = models.CharField(max_length=20, unique=True)
+    school_title = models.CharField(max_length=100, unique=True)
     school_description = models.CharField(
-        max_length=100, blank=True, null=True)
+        max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.school_title
@@ -72,8 +72,6 @@ class AcademicStatus(models.Model):
     status = models.CharField(max_length=20)
     status_description = models.CharField(
         max_length=100, blank=True, null=True)
-    school_info = models.ForeignKey(
-        to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_status", blank=True, null=True)
 
     def __str__(self):
         return self.status
@@ -81,12 +79,6 @@ class AcademicStatus(models.Model):
     class Meta:
         db_table = 'Academic Status'
         verbose_name_plural = 'Academic Status'
-        constraints = [
-            models.UniqueConstraint(
-                fields=["school_info", "status"],
-                name="unique_status_per_school",
-            )
-        ]
 
 # Term (First Term, Second Term)
 
@@ -141,9 +133,10 @@ class SchoolInformation(models.Model):
         max_length=20, db_index=True, unique=True, blank=True, null=True)
     school_email = models.CharField(
         max_length=100, db_index=True, unique=True, verbose_name="email address", blank=True, null=True)
-    school_logo = models.ImageField(
+    school_logo = models.ImageField(default='img/user.png',
         null=True, blank=True, upload_to="uploads/logos/")
     school_address = models.CharField(max_length=200, db_index=True, blank=True, null=True)
+    school_updated = models.BooleanField(default=False, blank=True, null=True)
     school_category = models.ForeignKey(
         to="SchoolCategory", on_delete=models.CASCADE, blank=True, null=True)
     school_type = models.ForeignKey(

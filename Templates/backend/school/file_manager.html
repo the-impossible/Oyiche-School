@@ -12,9 +12,6 @@
     <!-- Start Main top header -->
     {% include 'partials/backend/sidebar-mini.html' %}
 
-    <!-- Start Setting panel -->
-    {% include 'partials/backend/settings.html' %}
-
     <!-- Start Theme panel do not add in project -->
     {% include 'partials/backend/theme.html' %}
 
@@ -220,11 +217,11 @@
                                                         <td>
                                                             <span class="folder-name">{{object.file_type}}</span>
                                                         </td>
-                                                        <td class="text-center">
+                                                        <td class="">
                                                             <span class="folder-name">
 
                                                                 {% if object.class_name %}
-                                                                {{object.class_name}}
+                                                                {{object.class_name.class_name|upper}}
                                                                 {% else %}
                                                                 <b >-</b>
                                                                 {% endif %}

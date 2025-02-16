@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Update Profile {% endblock title %}
+{% load crispy_forms_tags %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+				{% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center ">
+                    <div class="header-action">
+                        <h1 class="page-title">Update profile</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item active" aria-current="page">update profile</li>
+                        </ol>
+                    </div>
+                    <div class="d-none d-lg-block">
+                        <ul class="nav nav-tabs page-header-tab">
+                            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#update_profile">Update Profile </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="d-block d-lg-none mb-3 mx-2">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item"><a class="nav-link {{ update_profile }}" data-toggle="tab" href="#update_profile">Update profile </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="update_profile">
+                        <div class="row">
+                            <div class="col-xl-4 col-md-12">
+                                <div class="card">
+                                    <div class="card-body w_user">
+                                        <div class="user_avtar">
+                                            <img class="rounded-circle" src="{{ request.user.pic.url }}" alt="">
+                                        </div>
+                                        <div class="wid-u-info">
+                                            <h5>{{request.user.username|upper}}</h5>
+                                            <b class="text-muted m-b-0">email:{{request.user.email}}</b>
+                                            <b class="text-muted">phone:{{request.user.phone}}</b>
+                                            <br>
+                                            <b class="text-muted">user-type: <span class="badge badge-success">{{request.user.userType}}</span></b>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Change Password</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="" method="post">
+                                            {% csrf_token %}
+                                            <div class="row clearfix">
+                                                <div class="col-sm-12">
+                                                    <div class="form-group">
+                                                        <label>Current Password</label>
+                                                        <input type="password" required name="old_password" class="form-control" value="{{old_password}}">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 col-sm-12">
+                                                    <div class="form-group">
+                                                        <label>Password</label>
+                                                        <input type="password" required value="{{password}}" name="password" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 col-sm-12">
+                                                    <div class="form-group">
+                                                        <label>Confirm Password</label>
+                                                        <input type="password" required value="{{confirm_password}}" name="confirm_password" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-12">
+                                                    <button type="submit" class="btn btn-primary btn-block" name="update_password">Submit</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-8 col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Profile Information</h3>
+                                        <div class="card-options ">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="" method="post" enctype="multipart/form-data">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    {% csrf_token %}
+                                                    {{form|crispy}}
+                                                </div>
+
+                                                <div class="col-sm-12 mt-4">
+                                                    <button type="submit" name="update_profile" class="btn btn-block btn-primary">Submit</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- Start main footer -->
+        {% include 'partials/backend/footer.html' %}
+    </div>
+</div>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<!-- End Script -->
+
+{% endblock body %}

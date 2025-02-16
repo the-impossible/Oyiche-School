@@ -123,12 +123,10 @@ class GetStudentForm(forms.Form):
             self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 
             self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
-            self.fields['academic_status'].queryset = AcademicStatus.objects.filter(school_info=self.school)
 
         else:
             self.fields['student_class'].queryset = SchoolClasses.objects.none()
             self.fields['academic_session'].queryset = AcademicSession.objects.none()
-            self.fields['academic_status'].queryset = AcademicStatus.objects.none()
 
     student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
         attrs={
@@ -142,7 +140,7 @@ class GetStudentForm(forms.Form):
         }
     ))
 
-    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.none(), empty_label="(Select academic status)", required=False, widget=forms.Select(
+    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -372,7 +370,7 @@ class SchoolClassesForm(forms.ModelForm):
     def clean_class_name(self):
         class_name = self.cleaned_data.get('class_name').lower()
 
-        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', class_name):
+        if not re.match(r'^[a-zA-Z][ a-zA-Z0-9_-]*$', class_name):
             raise forms.ValidationError("Class name must start with a letter and contain only hypens and underscore")
 
 
@@ -892,6 +890,22 @@ class SchoolInformationForm(forms.ModelForm):
         }
     ))
 
+    def clean_school_name(self):
+        school_name = self.cleaned_data.get('school_name')
+
+        return school_name.title()
+
+    def clean_school_email(self):
+        school_email = self.cleaned_data.get('school_email')
+        if school_email:
+            check = SchoolInformation.objects.filter(school_email=school_email.lower().strip())
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Email Already taken!')
+
+        return school_email
+
     class Meta:
         model = SchoolInformation
         fields = ('school_name', 'school_username', 'school_email', 'school_logo', 'school_address', 'school_category', 'school_type')
@@ -936,3 +950,39 @@ class AcademicTermForm(forms.ModelForm):
         model = AcademicTerm
         fields = ('term', 'term_description', 'is_current')
 
+class StudentPerformanceForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(StudentPerformanceForm, self).__init__(*args, **kwargs)
+
+        if self.school:
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school)
+            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
+
+            self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
+
+            self.fields['academic_term'].queryset = AcademicTerm.objects.filter(school_info=self.school)
+
+        else:
+            self.fields['student_class'].queryset = SchoolClasses.objects.none()
+            self.fields['academic_session'].queryset = AcademicSession.objects.none()
+            self.fields['academic_term'].queryset = AcademicTerm.objects.none()
+
+    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    academic_session = forms.ModelChoiceField(queryset=AcademicSession.objects.none(), empty_label="(Select academic session)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    academic_term = forms.ModelChoiceField(queryset=AcademicTerm.objects.none(), empty_label="(Select academic term)", required=False, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))

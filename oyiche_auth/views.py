@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 # My app imports
 from oyiche_schMGT.models import *
 from oyiche_auth.forms import *
+from oyiche_schMGT.forms import *
 
 # Create your views here.
 
@@ -107,3 +108,77 @@ class LogoutView(LoginRequiredMixin, View):
         logout(request)
         messages.success(request, 'You are successfully logged out, to continue login again')
         return redirect('auth:login')
+
+class UpdateProfileView(LoginRequiredMixin, View):
+
+    template_name = "backend/auth/update_profile.html"
+
+    form = ProfleEditForm
+
+    # Context variables
+    object = None
+    context = {}
+
+    def get(self, request):
+
+        self.object = User.objects.filter(user_id=request.user.user_id).first()
+        self.form = self.form(instance=self.object)
+        self.context['form'] = self.form
+
+        return render(request, template_name=self.template_name, context=self.context)
+
+    def post(self, request):
+
+        self.object = User.objects.filter(user_id=request.user.user_id).first()
+
+        if 'update_profile' in request.POST:
+
+            form = self.form(instance=self.object, data=request.POST, files=request.FILES)
+
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Profile updated successfully')
+                return redirect('auth:update_profile')
+            else:
+                self.context['form'] = form
+                messages.error(request, form.errors.as_text())
+
+        elif 'update_password' in request.POST:
+
+            old_password = request.POST.get('old_password')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            self.form = self.form(instance=self.object)
+
+            self.context = {
+                'old_password': old_password,
+                'password': password,
+                'confirm_password': confirm_password,
+                'form': self.form,
+            }
+
+            route = render(request, template_name=self.template_name, context=self.context)
+
+            if (password != confirm_password):
+                messages.error(
+                    request, 'New password and confirm password does not match!')
+                return route
+
+            if (len(confirm_password) < 6):
+                messages.error(
+                    request, 'password too short! should not be less than 6 characters')
+                return route
+
+            if not self.object.check_password(old_password):
+                messages.error(request, 'Old password incorrect!')
+                return route
+
+            self.object.set_password(password)
+            self.object.save()
+
+            messages.success(
+                request, 'Password reset successful, you can now login!!')
+            return redirect('auth:login')
+
+        return render(request, template_name=self.template_name, context=self.context)

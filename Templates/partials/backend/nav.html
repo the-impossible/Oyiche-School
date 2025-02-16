@@ -112,8 +112,8 @@
                         <a href="javascript:void(0)" class="chip ml-3" data-toggle="dropdown">
                             <span class="avatar" style="background-image: url({{request.user.pic.url}})"></span> {{request.user.username}}</a>
                         <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                            <a class="dropdown-item" href="page-profile.html"><i class="dropdown-icon fe fe-user"></i> Profile</a>
-                            <a class="dropdown-item" href="app-setting.html"><i class="dropdown-icon fe fe-settings"></i> Settings</a>
+                            <a class="dropdown-item" href="{% url "auth:update_profile" %}"><i class="dropdown-icon fe fe-user"></i> Profile</a>
+                            <a class="dropdown-item" href=""><i class="dropdown-icon fe fe-settings"></i> Settings</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="javascript:void(0)"><i class="dropdown-icon fe fe-help-circle"></i> Need help?</a>
 

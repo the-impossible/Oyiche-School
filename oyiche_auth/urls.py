@@ -13,6 +13,8 @@ urlpatterns = [
     path('forgot-password', ForgotPasswordView.as_view(), name="forgot-password"),
 
     path('dashboard', DashboardView.as_view(), name="dashboard"),
+    path("update_profile", UpdateProfileView.as_view(), name="update_profile")
+
 ]
 
 handler404 = "oyiche_auth.views.custom_404_view"
