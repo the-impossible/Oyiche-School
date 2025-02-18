@@ -71,6 +71,11 @@
                                         <button type="button" class="btn btn-sm btn-info btn-block" data-toggle="modal" data-target="#computeResult"><i class="fa fa-check-square text-white"></i> Compute Result</button>
                                         {% endif %}
                                     </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
+                                        <button type="button" class="btn btn-sm btn-success btn-block" onclick="downloadAllResults()">
+                                            <i class="fa fa-download text-white"></i> Download All Results
+                                        </button>
+                                    </div>
                                 </div>
                               </form>
                             </div>
@@ -491,6 +496,93 @@ function printResult(modalId) {
     });
 }
 </script>
+
+<script>
+function downloadAllResults() {
+    const results = [];
+    
+    // Get all student result modals
+    const resultModals = document.querySelectorAll('[id^="viewResult"]');
+    
+    resultModals.forEach(modal => {
+        // Get the printable content div from each modal
+        const printContent = modal.querySelector('.print');
+        if (printContent) {
+            // Clone the content
+            const clonedContent = printContent.cloneNode(true);
+            
+            // Make sure the cloned content is visible
+            clonedContent.style.display = 'block';
+            
+            // Add page break
+            clonedContent.style.pageBreakAfter = 'always';
+            
+            results.push(clonedContent.outerHTML);
+        }
+    });
+
+    // Create container for all results
+    const container = document.createElement('div');
+    container.innerHTML = results.join('');
+    
+    // Add styles for PDF generation
+    const style = document.createElement('style');
+    style.textContent = `
+        @page {
+            margin: 20mm;
+        }
+        .result-container {
+            width: 210mm;
+            padding: 20mm;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .school-logo {
+            max-width: 100px;
+            height: auto;
+        }
+    `;
+    container.appendChild(style);
+
+    // PDF generation options
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: 'all-student-results.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait'
+        }
+    };
+
+    // Generate PDF
+    html2pdf()
+        .set(opt)
+        .from(container)
+        .save()
+        .catch(err => {
+            console.error('PDF generation failed:', err);
+            alert('Failed to generate PDF. Please try again.');
+        });
+}</script>
 {% endblock extrascripts %}
 <!-- End Script -->
 
