@@ -66,7 +66,7 @@
                                             <div class="row">
                                               <div class="col-12">
                                                 {{form|crispy}}
-                                                <button type="submit" class="btn btn-sm btn-primary btn-block" name="">Get Result</button>
+                                                <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_result">Get Result</button>
                                               </div>
                                             </div>
                                         </form>
@@ -76,18 +76,19 @@
                             <div class="col-lg-9 col-md-9 col-sm-12">
                               <div class="card">
                                 <div class="card-header">
-                                  <h3 class="card-title">Result Details</h3>
+                                  <h3 class="card-title">Result List</h3>
                                   <div class="card-options ">
                                     <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
                                     <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
                                   </div>
                                 </div>
                                 <div class="card-body">
-                                  {% if object %}
 
-                                  {% else %}
-                                  {% include 'partials/backend/empty_list.html' %}
-                                  {% endif %}
+                                  <p>Note: your last five result will be listed below</p>
+                                <p><strong>Where</strong>: <b>T.MARKS =</b> Total Marks, <b>T.SUB = </b> Total Subjects,  <b>AVG = </b> Average,  <b>C.AVG = </b> Class Average,  <b>POS = </b> Term Position</p>
+
+                                {% include "backend/results/partials/result_table_student.html" %}
+
                                 </div>
                             </div>
                             </div>
@@ -100,6 +101,7 @@
         {% include 'partials/backend/footer.html' %}
     </div>
 </div>
+{% include "backend/results/partials/result_modal.html" %}
 
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}

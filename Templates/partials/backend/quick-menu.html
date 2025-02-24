@@ -49,7 +49,7 @@
                     <div class="icon bg-yellow"><i class="fa fa-users"></i></div>
                     <div class="content">
                         <span>Total Student</span>
-                        <h5 class="number mb-0 font600">2,051</h5>
+                        <h5 class="number mb-0 font600">{{total_students}}</h5>
                     </div>
                 </div>
             </div>
@@ -58,7 +58,7 @@
                     <div class="icon bg-gray"><i class="fa fa-sitemap"></i></div>
                     <div class="content">
                         <span>Total Classes</span>
-                        <h5 class="number mb-0 font600">14</h5>
+                        <h5 class="number mb-0 font600">{{total_classes}}</h5>
                     </div>
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     <div class="icon bg-dark"><i class="fa fa-black-tie"></i></div>
                     <div class="content">
                         <span>{% if request.user.userType|lower == 'student' %}Total Classmate {% else %}Total Admins{% endif %}</span>
-                        <h5 class="number mb-0 font600">27</h5>
+                        <h5 class="number mb-0 font600">{{total_students}}</h5>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                     <div class="icon bg-azure"><i class="fa fa-tags"></i></div>
                     <div class="content">
                         <span>Total Subjects</span>
-                        <h5 class="number mb-0 font600">31</h5>
+                        <h5 class="number mb-0 font600">{{total_subjects}}</h5>
                     </div>
                 </div>
             </div>

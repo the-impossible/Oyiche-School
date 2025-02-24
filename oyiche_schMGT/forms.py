@@ -86,6 +86,7 @@ class FileHandler:
             # Fetch the student from the database
             try:
                 user = User.objects.get(username=student_id)
+                print(f'USER: {user}')
 
                 student = StudentInformation.objects.filter(school=self.school, user=user).first()
                 school_class_subject = SchoolClassSubjects.objects.filter(school_info=self.school, school_class=self.student_class, school_subject=self.subject).first()
@@ -492,7 +493,6 @@ class SchoolGradeForm(forms.ModelForm):
 
         return cleaned_data
 
-
     def clean_grade_letter(self):
         grade_letter = self.cleaned_data.get('grade_letter').upper()
 
@@ -523,13 +523,29 @@ class SchoolGradeForm(forms.ModelForm):
 
         return max_score
 
-
-
     class Meta:
         model = SchoolGrades
         fields = ('grade_letter','min_score', 'max_score', 'grade_description',)
 
 class SchoolGradeEditForm(SchoolGradeForm):
+
+    def clean(self):
+        min_score = self.cleaned_data.get('min_score')
+        max_score = self.cleaned_data.get('max_score')
+
+        if min_score is not None and max_score is not None:
+            if int(min_score) > int(max_score):
+                raise forms.ValidationError("Minimum score grade cannot be greater than Maximum score.")
+
+            check = SchoolGrades.objects.filter(school_info=self.school, min_score=min_score, max_score=max_score)
+
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+
+            if check.exists():
+                raise forms.ValidationError(f"Minimum and Maximum score already exist")
+
+        return self.cleaned_data
 
     def clean_grade_letter(self):
 
@@ -953,11 +969,16 @@ class AcademicTermForm(forms.ModelForm):
 class StudentPerformanceForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
+
         self.school = kwargs.pop('school', '')
+        self.student = kwargs.pop('student', '')
         super(StudentPerformanceForm, self).__init__(*args, **kwargs)
 
         if self.school:
-            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school)
+            enrolled_class_ids = StudentEnrollment.objects.filter(student=self.student).values_list('student_class', flat=True)
+
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school, id__in=enrolled_class_ids)
+
             self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 
             self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
@@ -981,7 +1002,7 @@ class StudentPerformanceForm(forms.Form):
         }
     ))
 
-    academic_term = forms.ModelChoiceField(queryset=AcademicTerm.objects.none(), empty_label="(Select academic term)", required=False, widget=forms.Select(
+    academic_term = forms.ModelChoiceField(queryset=AcademicTerm.objects.none(), empty_label="(Select academic term)", required=True, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }

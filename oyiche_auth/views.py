@@ -9,6 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from oyiche_schMGT.models import *
 from oyiche_auth.forms import *
 from oyiche_schMGT.forms import *
+from oyiche_schMGT.views import get_school
 
 # Create your views here.
 
@@ -94,7 +95,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "backend/dashboard.html"
 
     def get_context_data(self, **kwargs):
+
+        school = get_school(self.request)
         context = super(DashboardView, self).get_context_data(**kwargs)
+
+        context['total_students'] = StudentInformation.objects.filter(school=school).count()
+        context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
+        context['total_subjects'] = SchoolClassSubjects.objects.filter(school_info=school).distinct('school_class').count()
 
         return context
 
@@ -122,14 +129,23 @@ class UpdateProfileView(LoginRequiredMixin, View):
     def get(self, request):
 
         self.object = User.objects.filter(user_id=request.user.user_id).first()
+
+        if self.object.userType.user_title.lower() == 'student':
+            student = StudentInformation.objects.filter(user=self.object).first()
+            self.context['student'] = student
+
         self.form = self.form(instance=self.object)
         self.context['form'] = self.form
+
 
         return render(request, template_name=self.template_name, context=self.context)
 
     def post(self, request):
 
         self.object = User.objects.filter(user_id=request.user.user_id).first()
+        if self.object.userType.user_title.lower() == 'student':
+            student = StudentInformation.objects.filter(user=self.object).first()
+            self.context['student'] = student
 
         if 'update_profile' in request.POST:
 

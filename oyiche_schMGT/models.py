@@ -435,6 +435,7 @@ class StudentScores(models.Model):
             Calculate positions for all student scores based on average.
         """
         # Retrieve all filtered records
+        print("I WAS CALCULATED")
         scores = StudentScores.objects.filter(
             session=self.session,
             term=self.term,

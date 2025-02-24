@@ -69,10 +69,18 @@
                                         </div>
                                         <div class="wid-u-info">
                                             <h5>{{request.user.username|upper}}</h5>
-                                            <b class="text-muted m-b-0">email:{{request.user.email}}</b>
-                                            <b class="text-muted">phone:{{request.user.phone}}</b>
+
+                                            {% if request.user.userType.user_title|lower == 'student' %}
+                                            <b class="text-muted">Name:{{student.student_name}}</b>
                                             <br>
+                                            <b class="text-muted">Gender:{{student.gender}}</b>
+                                            <br>
+                                            {% endif %}
                                             <b class="text-muted">user-type: <span class="badge badge-success">{{request.user.userType}}</span></b>
+                                            <br>
+                                            <b class="text-muted m-b-0">email:{{request.user.email}}</b>
+                                            <br>
+                                            <b class="text-muted">phone:{{request.user.phone}}</b>
                                         </div>
                                     </div>
                                 </div>
