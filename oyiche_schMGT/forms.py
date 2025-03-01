@@ -1,6 +1,7 @@
 # My Django app imports
 from django import forms
 import openpyxl, re
+from django.db.models import Q
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -1007,3 +1008,84 @@ class StudentPerformanceForm(forms.Form):
             'class': 'form-control input-height',
         }
     ))
+
+class SchoolRemarkForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(SchoolRemarkForm, self).__init__(*args, **kwargs)
+
+    min_average = forms.CharField(help_text='enter minimum average (inclusive)', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    max_average = forms.CharField(help_text='enter maximum average (inclusive)', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    teacher_remark = forms.CharField(help_text='enter teacher remark', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    principal_remark = forms.CharField(help_text='enter principal remark', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        min_average = cleaned_data.get('min_average')
+        max_average = cleaned_data.get('max_average')
+
+        if min_average is not None and max_average is not None:
+            if int(min_average) > int(max_average):
+                raise forms.ValidationError("Minimum average cannot be greater than Maximum average.")
+
+            # Check if an existing range overlaps with the supplied range
+            overlapping_remark = SchoolRemark.objects.filter(
+                school_info=self.school
+            ).filter(
+                Q(min_average__lte=max_average, max_average__gte=min_average)  # Overlapping condition
+            ).exists()
+
+            if overlapping_remark:
+                raise forms.ValidationError("A School Remark with the provided range already exists.")
+
+        return cleaned_data
+
+    def clean_min_average(self):
+        min_average = self.cleaned_data.get('min_average')
+
+        if int(min_average) < 0:
+            raise forms.ValidationError("Minimum average cannot be less than 0")
+
+        if int(min_average) > 100:
+            raise forms.ValidationError("Minimum average cannot be greater than 100")
+
+        return min_average
+
+    def clean_max_average(self):
+        max_average = self.cleaned_data.get('max_average')
+
+        if int(max_average) < 0:
+            raise forms.ValidationError("Maximum average cannot be less than 0")
+
+        if int(max_average) > 100:
+            raise forms.ValidationError("Maximum average cannot be greater than 100")
+
+        return max_average
+
+    class Meta:
+        model = SchoolRemark
+        fields = ('min_average','max_average', 'teacher_remark', 'principal_remark')

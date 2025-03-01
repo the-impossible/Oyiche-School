@@ -28,6 +28,8 @@
                             <a href="{% url 'sch:school_subject' %}"><i class="fa fa-puzzle-piece"></i><span>Subjects</span></a>
                         </li>
 
+                        <li {% if request.path == '/sch/manage_school_remarks' %}class="active"{% endif %}><a href="{% url "sch:manage_school_remarks" %}"><i class="fa fa-flag"></i><span>Remarks</span></a></li>
+
                         <li {% if request.path == '/sch/school_grade' %}class="active"{% endif %}>
                             <a href="{% url 'sch:school_grade' %}"><i class="fa fa-flickr"></i><span>Grades</span></a>
                         </li>
@@ -59,7 +61,7 @@
                 </ul>
             </nav>
         </div>
-        {% if request.user.userType == 'school' %}
+        {% if request.user.userType|lower == 'school' %}
         <div class="tab-pane fade" id="menu-admin" role="tabpanel">
             <nav class="sidebar-nav">
                 <ul class="metismenu">
@@ -67,7 +69,7 @@
                     <li><a href="payments.html"><i class="fa fa-credit-card"></i><span>Payments</span></a></li>
                     <li><a href="setting.html"><i class="fa fa-gear"></i><span>Settings</span></a></li>
                     {% comment %}
-                    <li><a href="noticeboard.html"><i class="fa fa-dashboard"></i><span>Noticeboard</span></a></li>
+                    <li><a href="noticeboard.html"><i class="fa fa-dashboard"></i><span>Remarks</span></a></li>
                     <li><a href="taskboard.html"><i class="fa fa-list-ul"></i><span>Taskboard</span></a></li>
                     <li><a href="hostel.html"><i class="fa fa-bed"></i><span>Hostel</span></a></li>
                     <li><a href="transport.html"><i class="fa fa-truck"></i><span>Transport</span></a></li>

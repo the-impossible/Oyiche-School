@@ -11,6 +11,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.db import IntegrityError
 from django.db.models import Prefetch
 from django.utils.decorators import method_decorator
+from django.db.models import Q
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -1261,11 +1262,14 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 # Calculate class averages after all student averages are ready
                 for performance in performances:
                     performance.calculate_class_average()
+                    print('Class Average Calculated')
+                    performance.calculate_school_remark()
+                    print('School Remark Calculated')
 
                 # Bulk update all class average fields
                 StudentPerformance.objects.bulk_update(
                     performances,
-                    ['class_average']
+                    ['class_average', 'school_remark']
                 )
 
                 # Calculate term positions
@@ -1751,7 +1755,7 @@ class StudentResultView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:student_result')
 
-class ResultPreview(LoginRequiredMixin, View):
+class ResultPreviewPage(LoginRequiredMixin, View):
 
     def get(self, request, performance_id):
         school = get_school(request)
@@ -1760,36 +1764,146 @@ class ResultPreview(LoginRequiredMixin, View):
 
             if school:
 
-                # Get all subjects assigned to the class
-                subjects = SchoolClassSubjects.objects.filter(
-                    school_info=school,
-                    school_class=class_id
-                ).values_list('school_subject__subject_name', 'id',)
-
-                # Get student performance with scores for each subject
-                queryset = (
-                    StudentPerformance.objects.filter(
-                        id=performance_id,
-                        school_info=school,
-                    )
-                    .select_related('student', 'current_enrollment')
-                    .prefetch_related(
-                        Prefetch(
-                            'student__student_scores',
-                            queryset=StudentScores.objects.filter(
-                                school_info=school,
-                                term__is_current=True,
-                                session__is_current=True,
-                            )
-                        )
-                    )
-                    .order_by('-student_average')
+                # Fetch performance first
+                performance = StudentPerformance.objects.select_related('student', 'current_enrollment').get(
+                    school_info=school, pk=performance_id
                 )
 
-                return render(request=request, template_name="backend/grades/partials/grade_form.html", context={'subjects': subjects, 'object': queryset})
+                # Fetch related student scores separately
+                student_scores = StudentScores.objects.filter(
+                    school_info=school,
+                    student=performance.student,
+                    term=performance.current_enrollment.academic_term,
+                    session=performance.current_enrollment.academic_session,
+                )
 
-            return StudentPerformance.objects.none(), []
+                return render(request=request, template_name="backend/results/partials/inner_result_student.html", context={'object': performance, 'school':school, 'scores':student_scores})
+
+            return JsonResponse({'error': 'School not found!'}, status=404)
 
         except SchoolGrades.DoesNotExist:
-            return JsonResponse({'error': 'Student Score not found!'}, status=404)
+            return JsonResponse({'error': 'Student result not found!'}, status=404)
 
+@method_decorator([is_school], name='dispatch')
+class ManageSchoolResultView(LoginRequiredMixin, View):
+
+    template_name = "backend/remarks/manage_school_remarks.html"
+
+    form = SchoolRemarkForm
+
+    # Context variables
+    teacher_list = None
+    context = {}
+
+
+    def helper(self, request):
+
+        self.school = get_school(request)
+
+        self.teacher_list = SchoolRemark.objects.filter(school_info=self.school).order_by('-date_created')
+
+        self.context = {
+
+            'form': self.form,
+            'teacher_list': self.teacher_list,
+
+        }
+
+    def get(self, request):
+
+        self.helper(request)
+
+        return render(request, template_name=self.template_name, context=self.context)
+
+    def post(self, request):
+
+        self.helper(request)
+
+        self.context = {
+
+            'form': self.form,
+
+            'teacher_list': self.teacher_list,
+
+        }
+
+        self.school = get_school(request)
+
+        if 'create_remark' in request.POST:
+
+            form = self.form(data=request.POST, school=self.school)
+
+            if form.is_valid():
+
+                data = form.save(commit=False)
+                data.school_info = self.school
+                data.save()
+
+                messages.success(request=request, message="Teacher Remark has been saved!")
+
+                self.context['teacher_list'] = SchoolRemark.objects.filter(school_info=self.school).order_by('-date_created')
+
+                return render(request, template_name=self.template_name, context=self.context)
+
+            else:
+                self.context['form'] = form
+                messages.error(request=request, message=form.errors.as_text())
+
+        elif 'edit_remark' in request.POST:
+
+            remark_id = request.POST.get('remark_id')
+            min_average = request.POST.get('min_average')
+            max_average = request.POST.get('max_average')
+            teacher_remark = request.POST.get('teacher_remark')
+            principal_remark = request.POST.get('principal_remark')
+
+            try:
+
+                data = SchoolRemark.objects.get(pk=remark_id)
+
+                # Convert to float
+                min_avg = float(min_average)
+                max_avg = float(max_average)
+
+                # Validate min and max average
+                if min_avg > max_avg:
+                    messages.error(request, "Minimum average cannot be greater than Maximum average.")
+                    return redirect(request.META.get('HTTP_REFERER', 'default_view')) # Redirect
+
+                # Check for overlapping remark range excluding the current remark being edited
+
+                overlapping_remark = SchoolRemark.objects.filter(
+                    school_info=data.school_info
+                ).exclude(pk=remark_id).filter(
+                    Q(min_average__lte=max_avg, max_average__gte=min_avg)
+                ).exists()
+
+                if overlapping_remark:
+                    messages.error(request, "A School Remark with the provided range already exists.")
+                    return redirect(request.META.get('HTTP_REFERER', 'default_view'))
+
+                data.min_average = min_average
+                data.max_average = max_average
+                data.teacher_remark = teacher_remark
+                data.principal_remark = principal_remark
+
+                data.save()
+                messages.success(request, "Remark updated successfully.")
+
+            except SchoolRemark.DoesNotExist:
+                messages.error(request, "Failed to edit remark. Try again!")
+
+        elif 'delete_remark' in request.POST:
+
+            remark_id = request.POST.get('remark_id')
+
+            try:
+
+                remark = SchoolRemark.objects.get(school_info=self.school, pk=remark_id)
+                messages.success(request, 'Remark has been deleted successfully!!')
+                remark.delete()
+
+            except SchoolRemark.DoesNotExist:
+                messages.error(request, "Failed to delete remark!!")
+
+        return render(request, template_name=self.template_name, context=self.context)

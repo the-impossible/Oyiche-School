@@ -178,9 +178,9 @@ class StudentInformation(models.Model):
     student_id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     user = models.OneToOneField(
-        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="student_user")
     school = models.ForeignKey(
-        to="SchoolInformation", on_delete=models.CASCADE)
+        to="SchoolInformation", on_delete=models.CASCADE, related_name='student_school')
     student_name = models.CharField(max_length=500, db_index=True)
     gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE)
     date_created = models.DateField(auto_now_add=True)
@@ -492,6 +492,8 @@ class StudentPerformance(models.Model):
     student_average = models.FloatField(default=0)
     class_average = models.FloatField(default=0)
 
+    school_remark = models.ForeignKey(to='SchoolRemark', on_delete=models.CASCADE, blank=True, null=True, related_name='student_performance_remark')
+
     term_position = models.CharField(max_length=20, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -597,6 +599,15 @@ class StudentPerformance(models.Model):
             suffix_map = {1: "st", 2: "nd", 3: "rd"}
             return suffix_map.get(rank % 10, "th")
 
+    def calculate_school_remark(self):
+
+        # Assign school remark
+        self.school_remark = SchoolRemark.objects.filter(
+            school_info=self.school_info,
+            min_average__lte=self.student_average,
+            max_average__gte=self.student_average
+        ).first()
+
     def save(self, *args, **kwargs):
         self.calculate_student_average_total_marks_total_subject()
         super(StudentPerformance, self).save(*args, **kwargs)
@@ -605,3 +616,23 @@ class StudentPerformance(models.Model):
         db_table = 'Student Performance'
         verbose_name_plural = 'Student Performance'
 
+class SchoolRemark(models.Model):
+    min_average = models.FloatField(default=0)
+    max_average = models.FloatField(default=100)
+    teacher_remark = models.CharField(max_length=500, blank=True, null=True)
+    principal_remark = models.CharField(max_length=500, blank=True, null=True)
+    school_info = models.ForeignKey(to='SchoolInformation', on_delete=models.CASCADE, related_name='school_teacher_remark')
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.school_info.school_username} {self.teacher_remark}'
+
+    def save(self, *args, **kwargs):
+        self.teacher_remark = self.teacher_remark.upper()
+        self.principal_remark = self.principal_remark.upper()
+
+        super(SchoolRemark, self).save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'School Remark'
+        verbose_name_plural = 'School Remarks'
