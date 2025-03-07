@@ -42,10 +42,6 @@ user_types = [
         'user_title': 'student',
         'user_description': 'This is a student role'
     },
-    {
-        'user_title': 'test',
-        'user_description': 'This is a test role'
-    },
 ]
 
 [UserType.objects.get_or_create(**types) for types in user_types]

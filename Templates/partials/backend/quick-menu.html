@@ -3,14 +3,14 @@
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#righttab-statistics">Statistics</a></li>
 
-        {% if not request.user.userType|lower == 'student' %}
+        {% comment %} {% if not request.user.userType|lower == 'student' %}
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#righttab-Result">Result</a></li>
-        {% endif %}
+        {% endif %} {% endcomment %}
 
     </ul>
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="righttab-statistics" role="tabpanel">
-            {% if not request.user.userType|lower == 'student' %}
+            {% if request.user.userType|lower == 'school' %}
             <div class="card gradient">
                 <div class="card-body">
                     <div>Total Revenue</div>
@@ -68,7 +68,7 @@
                     <div class="icon bg-dark"><i class="fa fa-black-tie"></i></div>
                     <div class="content">
                         <span>{% if request.user.userType|lower == 'student' %}Total Classmate {% else %}Total Admins{% endif %}</span>
-                        <h5 class="number mb-0 font600">{{total_students}}</h5>
+                        <h5 class="number mb-0 font600">{{total_admins}}</h5>
                     </div>
                 </div>
             </div>
@@ -82,46 +82,9 @@
                     </div>
                 </div>
             </div>
-            {% comment %}
-            <div class="card">
-                <div class="card-body top_counter">
-                    <div class="icon bg-pink"><i class="fa fa-credit-card"></i></div>
-                    <div class="content">
-                        <span>Expense</span>
-                        <h5 class="number mb-0 font600">$7,254</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body top_counter">
-                    <div class="icon bg-green"><i class="fa fa-bank"></i></div>
-                    <div class="content">
-                        <span>Total Income</span>
-                        <h5 class="number mb-0 font600">$27,852</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body top_counter">
-                    <div class="icon bg-cyan"><i class="fa fa-map-o"></i></div>
-                    <div class="content">
-                        <span>Our Center</span>
-                        <h5 class="number mb-0 font600">52</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body top_counter">
-                    <div class="icon bg-indigo"><i class="fa fa-smile-o"></i></div>
-                    <div class="content">
-                        <span>Smiley Face</span>
-                        <h5 class="number mb-0 font600">10K</h5>
-                    </div>
-                </div>
-            </div>
-            {% endcomment %}
+
         </div>
-        {% if not request.user.userType|lower == 'student' %}
+        {% comment %} {% if not request.user.userType|lower == 'student' %}
         <div class="tab-pane fade" id="righttab-Result" role="tabpanel">
             <div class="card">
                 <div class="card-header">
@@ -262,6 +225,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
+        {% endif %} {% endcomment %}
     </div>
 </div>

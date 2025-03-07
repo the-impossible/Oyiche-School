@@ -14,7 +14,7 @@
 
                     <li {% if request.path == '/auth/dashboard' %}class="active"{% endif %}><a href="{% url 'auth:dashboard' %}"><i class="fa fa-dashboard"></i><span>Dashboard</span></a></li>
 
-                    {% if request.user.userType|lower == 'school' %}
+                    {% if request.user.userType|lower == 'school' or request.user.userType|lower == 'admin' %}
 
                         <li {% if request.path == '/sch/manage_school_details' %}class="active"{% endif %}>
                             <a href="{% url 'sch:manage_school_details' %}"><i class="fa fa-clock-o"></i><span>School Details</span></a>
@@ -50,7 +50,7 @@
                         <a href="{% url "auth:update_profile" %}"><i class="fa fa-user-circle-o"></i><span>Profile</span></a>
                     </li>
 
-                    {% if request.user.userType|lower == 'school' %}
+                    {% if request.user.userType|lower == 'school' or request.user.userType|lower == 'admin' %}
                         <li><a href="{% url 'sch:file_manager' %}"><i class="fa fa-folder"></i><span>FileManager</span></a></li>
                     {% endif %}
 
@@ -65,7 +65,7 @@
         <div class="tab-pane fade" id="menu-admin" role="tabpanel">
             <nav class="sidebar-nav">
                 <ul class="metismenu">
-                    <li><a href="staff.html"><i class="fa fa-user-circle-o"></i><span>Staff</span></a></li>
+                    <li><a href="{% url "auth:manage_admin" %}"><i class="fa fa-user-circle-o"></i><span>Staffs</span></a></li>
                     <li><a href="payments.html"><i class="fa fa-credit-card"></i><span>Payments</span></a></li>
                     <li><a href="setting.html"><i class="fa fa-gear"></i><span>Settings</span></a></li>
                     {% comment %}

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'oyiche_auth',
     'oyiche_schMGT',
     'oyiche_files',
+    'oyiche_basic',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'oyiche_schMGT.context_processors.global_dashboard_context',
             ],
         },
     },

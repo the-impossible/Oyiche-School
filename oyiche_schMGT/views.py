@@ -27,7 +27,9 @@ def get_school(request):
     school = None
 
     try:
-        school = SchoolAdminInformation.objects.get(user=request.user)
+        admin = SchoolAdminInformation.objects.get(user=request.user)
+        school = SchoolInformation.objects.get(sch_id=admin.school.sch_id)
+
     except SchoolAdminInformation.DoesNotExist:
         try:
             school = SchoolInformation.objects.get(principal_id=request.user)
@@ -39,9 +41,13 @@ def get_school(request):
                 messages.error(request, "School profile not foud! Therefore, school details can't be retrieved.")
                 return None  # Explicitly return None on failure
 
+    except SchoolInformation.DoesNotExist:
+        messages.error(request, "School profile not found! Therefore, school details can't be retrieved.")
+        return None
+
     return school
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/students.html"
 
@@ -58,6 +64,7 @@ class StudentPageView(LoginRequiredMixin, View):
 
     def get(self, request):
         self.school = get_school(request)
+        print(f'school1: {self.school}')
 
         self.all_student = 'active'
         self.add_student = ''
@@ -91,6 +98,7 @@ class StudentPageView(LoginRequiredMixin, View):
         else:
             self.form = self.form(school=self.school)
 
+        print(f'school2: {self.school}')
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
 
@@ -213,7 +221,7 @@ class StudentPageView(LoginRequiredMixin, View):
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class EditStudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/edit_student.html"
 
@@ -311,7 +319,7 @@ class EditStudentPageView(LoginRequiredMixin, View):
             messages.error(request=request, message="Fix Form Errors!!")
             return render(request=request, template_name=self.template_name, context=context)
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolFileUploadView(LoginRequiredMixin, ListView):
 
     school = None
@@ -367,7 +375,7 @@ class SchoolFileUploadView(LoginRequiredMixin, ListView):
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class BatchCreateView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -390,7 +398,7 @@ class BatchCreateView(LoginRequiredMixin, View):
         finally:
             return redirect('sch:file_manager')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class DeleteFileView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -402,7 +410,7 @@ class DeleteFileView(LoginRequiredMixin, View):
         finally:
             return redirect('sch:file_manager')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolClassesView(LoginRequiredMixin, ListView):
 
     model = SchoolClasses
@@ -493,7 +501,7 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_classes')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolSubjectView(LoginRequiredMixin, ListView):
 
     model = SchoolSubject
@@ -584,7 +592,7 @@ class SchoolSubjectView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_subject')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SubjectClassView(LoginRequiredMixin, ListView):
 
     model = SchoolClassSubjects
@@ -670,7 +678,7 @@ class SubjectClassView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect("sch:subject_class", class_id)
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
 
     model = SchoolGrades
@@ -706,7 +714,7 @@ class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
 
         return redirect("sch:school_grade")
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ListGradesView(LoginRequiredMixin, ListView):
     model = SchoolGrades
     template_name = "backend/grades/partials/grade_list.html"
@@ -717,7 +725,7 @@ class ListGradesView(LoginRequiredMixin, ListView):
             return SchoolGrades.objects.filter(school_info=school).order_by('-date_created')
         return SchoolGrades.objects.none()
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class GradesEditView(LoginRequiredMixin, View):
 
     def get(self, request, grade_id):
@@ -755,7 +763,7 @@ class GradesEditView(LoginRequiredMixin, View):
         finally:
             return HttpResponse(status=204, headers={'Hx-Trigger':'listChanged'})
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class GradesDeleteView(LoginRequiredMixin, View):
 
     def get(self, request, grade_id):
@@ -785,7 +793,7 @@ class GradesDeleteView(LoginRequiredMixin, View):
 
         return HttpResponse(status=204, headers={'Hx-Trigger':' listChanged'})
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolClassOptions(LoginRequiredMixin, View):
     template_name = "backend/classes/school_options.html"
 
@@ -800,7 +808,7 @@ class SchoolClassOptions(LoginRequiredMixin, View):
             messages.error(request, "Class not found!!")
             return redirect('sch:school_classes')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
     template_name = "backend/grades/manage_student_grades.html"
@@ -1071,7 +1079,7 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
         return render(request, template_name=self.template_name, context=context)
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentScoreEditView(LoginRequiredMixin, View):
 
     @method_decorator(has_updated)
@@ -1117,7 +1125,7 @@ class StudentScoreEditView(LoginRequiredMixin, View):
             messages.error(request, "Student Grade not found Try Again!!")
             return redirect('sch:school_classes')
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, View):
     login_url = 'auth:login'
     model = StudentScores
@@ -1156,7 +1164,7 @@ class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, View):
                 'subject_id': subject
             }))
 
-@method_decorator([is_school, has_updated], name='dispatch')
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ComputeResultView(LoginRequiredMixin, ListView):
     template_name = "backend/results/compute_result.html"
     model = StudentPerformance
@@ -1784,7 +1792,7 @@ class ResultPreviewPage(LoginRequiredMixin, View):
         except SchoolGrades.DoesNotExist:
             return JsonResponse({'error': 'Student result not found!'}, status=404)
 
-@method_decorator([is_school], name='dispatch')
+@method_decorator([is_school_or_admin], name='dispatch')
 class ManageSchoolResultView(LoginRequiredMixin, View):
 
     template_name = "backend/remarks/manage_school_remarks.html"

@@ -8,7 +8,7 @@ from oyiche_schMGT.models import *
 from oyiche_schMGT import views
 
 # My app imports
-# Determining if the user is an admin
+# Determining if the user is an staff
 def is_staff(func):
     def wrapper_func(request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -35,29 +35,48 @@ def is_school(func):
 
     return wrapper_func
 
+# Determining if the user is an admin of a school
+def is_school_or_admin(func):
+    def wrapper_func(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.warning(request, 'Please log in to access this page')
+            return redirect('auth:login')
+
+        userType = str(request.user.userType).lower()
+        if userType in ['admin', 'school']:
+            return func(request, *args, **kwargs)
+        else:
+            messages.warning(request, 'You are not authorized to view this page')
+            return redirect('auth:dashboard')
+
+    return wrapper_func
+
+
 # Determine if user has updated their account or account
 def has_updated(func):
     def wrapper_func(request, *args, **kwargs):
 
-        if str(request.user.userType) == 'school':
+        school_info =  views.get_school(request)
 
-            school_info =  views.get_school(request)
+        if school_info:
 
-            if school_info:
+            academic_session = AcademicSession.objects.filter(school_info=school_info, is_current=True)
+            academic_term = AcademicTerm.objects.filter(school_info=school_info, is_current=True)
+            school_details = SchoolInformation.objects.filter(sch_id=school_info.pk).first()
 
-                academic_session = AcademicSession.objects.filter(school_info=school_info, is_current=True)
-                academic_term = AcademicTerm.objects.filter(school_info=school_info, is_current=True)
-                school_details = SchoolInformation.objects.filter(sch_id=school_info.pk).first()
+            if school_details.school_updated and academic_session.exists() and academic_term.exists():
+                return func(request, *args, **kwargs)
 
-                if school_details.school_updated and academic_session.exists() and academic_term.exists():
-                    return func(request, *args, **kwargs)
-
-                else:
+            else:
+                if str(request.user.userType) == 'school':
                     messages.info(request, 'You have to update your school detail before proceeding!')
                     return redirect('sch:manage_school_details')
-            else:
-                messages.info(request, 'School Profile not found!')
-                return redirect('auth:dashboard')
+                else:
+                    messages.info(request, 'Contact school owner to update school details!')
+                    return redirect('auth:dashboard')
+        else:
+            messages.info(request, 'School Profile not found!')
+            return redirect('auth:dashboard')
 
     return wrapper_func
 

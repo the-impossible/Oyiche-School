@@ -162,6 +162,8 @@ class SchoolAdminInformation(models.Model):
     user = models.ForeignKey(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     school = models.ForeignKey(to=SchoolInformation, on_delete=models.CASCADE)
+    admin_name = models.CharField(max_length=500, db_index=True, blank=True, null=True)
+    gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE, blank=True, null=True)
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):

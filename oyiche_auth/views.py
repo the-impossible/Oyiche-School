@@ -4,12 +4,17 @@ from django.views import View
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
+from django.utils.decorators import method_decorator
+from django.db.models import Max
+from django.urls import reverse
 
 # My app imports
 from oyiche_schMGT.models import *
 from oyiche_auth.forms import *
 from oyiche_schMGT.forms import *
 from oyiche_schMGT.views import get_school
+from oyiche_auth.decorators import *
 
 # Create your views here.
 
@@ -94,16 +99,34 @@ class ForgotPasswordView(TemplateView):
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "backend/dashboard.html"
 
-    def get_context_data(self, **kwargs):
+    # def get_context_data(self, **kwargs):
 
-        school = get_school(self.request)
-        context = super(DashboardView, self).get_context_data(**kwargs)
+    #     school = get_school(self.request)
 
-        context['total_students'] = StudentInformation.objects.filter(school=school).count()
-        context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
-        context['total_subjects'] = SchoolClassSubjects.objects.filter(school_info=school).distinct('school_class').count()
+    #     context = super(DashboardView, self).get_context_data(**kwargs)
+    #     student_info = StudentInformation.objects.filter(school=school)
+    #     context['total_students'] = student_info.count()
+    #     context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
+    #     context['total_subjects'] = SchoolClassSubjects.objects.filter(school_info=school).distinct('school_class').count()
+    #     context['total_admins'] = SchoolAdminInformation.objects.filter(school=school).count()
+    #     context['new_student_list'] = student_info.order_by('-date_created')[:10]
 
-        return context
+    #      # Get the highest student_average for each class
+    #     top_avg_per_class = (
+    #         StudentPerformance.objects.filter(school_info=school)
+    #         .values('current_enrollment__student_class')
+    #         .annotate(max_average=Max('student_average'))
+    #     )
+
+    #     # Get the actual students with the highest average in each class
+    #     exam_toppers = StudentPerformance.objects.filter(
+    #         school_info=school,
+    #         student_average__in=[entry['max_average'] for entry in top_avg_per_class]
+    #     ).select_related('student', 'current_enrollment__student_class')
+
+    #     context['exam_toppers'] = exam_toppers
+
+    #     return context
 
 def custom_404_view(request, exception=None):
     error_message = str(exception) if exception else "Page not found"
@@ -198,3 +221,49 @@ class UpdateProfileView(LoginRequiredMixin, View):
             return redirect('auth:login')
 
         return render(request, template_name=self.template_name, context=self.context)
+
+@method_decorator([is_school], name='dispatch')
+class AdminRegistrationView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = SchoolAdminInformation
+    form_class = AdminForm
+    template_name = "backend/auth/admin.html"
+    success_message = "Admin Account created!"
+
+    def get_success_url(self):
+        return reverse("auth:manage_admin")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_list"] = SchoolAdminInformation.objects.filter(
+            school=get_school(self.request))
+        return context
+
+    def form_valid(self, form):
+        userType = UserType.objects.get_or_create(user_title='admin')[0]
+        form.instance.userType = userType
+
+        try:
+            school = get_school(self.request)
+            admin_name = form.cleaned_data.get('admin_name')
+            gender = form.cleaned_data.get('gender')
+
+            response = super().form_valid(form)
+
+            SchoolAdminInformation.objects.create(
+                user=self.object, school=school, admin_name=admin_name, gender=gender)
+
+            return response
+
+        except Exception as e:
+
+            messages.error(
+                self.request, f"FAILED: {e}!!")
+            return self.render_to_response(self.get_context_data(form=form))
+
+@method_decorator([is_school], name='dispatch')
+class DeleteAdminView(LoginRequiredMixin,SuccessMessageMixin, DeleteView):
+    model = User
+    success_message = "Admin account has been deleted successfully!"
+
+    def get_success_url(self):
+        return reverse("auth:manage_admin")
