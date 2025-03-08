@@ -110,12 +110,13 @@
           <div class="modal-header bg-dark text-white py-2" style="border-bottom: 1px solid #3c3c3c;">
               <div class="d-flex align-items-center">
                   <button type="button" class="close text-white mr-3" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
+                      <span aria-hidden="true">×</span>
                   </button>
                   <h6 class="modal-title mb-0" id="viewResultLabel{{object.pk}}">{{request.user.student_user.student_name}} - Result Preview</h6>
               </div>
               <div class="ml-auto">
-                  <button type="button" class="btn btn-primary" onclick="printResult('viewResultPrint')">
+                  <button type="button" class="btn btn-primary" 
+                          onclick="printResult('viewResultPrint')">
                       <i class="fa fa-download"></i> Download
                   </button>
               </div>
@@ -129,17 +130,20 @@
 
                   <!-- Result Content -->
                   <div class="flex-grow-1 position-relative">
-
                       <!-- Scrollable container -->
                       <div class="scrollable-container" style="height: calc(100vh - 56px); overflow-y: auto; padding: 1rem;">
-                          <!-- A4 sized container -->
-                          <div class="print result-container mx-auto printable-content viewResultDialog" style="display: none;" hx-target="this">
-
+                          <!-- A4 sized container for download (still needed but we'll use it differently) -->
+                          <div class="print result-container mx-auto printable-content viewResultDialog" 
+                               style="display: none;" 
+                               id="downloadResultDialog">
                           </div>
 
                           <!-- A4 sized container - preview -->
-                          <div class="result-container mx-auto viewResultDialog" style="width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 2rem;" hx-target="this" id="viewResultDialog">
-
+                          <div class="result-container mx-auto viewResultDialog" 
+                               style="width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 2rem;" 
+                               id="viewResultDialog"
+                               hx-target="this"
+                               hx-swap="innerHTML">
                           </div>
                       </div>
                   </div>
@@ -172,35 +176,76 @@
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 	var modal = new bootstrap.Modal(document.getElementById('viewResultPrint'));
 	var modalError = new bootstrap.Modal(document.getElementById('error'));
 
+  // Handle preview swap
   htmx.on('htmx:afterSwap', (e) => {
-		if (e.detail.target.id === 'viewResultDialog'){
-		  modal.show();
-	  }
+        if (e.detail.target.id === 'viewResultDialog') {
+            modal.show();
+        }
+    });
 
-	})
+    // Handle download swap
+    htmx.on('htmx:afterSwap', (e) => {
+        if (e.detail.target.id === 'downloadResultDialog' && e.detail.successful) {
+            window.print();
+        }
+    });
 
-	htmx.on('htmx:beforeSwap', (e) => {
-	  if (e.detail.target.id === 'viewResultDialog' && !e.detail.xhr.response){
-		  modal.hide();
-		}
-	})
-
-  htmx.on('htmx:beforeSwap', (e) => {
-      if (e.detail.target.classList.contains('viewResultDialog') && !e.detail.xhr.response) {
-          modal.hide();
-      }
-  });
-
+    htmx.on('htmx:beforeSwap', (e) => {
+        if (e.detail.target.id === 'viewResultDialog' && !e.detail.xhr.response) {
+            modal.hide();
+        }
+    });
 
   document.addEventListener('htmx:responseError', function (event) {
     if (event.detail.xhr.status === 404) {
         modalError.show()
     }
   });
+
+  function printResult(modalId) {
+        // Use the preview content instead of the hidden print container
+        const previewElement = document.querySelector(`#viewResultDialog`);
+        const printElement = document.querySelector(`#${modalId} .print`);
+
+        if (!previewElement || !printElement) {
+            console.error("Element not found");
+            return;
+        }
+
+        // Copy the preview content to the print container
+        printElement.innerHTML = previewElement.innerHTML;
+
+        const originalDisplay = printElement.style.display;
+        const originalOverflow = printElement.style.overflow;
+
+        // Make the element visible and ensure full content is shown
+        printElement.style.display = "block";
+        printElement.style.overflow = "visible";
+
+        const opt = {
+            margin: 0.3,
+            filename: 'student-result.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(printElement).save().then(() => {
+            printElement.style.display = originalDisplay;
+            printElement.style.overflow = originalOverflow;
+            printElement.innerHTML = ''; // Clear the content after printing
+        }).catch(error => {
+            console.error("Error generating PDF:", error);
+            printElement.style.display = originalDisplay;
+            printElement.style.overflow = originalOverflow;
+            printElement.innerHTML = ''; // Clear the content on error
+        });
+    }
 
 </script>
 
