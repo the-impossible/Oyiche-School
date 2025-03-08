@@ -1,0 +1,62 @@
+{% load static %}
+{% load my_tags %}
+
+<div class="table-responsive card">
+    <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+        <thead>
+            <tr>
+              <th>SN</th>
+              <th></th>
+              <th>StudentID.</th>
+              <th>Name</th>
+              {% for subject in subjects %}
+              <th title="{{ subject.0|upper }}">{{ subject.0|truncatechars:5|upper }}</th>
+              {% endfor %}
+              <th>T Marks</th>
+              <th>T.Sub</th>
+              <th>AVG</th>
+              <th>C.AVG</th>
+              <th>POS</th>
+              <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if queryset %}
+                {% for object in queryset %}
+                    <tr>
+                        <td>{{forloop.counter }}</td>
+                        <td class="w60">
+                            <img class="avatar" src="{{ object.student.user.pic.url }}" alt="">
+                        </td>
+                        <td>{{ object.student.user.username }}</td>
+                        <td><p title="{{ object.student.student_name|truncatechars:15 }}">{{ object.student.student_name|truncatechars:15 }}</p></td>
+                        {% for subject_name, subject_id in subjects %}
+                            <td>
+                                {% with object.student.student_scores.all|get_score_for_subject:subject_id as score %}
+                                    {% if score %}
+                                        {{ score.total_score }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        {% endfor %}
+                        <td>{{ object.total_marks_obtained }}</td>
+                        <td>{{ object.total_subject }}</td>
+                        <td>{{ object.student_average }}</td>
+                        <td>{{ object.class_average }}</td>
+                        <td>{{ object.term_position }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#viewResult{{object.pk}}">
+                                <i class="fa fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                {% include 'partials/backend/empty_list.html' %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>

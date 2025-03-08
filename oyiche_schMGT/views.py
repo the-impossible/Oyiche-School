@@ -10,6 +10,8 @@ from urllib.parse import urlencode
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import IntegrityError
 from django.db.models import Prefetch
+from django.utils.decorators import method_decorator
+from django.db.models import Q
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -17,29 +19,35 @@ from oyiche_schMGT.forms import *
 from oyiche_files.forms import *
 from oyiche_files.models import *
 from oyiche_schMGT.utils import *
+from oyiche_auth.decorators import *
 
 # Create your views here.
-
 
 def get_school(request):
     school = None
 
     try:
-        school = SchoolAdminInformation.objects.get(user=request.user)
-        return school
+        admin = SchoolAdminInformation.objects.get(user=request.user)
+        school = SchoolInformation.objects.get(sch_id=admin.school.sch_id)
 
     except SchoolAdminInformation.DoesNotExist:
-
         try:
-            school = SchoolInformation.objects.get(
-                principal_id=request.user)
+            school = SchoolInformation.objects.get(principal_id=request.user)
         except SchoolInformation.DoesNotExist:
-            messages.error(
-                request, "Profile doesn't exist!!, therefore files list can't be displayed")
-            return None
-    finally:
-        return school
+            try:
+                student_info = StudentInformation.objects.get(user=request.user.user_id).school.sch_id
+                school = SchoolInformation.objects.get(sch_id=student_info)
+            except (StudentInformation.DoesNotExist, SchoolInformation.DoesNotExist):
+                messages.error(request, "School profile not foud! Therefore, school details can't be retrieved.")
+                return None  # Explicitly return None on failure
 
+    except SchoolInformation.DoesNotExist:
+        messages.error(request, "School profile not found! Therefore, school details can't be retrieved.")
+        return None
+
+    return school
+
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/students.html"
 
@@ -56,6 +64,7 @@ class StudentPageView(LoginRequiredMixin, View):
 
     def get(self, request):
         self.school = get_school(request)
+        print(f'school1: {self.school}')
 
         self.all_student = 'active'
         self.add_student = ''
@@ -89,6 +98,7 @@ class StudentPageView(LoginRequiredMixin, View):
         else:
             self.form = self.form(school=self.school)
 
+        print(f'school2: {self.school}')
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
 
@@ -121,7 +131,6 @@ class StudentPageView(LoginRequiredMixin, View):
                 if status != 'None' and status !='' and status is not None:
                     academic_status = AcademicStatus.objects.get(
                         pk=request.POST.get('academic_status'),
-                        school_info=self.school,
                     )
 
             query = {
@@ -167,7 +176,7 @@ class StudentPageView(LoginRequiredMixin, View):
             enrollment_form = self.enrollment_form(data=request.POST, school=self.school)
 
             # Get session, status & term
-            academic_status = AcademicStatus.objects.get(status="active", school_info=self.school)
+            academic_status = AcademicStatus.objects.get(status="active")
             session = self.school.school_academic_session.filter(is_current=True).first()
             term = self.school.school_academic_term.filter(is_current=True).first()
 
@@ -212,6 +221,7 @@ class StudentPageView(LoginRequiredMixin, View):
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class EditStudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/edit_student.html"
 
@@ -219,6 +229,7 @@ class EditStudentPageView(LoginRequiredMixin, View):
     info_form = StudentInformationForm
     enrollment_form = StudentEnrollmentForm
 
+    @method_decorator(has_updated)
     def get(self, request, user_id):
 
         school = get_school(request)
@@ -260,6 +271,7 @@ class EditStudentPageView(LoginRequiredMixin, View):
                            message="Error getting student, Try Again!!")
             return redirect(url)
 
+    @method_decorator(has_updated)
     def post(self, request, user_id):
 
         school = get_school(request)
@@ -307,6 +319,7 @@ class EditStudentPageView(LoginRequiredMixin, View):
             messages.error(request=request, message="Fix Form Errors!!")
             return render(request=request, template_name=self.template_name, context=context)
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolFileUploadView(LoginRequiredMixin, ListView):
 
     school = None
@@ -362,6 +375,7 @@ class SchoolFileUploadView(LoginRequiredMixin, ListView):
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class BatchCreateView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -384,6 +398,7 @@ class BatchCreateView(LoginRequiredMixin, View):
         finally:
             return redirect('sch:file_manager')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class DeleteFileView(LoginRequiredMixin, View):
     def post(self, request, file_id):
         try:
@@ -395,6 +410,7 @@ class DeleteFileView(LoginRequiredMixin, View):
         finally:
             return redirect('sch:file_manager')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolClassesView(LoginRequiredMixin, ListView):
 
     model = SchoolClasses
@@ -485,6 +501,7 @@ class SchoolClassesView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_classes')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolSubjectView(LoginRequiredMixin, ListView):
 
     model = SchoolSubject
@@ -575,6 +592,7 @@ class SchoolSubjectView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect('sch:school_subject')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SubjectClassView(LoginRequiredMixin, ListView):
 
     model = SchoolClassSubjects
@@ -593,10 +611,15 @@ class SubjectClassView(LoginRequiredMixin, ListView):
         class_id = self.kwargs.get('class_id')
         context = super(SubjectClassView, self).get_context_data(**kwargs)
 
-        context['form'] = self.form(school=school, school_class=class_id)
-        context['class_name'] = SchoolClasses.objects.get(pk=class_id).class_name
-        context['class_id'] = SchoolClasses.objects.get(pk=class_id).pk
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
 
+        context['form'] = self.form(school=school, school_class=class_id)
+        context['class_name'] = class_name.class_name
+        context['class_id'] = class_name.pk
 
         return context
 
@@ -604,8 +627,12 @@ class SubjectClassView(LoginRequiredMixin, ListView):
 
         school = get_school(request=request) #Get school info
         class_id = self.kwargs.get('class_id')
-        class_name = SchoolClasses.objects.get(pk=class_id)
 
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
 
         if 'create' in request.POST:
 
@@ -651,12 +678,12 @@ class SubjectClassView(LoginRequiredMixin, ListView):
                            message="couldn't handle request, Try again!!")
             return redirect("sch:subject_class", class_id)
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
 
     model = SchoolGrades
     template_name = "backend/grades/school_grades.html"
     form = SchoolGradeForm
-
 
     def get_context_data(self, **kwargs):
         school = get_school(self.request)
@@ -687,6 +714,7 @@ class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
 
         return redirect("sch:school_grade")
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ListGradesView(LoginRequiredMixin, ListView):
     model = SchoolGrades
     template_name = "backend/grades/partials/grade_list.html"
@@ -697,6 +725,7 @@ class ListGradesView(LoginRequiredMixin, ListView):
             return SchoolGrades.objects.filter(school_info=school).order_by('-date_created')
         return SchoolGrades.objects.none()
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class GradesEditView(LoginRequiredMixin, View):
 
     def get(self, request, grade_id):
@@ -707,6 +736,7 @@ class GradesEditView(LoginRequiredMixin, View):
             grade_form = SchoolGradeEditForm(instance=grade, school=school)
 
             return render(request=request, template_name="backend/grades/partials/grade_form.html", context={'form': grade_form, 'object': grade})
+
         except SchoolGrades.DoesNotExist:
             return JsonResponse({'error': 'Student Score not found!'}, status=404)
 
@@ -733,6 +763,7 @@ class GradesEditView(LoginRequiredMixin, View):
         finally:
             return HttpResponse(status=204, headers={'Hx-Trigger':'listChanged'})
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class GradesDeleteView(LoginRequiredMixin, View):
 
     def get(self, request, grade_id):
@@ -762,19 +793,22 @@ class GradesDeleteView(LoginRequiredMixin, View):
 
         return HttpResponse(status=204, headers={'Hx-Trigger':' listChanged'})
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolClassOptions(LoginRequiredMixin, View):
     template_name = "backend/classes/school_options.html"
 
+    @method_decorator(has_updated)
     def get(self, request, class_id):
         school = get_school(request)
 
         try:
-            class_id = SchoolClasses.objects.get(pk=class_id)
+            class_id = SchoolClasses.objects.get(pk=class_id, school_info=school)
             return render(request=request, template_name=self.template_name, context={'school': school, 'object':class_id})
         except SchoolClasses.DoesNotExist:
             messages.error(request, "Class not found!!")
             return redirect('sch:school_classes')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
     template_name = "backend/grades/manage_student_grades.html"
@@ -789,6 +823,7 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
     add_student = ''
     manage_all = ''
 
+    @method_decorator(has_updated)
     def get(self, request, class_id, subject_id=None):
 
         self.manage_all = 'active'
@@ -799,6 +834,12 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
         self.form = self.form(school=self.school, school_class=class_id)
         self.form2 = self.form2(school=self.school, school_class=class_id)
         self.form3 = self.form3(school=self.school, school_class=class_id)
+
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=self.school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
 
         if subject_id:
             self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-average')
@@ -812,16 +853,22 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
             'manage_all': self.manage_all,
             'all_student': self.all_student,
             'add_student': self.add_student,
-            'class_name': SchoolClasses.objects.get(pk=class_id),
+            'class_name': class_name,
             'grade_list': self.grade_list,
         }
 
         return render(request, template_name=self.template_name, context=context)
 
+    @method_decorator(has_updated)
     def post(self, request, class_id, subject_id=None):
 
         self.school = get_school(request)
-        class_name = SchoolClasses.objects.get(pk=class_id)
+
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=self.school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
 
         if subject_id:
             self.grade_list = StudentScores.objects.filter(school_info=self.school, subject__school_subject=subject_id, session__is_current=True, term__is_current=True, subject__school_class=class_id).order_by('-average')
@@ -1026,14 +1073,16 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
             'manage_all': 'active',
             'all_student': '',
             'add_student': self.add_student,
-            'class_name': SchoolClasses.objects.get(pk=class_id),
+            'class_name': class_name,
             'object_list': self.object_list,
         }
 
         return render(request, template_name=self.template_name, context=context)
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentScoreEditView(LoginRequiredMixin, View):
 
+    @method_decorator(has_updated)
     def get(self, request, score_id):
         school = get_school(request)
 
@@ -1047,6 +1096,7 @@ class StudentScoreEditView(LoginRequiredMixin, View):
 
             return JsonResponse({'error': 'Student Score not found!'}, status=404)
 
+    @method_decorator(has_updated)
     def post(self, request, score_id):
         school = get_school(request=request) #Get school info
 
@@ -1075,11 +1125,13 @@ class StudentScoreEditView(LoginRequiredMixin, View):
             messages.error(request, "Student Grade not found Try Again!!")
             return redirect('sch:school_classes')
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, View):
     login_url = 'auth:login'
     model = StudentScores
     success_message = ""
 
+    @method_decorator(has_updated)
     def post(self, request, pk):
 
         school = get_school(request=request)
@@ -1112,6 +1164,7 @@ class StudentScoreDeleteView(LoginRequiredMixin, SuccessMessageMixin, View):
                 'subject_id': subject
             }))
 
+@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ComputeResultView(LoginRequiredMixin, ListView):
     template_name = "backend/results/compute_result.html"
     model = StudentPerformance
@@ -1121,42 +1174,21 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         class_id = self.kwargs.get('class_id')
 
         if school and class_id:
+
             # Get all subjects assigned to the class
             subjects = SchoolClassSubjects.objects.filter(
                 school_info=school,
                 school_class=class_id
-            ).values_list('school_subject__subject_name', 'id')
+            ).values_list('school_subject__subject_name', 'id',)
 
-            # Get filter parameters from request.GET
-            session_filter = self.request.GET.get('session')
-            term_filter = self.request.GET.get('term')
-
-            # Base queryset
-            queryset = StudentPerformance.objects.filter(
-                school_info=school,
-                current_enrollment__student_class=class_id,
-            )
-
-            # Apply session and term filters
-            if session_filter:
-                queryset = queryset.filter(current_enrollment__academic_session__session=session_filter)
-            else:
-                # Default to current session if no filter
-                current_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
-                if current_session:
-                    queryset = queryset.filter(current_enrollment__academic_session=current_session)
-
-            if term_filter:
-                queryset = queryset.filter(current_enrollment__academic_term__term=term_filter)
-            else:
-                # Default to current term if no filter
-                current_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
-                if current_term:
-                    queryset = queryset.filter(current_enrollment__academic_term=current_term)
-
-            # Add related data
+            # Get student performance with scores for each subject
             queryset = (
-                queryset
+                StudentPerformance.objects.filter(
+                    school_info=school,
+                    current_enrollment__student_class=class_id,
+                    current_enrollment__academic_session__is_current=True,
+                    current_enrollment__academic_term__is_current=True,
+                )
                 .select_related('student', 'current_enrollment')
                 .prefetch_related(
                     Prefetch(
@@ -1180,71 +1212,72 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         school = get_school(self.request)
 
         context = super().get_context_data(**kwargs)
+
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
+
         queryset, subjects = self.get_queryset()
+        context['queryset'] = queryset
+        context['subjects'] = subjects
+        context['school'] = school
+        context["class_name"] = class_name
+        context['academic_session'] = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        context['academic_term'] = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
 
-        # Full querysets for dropdowns
-        academic_sessions = AcademicSession.objects.filter(school_info=school)
-        academic_terms = AcademicTerm.objects.filter(school_info=school)
-
-        # Current session and term
-        academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
-        academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
-
-        context.update({
-            'queryset': queryset,
-            'subjects': subjects,
-            'class_name': SchoolClasses.objects.get(pk=class_id),
-            'academic_sessions': academic_sessions,  # All sessions for dropdown
-            'academic_terms': academic_terms,        # All terms for dropdown
-            'academic_session': academic_session,    # Current session object
-            'academic_term': academic_term,          # Current term object
-        })
         return context
 
+    @method_decorator(has_updated)
     def post(self, request, class_id):
-        school = get_school(self.request)
-        
-        # Use filtered session/term from GET, or fall back to current
-        session_filter = request.GET.get('filter_session', '')
-        term_filter = request.GET.get('filter_term', '')
-        
-        academic_session = AcademicSession.objects.filter(
-            name=session_filter, school_info=school
-        ).first() if session_filter else AcademicSession.objects.filter(
-            is_current=True, school_info=school
-        ).first()
-        
-        academic_term = AcademicTerm.objects.filter(
-            name=term_filter, school_info=school
-        ).first() if term_filter else AcademicTerm.objects.filter(
-            is_current=True, school_info=school
-        ).first()
 
-        class_detail = SchoolClasses.objects.get(pk=class_id)
+        # All required variables
+        school = get_school(self.request)
+
+        try:
+            class_name = SchoolClasses.objects.get(pk=class_id, school_info=school)
+        except SchoolClasses.DoesNotExist:
+            messages.error(request, "Class not found!!")
+            return redirect('sch:school_classes')
+
+        academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+        academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        class_detail = class_name
 
         def perform_computation(which, student_performance_list):
+
+            # Create performances and calculate student averages
             with transaction.atomic():
+                # Bulk create student performances
+
                 if which == 'compute':
                     performances = StudentPerformance.objects.bulk_create(student_performance_list)
-                elif which == 're-compute':
+
+                if which == 're-compute':
                     performances = student_performance_list
 
                 # Calculate student averages and other individual data
                 for performance in performances:
                     performance.calculate_student_average_total_marks_total_subject()
 
+                # Bulk update all student-related fields
                 StudentPerformance.objects.bulk_update(
                     performances,
                     ['total_marks_obtained', 'total_subject', 'student_average']
                 )
 
-                # Calculate class averages
+                # Calculate class averages after all student averages are ready
                 for performance in performances:
                     performance.calculate_class_average()
+                    print('Class Average Calculated')
+                    performance.calculate_school_remark()
+                    print('School Remark Calculated')
 
+                # Bulk update all class average fields
                 StudentPerformance.objects.bulk_update(
                     performances,
-                    ['class_average']
+                    ['class_average', 'school_remark']
                 )
 
                 # Calculate term positions
@@ -1255,8 +1288,11 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                     current_enrollment__academic_session=academic_session
                 ).first()
 
-                if first_performance:
-                    first_performance.calculate_term_position()
+
+                if first_performance: first_performance.calculate_term_position()
+
+        # List to hold the student performance instance for bulk creation
+        student_performance_list = []
 
         # Get all students enrolled in the class
         enrolled_class = StudentEnrollment.objects.filter(
@@ -1266,13 +1302,14 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             academic_status__status="active",
         )
 
+        # Validate if student exist in the enrolled class
         if not enrolled_class:
             messages.error(request, f"No student enrolled into {class_detail.class_name.upper()} class!!")
             return redirect('sch:compute_results', class_id)
 
-        student_performance_list = []
-
         if 'compute' in request.POST:
+
+            # Create Performance for each student
             student_performance_list = [
                 StudentPerformance(
                     school_info=school,
@@ -1283,14 +1320,19 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             ]
 
             try:
+
                 perform_computation(which='compute', student_performance_list=student_performance_list)
-                messages.success(request, 'Computation successful!')
-                return redirect('sch:compute_results', class_id)
-            except ValueError as e:
-                messages.error(request, str(e))
+
+                messages.success(request=request, message=f'computation successful!')
                 return redirect('sch:compute_results', class_id)
 
+            except ValueError as e:
+                messages.error(request=request, message=str(e))
+                return redirect('sch:compute_results', class_id)
+
+
         elif 're-compute' in request.POST:
+            # Create Performance for each student
             student_performance_list = StudentPerformance.objects.filter(
                 school_info=school,
                 current_enrollment__student_class=class_detail,
@@ -1299,16 +1341,20 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             )
 
             try:
+
                 perform_computation(which='re-compute', student_performance_list=student_performance_list)
-                messages.success(request, 'Computation successful!')
-                return redirect('sch:compute_results', class_id)
-            except ValueError as e:
-                messages.error(request, str(e))
+
+                messages.success(request=request, message=f'computation successful!')
                 return redirect('sch:compute_results', class_id)
 
-        messages.error(request, "Couldn't handle request, Try again!!")
+            except ValueError as e:
+                messages.error(request=request, message=str(e))
+                return redirect('sch:compute_results', class_id)
+
+        messages.error(request=request, message="Couldn't handle request, Try again!!")
         return redirect('sch:compute_results', class_id)
-class ManageSchoolDetailsView(LoginRequiredMixin, View):
+
+@method_decorator([is_school], name='dispatch')class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
     template_name = "backend/school/manage_school_details.html"
 
@@ -1354,13 +1400,12 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
             'term_list': self.term_list,
         }
 
-
     def get(self, request):
 
-        self.form = self.form(instance=self.object)
-        self.context['form'] = form
-
         self.helper(request)
+
+        self.form = self.form(instance=self.object)
+        self.context['form'] = self.form
 
         return render(request, template_name=self.template_name, context=self.context)
 
@@ -1368,7 +1413,7 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
         self.helper(request)
 
-        context = {
+        self.context = {
 
             'form': self.form,
             'form2': self.form2,
@@ -1393,12 +1438,479 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
             if form.is_valid():
 
-                form.save()
+                data = form.save(commit=False)
+                data.school_updated = True
+
+                data.save()
                 messages.success(request=request, message="School information updated successfully!")
 
+                return redirect('sch:manage_school_details')
+            else:
+                messages.error(request=request, message=form.errors.as_text())
+                self.context['form'] = form
 
-        return render(request, template_name=self.template_name, context=context)
+        elif 'create_session' in request.POST:
+
+            self.context['school_session'] = 'active'
+            self.context['school_details'] = ''
+            self.context['school_term'] = ''
+
+            form2 = self.form2(data=request.POST)
+
+            if form2.is_valid():
+
+                data = form2.save(commit=False)
+                data.school_info = self.school
+
+                is_current = data.is_current
+
+                if is_current:
+                    academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True).first()
+
+                    if academic_session:
+                        academic_session.is_current = False
+                        academic_session.save()
+
+                try:
+
+                    data.save()
+
+                    messages.success(request=request, message="Academic Session Created!")
+
+                    self.context['session_list'] = AcademicSession.objects.filter(school_info=self.school).order_by('-date_created')
+
+                    return render(request, template_name=self.template_name, context=self.context)
+
+                except IntegrityError:
+
+                    messages.error(request=request, message=f"{data.session} session already exist")
+
+                    self.context['form2'] = form2
+
+            else:
+
+                messages.error(request=request, message=form2.errors.as_text())
+
+        elif 'edit_session' in request.POST:
+
+            self.context['school_session'] = 'active'
+            self.context['school_details'] = ''
+            self.context['school_term'] = ''
+
+            session_id = request.POST.get('session_id')
+            session_name = request.POST.get('session_name')
+            session_desc = request.POST.get('session_desc')
+
+            is_current = request.POST.get('is_current') == 'on'
+
+            try:
+
+                data = AcademicSession.objects.get(pk=session_id)
+                data.session = session_name
+                data.session_description = session_desc
+
+                if is_current:
+                    data.is_current = True
+
+                    # Find the existing current session for the same school and unset it
+                    academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True).first()
+                    if academic_session and academic_session != data:
+                        academic_session.is_current = False
+                        academic_session.save()
+
+                else:
+                    # If no session is currently marked as "current", prompt the user
+                    academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True)
+
+                    if not academic_session.exists():
+                        messages.error(request, "Please select a current session.")
+
+                        return render(request, template_name=self.template_name, context=self.context)
+
+                    if academic_session.first().pk == data.pk:
+                        messages.error(request, "current session cannot be empty, kindly update first!.")
+
+                        return render(request, template_name=self.template_name, context=self.context)
+
+                try:
+                    data.save()
+                    messages.success(request, "Session updated successfully.")
+
+                except IntegrityError:
+                    messages.error(request, f"Session '{data.session}' already exists.")
+
+            except AcademicSession.DoesNotExist:
+                messages.error(request, "Failed to edit academic session. Try again!")
+
+        elif 'delete_session' in request.POST:
+
+            self.context['school_session'] = 'active'
+            self.context['school_details'] = ''
+            self.context['school_term'] = ''
+
+            session_id = request.POST.get('session_id')
+
+            try:
+
+                academic_session = AcademicSession.objects.get(school_info=self.school, pk=session_id)
+
+                if not academic_session.is_current:
+                    academic_session.delete()
+                    messages.success(
+                        request, "Academic session has been deleted successfully!!")
+                else:
+                    messages.error(
+                        request, "Current academic session cannnot be deleted!!")
 
 
+            except AcademicSession.DoesNotExist:
+                messages.error(request, "Failed to delete session!!")
+
+        elif 'create_term' in request.POST:
+
+            self.context['school_session'] = ''
+            self.context['school_details'] = ''
+            self.context['school_term'] = 'active'
+
+            form3 = self.form3(data=request.POST)
+
+            if form3.is_valid():
+
+                data = form3.save(commit=False)
+                data.school_info = self.school
+
+                is_current = data.is_current
+
+                if is_current:
+                    academic_term = AcademicTerm.objects.filter(school_info=self.school, is_current=True).first()
+
+                    if academic_term:
+                        academic_term.is_current = False
+                        academic_term.save()
+
+                try:
+
+                    data.save()
+
+                    messages.success(request=request, message="Academic Term Created!")
+
+                    self.context['term_list'] = AcademicTerm.objects.filter(school_info=self.school).order_by('-date_created')
+
+                    return render(request, template_name=self.template_name, context=self.context)
+
+                except IntegrityError:
+
+                    messages.error(request=request, message=f"{data.term} term already exist")
+
+                    self.context['form3'] = form3
+
+            else:
+
+                messages.error(request=request, message=form3.errors.as_text())
+
+        elif 'edit_term' in request.POST:
+
+            self.context['school_session'] = ''
+            self.context['school_details'] = ''
+            self.context['school_term'] = 'active'
+
+            term_id = request.POST.get('term_id')
+            term_name = request.POST.get('term_name')
+            term_desc = request.POST.get('term_desc')
+
+            is_current = request.POST.get('is_current') == 'on'
+
+            try:
+
+                data = AcademicTerm.objects.get(pk=term_id)
+                data.term = term_name
+                data.term_description = term_desc
+
+                if is_current:
+                    data.is_current = True
+
+                    # Find the existing current session for the same school and unset it
+                    academic_term = AcademicTerm.objects.filter(school_info=self.school, is_current=True).first()
+                    if academic_term and academic_term != data:
+                        academic_term.is_current = False
+                        academic_term.save()
+
+                else:
+                    # If no term is currently marked as "current", prompt the user
+                    academic_term = AcademicTerm.objects.filter(school_info=self.school, is_current=True)
+
+                    if not academic_term.exists():
+                        messages.error(request, "Please select a current term.")
+
+                        return render(request, template_name=self.template_name, context=self.context)
+
+                    if academic_term.first().pk == data.pk:
+                        messages.error(request, "current term cannot be empty, kindly update!.")
+
+                        return render(request, template_name=self.template_name, context=self.context)
+
+                try:
+                    data.save()
+                    messages.success(request, "Term updated successfully.")
+
+                except IntegrityError:
+                    messages.error(request, f"Term '{data.term}' already exists.")
+
+            except AcademicTerm.DoesNotExist:
+                messages.error(request, "Failed to edit academic term. Try again!")
+
+        elif 'delete_term' in request.POST:
+
+            self.context['school_session'] = ''
+            self.context['school_details'] = ''
+            self.context['school_term'] = 'active'
+
+            term_id = request.POST.get('term_id')
+
+            try:
+
+                academic_term = AcademicTerm.objects.get(school_info=self.school, pk=term_id)
+
+                if not academic_term.is_current:
+                    academic_term.delete()
+                    messages.success(
+                        request, "Academic term has been deleted successfully!!")
+                else:
+                    messages.error(
+                        request, "Current academic term cannnot be deleted, update!!")
+
+            except AcademicTerm.DoesNotExist:
+                messages.error(request, "Failed to delete term!!")
 
 
+        return render(request, template_name=self.template_name, context=self.context)
+
+class StudentResultView(LoginRequiredMixin, ListView):
+
+    model = StudentPerformance
+    template_name = "backend/results/student_result.html"
+    form = StudentPerformanceForm
+
+    def get_queryset(self):
+        school = get_school(self.request)
+        try:
+            student = StudentInformation.objects.get(user=self.request.user)
+            if school:
+                return StudentPerformance.objects.filter(school_info=school, student=student).order_by('-date_created')[:5]
+
+        except StudentInformation.DoesNotExist:
+            messages.error(request, "Student record not found!!")
+        return StudentPerformance.objects.none()
+
+    def get_context_data(self, **kwargs):
+        school = get_school(self.request)
+        user = self.request.user #Get student info
+        student_profile = StudentInformation.objects.filter(user=user).first()
+
+        context = super(StudentResultView, self).get_context_data(**kwargs)
+
+        context['form'] = self.form(school=school, student=student_profile)
+        context['queryset'] = self.get_queryset()
+        context['school'] = school
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        school = get_school(request=request) #Get school info
+        user = self.request.user #Get student info
+        student_profile = StudentInformation.objects.filter(user=user).first()
+
+        if 'get_result' in request.POST:
+
+            form = self.form(request.POST, school=school, student=student_profile)
+            self.object_list = self.get_queryset()
+
+            if form.is_valid():
+
+                student_class = form.cleaned_data.get('student_class')
+                academic_session = form.cleaned_data.get('academic_session')
+                academic_term = form.cleaned_data.get('academic_term')
+
+                queryset = StudentPerformance.objects.filter(
+                    school_info=school,
+                    student=student_profile,
+                    current_enrollment__student_class=student_class,
+                    current_enrollment__academic_term=academic_term,
+                    current_enrollment__academic_session=academic_session,
+                )
+
+                return render(
+                    request=request,
+                    template_name=self.template_name,
+                    context={
+                        'form': form,
+                        'queryset': queryset,
+                        'school': school,
+                    }
+                )
+
+            else:
+                # If form is invalid, re-render the page with errors
+                context = self.get_context_data()
+                context['form'] = form
+                messages.error(request, form.errors.as_text())
+                return self.render_to_response(context)
+
+        else:
+            messages.error(request=request,
+                           message="couldn't handle request, Try again!!")
+            return redirect('sch:student_result')
+
+class ResultPreviewPage(LoginRequiredMixin, View):
+
+    def get(self, request, performance_id):
+        school = get_school(request)
+
+        try:
+
+            if school:
+
+                # Fetch performance first
+                performance = StudentPerformance.objects.select_related('student', 'current_enrollment').get(
+                    school_info=school, pk=performance_id
+                )
+
+                # Fetch related student scores separately
+                student_scores = StudentScores.objects.filter(
+                    school_info=school,
+                    student=performance.student,
+                    term=performance.current_enrollment.academic_term,
+                    session=performance.current_enrollment.academic_session,
+                )
+
+                return render(request=request, template_name="backend/results/partials/inner_result_student.html", context={'object': performance, 'school':school, 'scores':student_scores})
+
+            return JsonResponse({'error': 'School not found!'}, status=404)
+
+        except StudentPerformance.DoesNotExist:
+            return JsonResponse({'error': 'Student result not found!'}, status=404)
+
+@method_decorator([is_school_or_admin], name='dispatch')
+class ManageSchoolResultView(LoginRequiredMixin, View):
+
+    template_name = "backend/remarks/manage_school_remarks.html"
+
+    form = SchoolRemarkForm
+
+    # Context variables
+    teacher_list = None
+    context = {}
+
+
+    def helper(self, request):
+
+        self.school = get_school(request)
+
+        self.teacher_list = SchoolRemark.objects.filter(school_info=self.school).order_by('-date_created')
+
+        self.context = {
+
+            'form': self.form,
+            'teacher_list': self.teacher_list,
+
+        }
+
+    def get(self, request):
+
+        self.helper(request)
+
+        return render(request, template_name=self.template_name, context=self.context)
+
+    def post(self, request):
+
+        self.helper(request)
+
+        self.context = {
+
+            'form': self.form,
+
+            'teacher_list': self.teacher_list,
+
+        }
+
+        self.school = get_school(request)
+
+        if 'create_remark' in request.POST:
+
+            form = self.form(data=request.POST, school=self.school)
+
+            if form.is_valid():
+
+                data = form.save(commit=False)
+                data.school_info = self.school
+                data.save()
+
+                messages.success(request=request, message="Teacher Remark has been saved!")
+
+                self.context['teacher_list'] = SchoolRemark.objects.filter(school_info=self.school).order_by('-date_created')
+
+                return render(request, template_name=self.template_name, context=self.context)
+
+            else:
+                self.context['form'] = form
+                messages.error(request=request, message=form.errors.as_text())
+
+        elif 'edit_remark' in request.POST:
+
+            remark_id = request.POST.get('remark_id')
+            min_average = request.POST.get('min_average')
+            max_average = request.POST.get('max_average')
+            teacher_remark = request.POST.get('teacher_remark')
+            principal_remark = request.POST.get('principal_remark')
+
+            try:
+
+                data = SchoolRemark.objects.get(pk=remark_id)
+
+                # Convert to float
+                min_avg = float(min_average)
+                max_avg = float(max_average)
+
+                # Validate min and max average
+                if min_avg > max_avg:
+                    messages.error(request, "Minimum average cannot be greater than Maximum average.")
+                    return redirect(request.META.get('HTTP_REFERER', 'default_view')) # Redirect
+
+                # Check for overlapping remark range excluding the current remark being edited
+
+                overlapping_remark = SchoolRemark.objects.filter(
+                    school_info=data.school_info
+                ).exclude(pk=remark_id).filter(
+                    Q(min_average__lte=max_avg, max_average__gte=min_avg)
+                ).exists()
+
+                if overlapping_remark:
+                    messages.error(request, "A School Remark with the provided range already exists.")
+                    return redirect(request.META.get('HTTP_REFERER', 'default_view'))
+
+                data.min_average = min_average
+                data.max_average = max_average
+                data.teacher_remark = teacher_remark
+                data.principal_remark = principal_remark
+
+                data.save()
+                messages.success(request, "Remark updated successfully.")
+
+            except SchoolRemark.DoesNotExist:
+                messages.error(request, "Failed to edit remark. Try again!")
+
+        elif 'delete_remark' in request.POST:
+
+            remark_id = request.POST.get('remark_id')
+
+            try:
+
+                remark = SchoolRemark.objects.get(school_info=self.school, pk=remark_id)
+                messages.success(request, 'Remark has been deleted successfully!!')
+                remark.delete()
+
+            except SchoolRemark.DoesNotExist:
+                messages.error(request, "Failed to delete remark!!")
+
+        return render(request, template_name=self.template_name, context=self.context)

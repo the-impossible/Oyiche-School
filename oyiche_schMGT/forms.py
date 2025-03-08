@@ -1,6 +1,7 @@
 # My Django app imports
 from django import forms
 import openpyxl, re
+from django.db.models import Q
 
 # My App imports
 from oyiche_schMGT.models import *
@@ -86,6 +87,7 @@ class FileHandler:
             # Fetch the student from the database
             try:
                 user = User.objects.get(username=student_id)
+                print(f'USER: {user}')
 
                 student = StudentInformation.objects.filter(school=self.school, user=user).first()
                 school_class_subject = SchoolClassSubjects.objects.filter(school_info=self.school, school_class=self.student_class, school_subject=self.subject).first()
@@ -123,12 +125,10 @@ class GetStudentForm(forms.Form):
             self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 
             self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
-            self.fields['academic_status'].queryset = AcademicStatus.objects.filter(school_info=self.school)
 
         else:
             self.fields['student_class'].queryset = SchoolClasses.objects.none()
             self.fields['academic_session'].queryset = AcademicSession.objects.none()
-            self.fields['academic_status'].queryset = AcademicStatus.objects.none()
 
     student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
         attrs={
@@ -142,7 +142,7 @@ class GetStudentForm(forms.Form):
         }
     ))
 
-    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.none(), empty_label="(Select academic status)", required=False, widget=forms.Select(
+    academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -242,6 +242,102 @@ class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'phone', 'pic', 'password')
+
+class AdminForm(UserForm):
+    username = forms.CharField(required=True, help_text='Please enter adminID', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+    admin_name = forms.CharField(help_text='Please enter admin Fullname', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    gender = forms.ModelChoiceField(queryset=Gender.objects.all(), empty_label="(Select student gender)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    password = forms.CharField(required=True, help_text='Enter Password', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'password',
+        }
+    ))
+
+    class Meta:
+        model = User
+        fields = ('username', 'admin_name', 'gender', 'email', 'phone', 'pic', 'password')
+
+class AdminEditForm(UserForm):
+    username = forms.CharField(required=True, help_text='Please enter adminID', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+    admin_name = forms.CharField(help_text='Please enter admin Fullname', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    gender = forms.ModelChoiceField(queryset=Gender.objects.all(), empty_label="(Select student gender)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    password = forms.CharField(required=False, help_text="Leave blank if you don't want to update the password", widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'password',
+        }
+    ))
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            check = User.objects.filter(email=email.lower().strip())
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Email Already taken!')
+
+        return email
+
+    def clean_phone(self):
+
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            check = User.objects.filter(phone=phone)
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Phone Number Already taken!')
+
+        return phone
+
+    def clean_username(self):
+
+        username = self.cleaned_data.get('username')
+        check = User.objects.filter(username=username.upper().strip())
+
+        if self.instance:
+            check = check.exclude(pk=self.instance.pk)
+
+        if check.exists():
+            raise forms.ValidationError('AdminID already exist!')
+
+        return username.upper()
+
+
+    class Meta:
+        model = User
+        fields = ('username', 'admin_name', 'gender', 'email', 'phone', 'pic', 'password')
+
 
 class StudentInformationForm(forms.ModelForm):
     student_name = forms.CharField(help_text='Please enter student Fullname', strip=True, widget=forms.TextInput(
@@ -372,7 +468,7 @@ class SchoolClassesForm(forms.ModelForm):
     def clean_class_name(self):
         class_name = self.cleaned_data.get('class_name').lower()
 
-        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', class_name):
+        if not re.match(r'^[a-zA-Z][ a-zA-Z0-9_-]*$', class_name):
             raise forms.ValidationError("Class name must start with a letter and contain only hypens and underscore")
 
 
@@ -494,7 +590,6 @@ class SchoolGradeForm(forms.ModelForm):
 
         return cleaned_data
 
-
     def clean_grade_letter(self):
         grade_letter = self.cleaned_data.get('grade_letter').upper()
 
@@ -525,13 +620,29 @@ class SchoolGradeForm(forms.ModelForm):
 
         return max_score
 
-
-
     class Meta:
         model = SchoolGrades
         fields = ('grade_letter','min_score', 'max_score', 'grade_description',)
 
 class SchoolGradeEditForm(SchoolGradeForm):
+
+    def clean(self):
+        min_score = self.cleaned_data.get('min_score')
+        max_score = self.cleaned_data.get('max_score')
+
+        if min_score is not None and max_score is not None:
+            if int(min_score) > int(max_score):
+                raise forms.ValidationError("Minimum score grade cannot be greater than Maximum score.")
+
+            check = SchoolGrades.objects.filter(school_info=self.school, min_score=min_score, max_score=max_score)
+
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+
+            if check.exists():
+                raise forms.ValidationError(f"Minimum and Maximum score already exist")
+
+        return self.cleaned_data
 
     def clean_grade_letter(self):
 
@@ -892,6 +1003,22 @@ class SchoolInformationForm(forms.ModelForm):
         }
     ))
 
+    def clean_school_name(self):
+        school_name = self.cleaned_data.get('school_name')
+
+        return school_name.title()
+
+    def clean_school_email(self):
+        school_email = self.cleaned_data.get('school_email')
+        if school_email:
+            check = SchoolInformation.objects.filter(school_email=school_email.lower().strip())
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Email Already taken!')
+
+        return school_email
+
     class Meta:
         model = SchoolInformation
         fields = ('school_name', 'school_username', 'school_email', 'school_logo', 'school_address', 'school_category', 'school_type')
@@ -936,3 +1063,125 @@ class AcademicTermForm(forms.ModelForm):
         model = AcademicTerm
         fields = ('term', 'term_description', 'is_current')
 
+class StudentPerformanceForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+
+        self.school = kwargs.pop('school', '')
+        self.student = kwargs.pop('student', '')
+        super(StudentPerformanceForm, self).__init__(*args, **kwargs)
+
+        if self.school:
+            enrolled_class_ids = StudentEnrollment.objects.filter(student=self.student).values_list('student_class', flat=True)
+
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school, id__in=enrolled_class_ids)
+
+            self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
+
+            self.fields['academic_session'].queryset = AcademicSession.objects.filter(school_info=self.school)
+
+            self.fields['academic_term'].queryset = AcademicTerm.objects.filter(school_info=self.school)
+
+        else:
+            self.fields['student_class'].queryset = SchoolClasses.objects.none()
+            self.fields['academic_session'].queryset = AcademicSession.objects.none()
+            self.fields['academic_term'].queryset = AcademicTerm.objects.none()
+
+    student_class = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    academic_session = forms.ModelChoiceField(queryset=AcademicSession.objects.none(), empty_label="(Select academic session)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    academic_term = forms.ModelChoiceField(queryset=AcademicTerm.objects.none(), empty_label="(Select academic term)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+class SchoolRemarkForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.school = kwargs.pop('school', '')
+        super(SchoolRemarkForm, self).__init__(*args, **kwargs)
+
+    min_average = forms.CharField(help_text='enter minimum average (inclusive)', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    max_average = forms.CharField(help_text='enter maximum average (inclusive)', widget=forms.NumberInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'number',
+        }
+    ))
+
+    teacher_remark = forms.CharField(help_text='enter teacher remark', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    principal_remark = forms.CharField(help_text='enter principal remark', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'text',
+        }
+    ))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        min_average = cleaned_data.get('min_average')
+        max_average = cleaned_data.get('max_average')
+
+        if min_average is not None and max_average is not None:
+            if int(min_average) > int(max_average):
+                raise forms.ValidationError("Minimum average cannot be greater than Maximum average.")
+
+            # Check if an existing range overlaps with the supplied range
+            overlapping_remark = SchoolRemark.objects.filter(
+                school_info=self.school
+            ).filter(
+                Q(min_average__lte=max_average, max_average__gte=min_average)  # Overlapping condition
+            ).exists()
+
+            if overlapping_remark:
+                raise forms.ValidationError("A School Remark with the provided range already exists.")
+
+        return cleaned_data
+
+    def clean_min_average(self):
+        min_average = self.cleaned_data.get('min_average')
+
+        if int(min_average) < 0:
+            raise forms.ValidationError("Minimum average cannot be less than 0")
+
+        if int(min_average) > 100:
+            raise forms.ValidationError("Minimum average cannot be greater than 100")
+
+        return min_average
+
+    def clean_max_average(self):
+        max_average = self.cleaned_data.get('max_average')
+
+        if int(max_average) < 0:
+            raise forms.ValidationError("Maximum average cannot be less than 0")
+
+        if int(max_average) > 100:
+            raise forms.ValidationError("Maximum average cannot be greater than 100")
+
+        return max_average
+
+    class Meta:
+        model = SchoolRemark
+        fields = ('min_average','max_average', 'teacher_remark', 'principal_remark')

@@ -23,7 +23,6 @@ class UserType(models.Model):
         db_table = 'UserType'
         verbose_name_plural = 'UserType'
 
-
 class UserManager(BaseUserManager):
     def create_user(self, schId, userType, password=None):
 
@@ -69,7 +68,6 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
 
         return user
-
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -122,7 +120,9 @@ class User(AbstractBaseUser, PermissionsMixin):
                 return student.school.school_username
 
             elif str(self.userType) == 'admin':
-                return 'Oyiche'
+                # Fetching AdminInformation and related school
+                admin = SchoolAdminInformation.objects.get(user_id=self.user_id)
+                return admin.school.school_username
 
             # If userType does not match any expected value
             return None
@@ -142,7 +142,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = 'Users'
         verbose_name_plural = 'Users'
-
 
 class EmailSendCount(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, null=True)

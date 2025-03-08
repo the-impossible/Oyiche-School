@@ -11,7 +11,10 @@
                 <form method="post">
                     {% csrf_token %}
                     <div class="text-center">
-                        <a class="header-brand" href="{% url 'basic:home' %}"><i class="fa fa-graduation-cap brand-logo"></i></a>
+                        <a class="header-brand" href="{% url 'basic:home' %}">
+                            <img src="{% static 'frontend/img/logo.png' %}" class="brand-logo
+                            " alt="logo" width="200">
+                        </a>
                         <div class="card-title mt-3">Login to your account</div>
                     </div>
                     {% include 'partials/backend/messages.html' %}

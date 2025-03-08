@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 {% block title %} Contact {% endblock title %}
 {% block head %} {% include 'partials/frontend/head.html' %} {% endblock head %}
 {% block body %}
@@ -13,7 +14,7 @@
 
     <!-- Start Breadcrumb
     ============================================= -->
-    <div class="breadcrumb-area shadow dark text-center bg-fixed text-light" style="background-image: url({% static 'frontend/img/banner/8.jpg' %});">
+    <div class="breadcrumb-area shadow dark text-center bg-fixed text-light" style="background-image: url({% static 'frontend/img/banner/contact.png' %});">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
@@ -35,6 +36,8 @@
             <div class="contact-info">
                 <!-- Start Contact Info -->
                 <div class="row">
+                    {% include 'partials/backend/messages.html' %}
+
                     <div class="col-lg-4 col-md-4">
                         <div class="item">
                             <div class="icon">
@@ -42,7 +45,7 @@
                             </div>
                             <div class="info">
                                 <h4>Call Us</h4>
-                                <span>+2349152670310</span>
+                                <span>+234 915 294 5377</span>
                             </div>
                         </div>
                     </div>
@@ -81,58 +84,29 @@
                         <div class="col-lg-6 maps">
                             <h3>Our Location</h3>
                             <div class="google-maps">
-                                <iframe src="https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d14767.262289338461!2d70.79414485000001!3d22.284975!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1424308883981"></iframe>
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.8151900525695!2d8.482807984334258!3d7.702972072498404!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x105081841e0f3b73%3A0xb2c218968ada6d02!2sOyiche%20Cyber%20Tech%20Solutions!5e0!3m2!1sen!2sng!4v1741341023322!5m2!1sen!2sng" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
                         </div>
                         <div class="col-lg-6 form">
                             <div class="heading">
                                 <h3>Contact Us</h3>
                                 <p>
-                                    Occasional terminated insensible and inhabiting gay. So know do fond to half on. Now who promise was justice new winding
+                                    Have questions or need assistance? We're here to help! Reach out to us for inquiries, support, or collaborations. Fill out the form below, send us an email, or give us a call—we’d love to hear from you! 📩📞
                                 </p>
                             </div>
-                            <form action="assets/mail/contact.php" method="POST" class="contact-form">
+                            <form action="" method="POST">
+                                {% csrf_token %}
+                                {{form|crispy}}
                                 <div class="col-lg-12">
-                                    <div class="row">
-                                        <div class="form-group">
-                                            <input class="form-control" id="name" name="name" placeholder="Name" type="text">
-                                            <span class="alert-error"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <div class="row">
-                                        <div class="form-group">
-                                            <input class="form-control" id="email" name="email" placeholder="Email*" type="email">
-                                            <span class="alert-error"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <div class="row">
-                                        <div class="form-group">
-                                            <input class="form-control" id="phone" name="phone" placeholder="Phone" type="text">
-                                            <span class="alert-error"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <div class="row">
-                                        <div class="form-group comments">
-                                            <textarea class="form-control" id="comments" name="comments" placeholder="Tell Me About Courses *"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <button type="submit" name="submit" id="submit">
+                                    <button type="submit" name="submit">
                                         Send Message <i class="fa fa-paper-plane"></i>
                                     </button>
                                 </div>
-                                <!-- Alert Message -->
-                                <div class="col-lg-12 alert-notification">
-                                    <div id="message" class="alert-msg"></div>
-                                </div>
                             </form>
+                                <!-- Alert Message -->
+                            <div class="col-lg-12 alert-notification">
+                                {% include 'partials/backend/messages.html' %}
+                            </div>
                         </div>
                     </div>
                 </div>

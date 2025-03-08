@@ -115,7 +115,7 @@ class BatchAccountCreationThread(threading.Thread):
 
             # Create Student Profile -> StudentInformation
 
-            academic_status = AcademicStatus.objects.get(status="active", school_info=self.school)
+            academic_status = AcademicStatus.objects.get(status="active")
 
             # Use Atomic transaction
             with transaction.atomic():

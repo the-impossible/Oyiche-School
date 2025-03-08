@@ -12,7 +12,10 @@
             <form action="" method="post">
                 <div class="card-body">
                     <div class="text-center">
-                        <a class="header-brand" href="{% url "basic:home" %}"><i class="fa fa-graduation-cap brand-logo"></i></a>
+                        <a class="header-brand" href="{% url "basic:home" %}">
+                            <img src="{% static 'frontend/img/logo.png' %}" class="brand-logo
+                            " alt="logo" width="200">
+                        </a>
                         <div class="card-title">Create new school account</div>
                         <p>only for school owners</p>
                     </div>
@@ -25,7 +28,7 @@
                     </div>
                     <div class="form-group form-check">
                         <input type="checkbox" class="form-check-input" id="exampleCheck1" required>
-                        <label class="form-check-label" for="exampleCheck1">Agree the <a href="#">terms and condition</a></label>
+                        <label class="form-check-label" for="exampleCheck1">Agree the <a href="https://oyichetech.com/terms-and-conditions/">terms and condition</a></label>
                     </div>
                     <div class="text-center mt-3">
                         <button type="submit" class="btn btn-primary btn-block">Create new account</button>

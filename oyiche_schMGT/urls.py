@@ -36,8 +36,10 @@ urlpatterns = [
 
      # Compute Results
      path("compute_results/<str:class_id>", ComputeResultView.as_view(), name="compute_results"),
+     path("student_result", StudentResultView.as_view(), name="student_result"),
+     path("result_preview/<str:performance_id>", ResultPreviewPage.as_view(), name="result_preview"),
 
      # School Details
-     path("manage_school_details", ManageSchoolDetailsView.as_view(), name="manage_school_details")
-
+     path("manage_school_details", ManageSchoolDetailsView.as_view(), name="manage_school_details"),
+     path("manage_school_remarks", ManageSchoolResultView.as_view(), name="manage_school_remarks"),
 ]

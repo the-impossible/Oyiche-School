@@ -19,21 +19,20 @@
                 <div class="box-cell">
                     <div class="container">
                         <div class="row item-flex center">
-
                             <div class="col-lg-6">
                                 <div class="content-box">
                                     <h1>Seamless School Management</h1>
                                     <p>
                                         Transform the way you manage your school. Oyiche School Management System simplifies student enrollment, grading, performance tracking, and administrative tasks. With multi-school support, automated reports, and an intuitive interface, Oyiche School helps educators focus on what truly matters—enhancing the learning experience. Start organizing and optimizing your school today!.
                                     </p>
-                                    <a href="#" class="btn btn-dark effect btn-sm mt-3">
+                                    <a href="{% url "auth:login" %}" class="btn btn-dark effect btn-sm mt-3">
                                         <i class="fas fa-chart-bar"></i> Get Started
                                     </a>
                                 </div>
                             </div>
                             <div class="col-lg-6 thumb">
-                                <img src="{% static 'frontend/img/about/3.jpg' %}" alt="Thumb">
-                                <img src="{% static 'frontend/img/about/2.jpg' %}" alt="Thumb">
+                                <img src="{% static 'frontend/img/about/6.jpg' %}" alt="Thumb">
+                                <img src="{% static 'frontend/img/about/6.jpg' %}" alt="Thumb">
                                 <div class="join">
                                     <i class="fas fa-graduation-cap"></i>
                                     <div class="fun-fact">
@@ -115,45 +114,44 @@
     </div>
     <!-- End What Learn -->
 
-    <!-- Start Fun Factor
-    ============================================= -->
-    <div class="fun-factor-area default-padding bottom-less text-center bg-gray shadow dark-hard" style="background-image: url({% static 'frontend/img/banner/1.jpg);">
+    <!-- Start Fun Factor -->
+    <div class="fun-factor-area default-padding bottom-less text-center bg-gray shadow dark-hard" style="background-image: url({% static 'frontend/img/banner/1.jpg'%});">
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 col-md-6 item">
+                <div class="col-lg-4 col-md-6 item">
                     <div class="fun-fact">
                         <div class="icon">
                             <i class="flaticon-contract"></i>
                         </div>
                         <div class="info">
-                            <span class="timer" data-to="212" data-speed="5000"></span>
+                            <span class="timer" data-to="500" data-speed="500"></span>
                             <span class="medium">Reports Generated</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 item">
+                <div class="col-lg-4 col-md-6 item">
                     <div class="fun-fact">
                         <div class="icon">
                             <i class="flaticon-professor"></i>
                         </div>
                         <div class="info">
-                            <span class="timer" data-to="128" data-speed="5000"></span>
+                            <span class="timer" data-to="20" data-speed="20"></span>
                             <span class="medium">Schools Enrolled</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 item">
+                <div class="col-lg-4 col-md-6 item">
                     <div class="fun-fact">
                         <div class="icon">
                             <i class="flaticon-online"></i>
                         </div>
                         <div class="info">
-                            <span class="timer" data-to="8970" data-speed="5000"></span>
+                            <span class="timer" data-to="120" data-speed="120"></span>
                             <span class="medium">Subject Registered</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 item">
+                {% comment %} <div class="col-lg-3 col-md-6 item">
                     <div class="fun-fact">
                         <div class="icon">
                             <i class="flaticon-reading"></i>
@@ -163,15 +161,14 @@
                             <span class="medium">Cources</span>
                         </div>
                     </div>
-                </div>
+                </div> {% endcomment %}
             </div>
         </div>
     </div>
     <!-- End Fun Factor -->
 
-    <!-- Start Blog
-    ============================================= -->
-    <div id="blog" class="blog-area default-padding bottom-less">
+    <!-- Start Blog -->
+    {% comment %} <div id="blog" class="blog-area default-padding bottom-less">
         <div class="container">
             <div class="row">
                 <div class="site-heading text-center">
@@ -283,12 +280,11 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
     <!-- End Blog -->
 
-        <!-- Start Testimonials
-    ============================================= -->
-    <div class="testimonials-area carousel-shadow default-padding bg-dark text-light py-5">
+    <!-- Start Testimonials -->
+    {% comment %} <div class="testimonials-area carousel-shadow default-padding bg-dark text-light py-5">
         <div class="container">
             <div class="row">
                 <div class="site-heading text-center">
@@ -367,7 +363,7 @@
                 <!-- Single Item -->
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
     <!-- End Testimonials -->
 
     <!-- Start Footer -->

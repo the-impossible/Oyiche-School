@@ -1,0 +1,99 @@
+{% load static %} {% load my_tags %}
+
+<!-- School Header -->
+<div class="row align-items-center justify-content-between">
+  <img
+    src="{{ school.school_logo.url }}"
+    width="50"
+    height="50"
+    alt="School Logo"
+    class="school-logo"
+  />
+  <div class="text-center mb-4">
+    <h3 class="mt-1">{{ school.school_name|upper }}</h3>
+    <p class="school-address mb-1">{{ school.school_address|upper }}</p>
+  </div>
+  <img
+    src="{{ school.school_logo.url }}"
+    width="80"
+    height="100"
+    alt="School Logo"
+    class="school-logo"
+  />
+</div>
+
+<!-- Student Info -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <p><strong>Name:</strong> {{object.student.student_name|title}}</p>
+    <p><strong>Class:</strong> {{class_name.class_name|upper}}</p>
+    <p><strong>Student ID:</strong> {{object.student.user.username|upper}}</p>
+  </div>
+  <div class="col-md-6 text-right">
+    <p><strong>Sex:</strong> {{object.student.gender|upper}}</p>
+    <p><strong>Term:</strong> {{academic_term}}</p>
+    <p><strong>Session:</strong> {{academic_session}}</p>
+  </div>
+</div>
+
+<!-- Results Table -->
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead class="thead-light" style="font-size: xx-small !important;">
+      <tr style="font-size: xx-small !important;">
+        <th style="font-size: xx-small !important;">Subject</th>
+        <th style="font-size: xx-small !important;">1st CA</th>
+        <th style="font-size: xx-small !important;">2nd CA</th>
+        <th style="font-size: xx-small !important;">NOTE</th>
+        <th style="font-size: xx-small !important;">Exam</th>
+        <th style="font-size: xx-small !important;">Total</th>
+        <th style="font-size: xx-small !important;">Average</th>
+        <th style="font-size: xx-small !important;">Highest</th>
+        <th style="font-size: xx-small !important;">Lowest</th>
+        <th style="font-size: xx-small !important;">Position</th>
+        <th style="font-size: xx-small !important;">Grade</th>
+        <th style="font-size: xx-small !important;">Remark</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for score in scores %}
+      <tr style="font-size: xx-small !important;">
+        <td style="font-size: xx-small !important;">{{score.subject.school_subject.subject_name|upper}}</td>
+        <td style="font-size: xx-small !important;">{{score.first_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.second_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.third_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.exam|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.total_score|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">0.00</td>   <!-- Average -->
+        <td style="font-size: xx-small !important;">80</td>   <!-- Highest -->
+        <td style="font-size: xx-small !important;">0</td>   <!-- Lowest -->
+        <td style="font-size: xx-small !important;">1</td>   <!-- Position -->
+        <td style="font-size: xx-small !important;">{{score.grade.grade_letter|upper|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.grade.grade_description|upper|default:"N/A"}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Summary -->
+<div class="row mt-4">
+  <div class="col-md-6">
+    <p><strong>Total Marks:</strong> {{object.total_marks_obtained}}</p>
+    <p><strong>Average Score:</strong> {{object.student_average}}%</p>
+    <p><strong>Position in Class:</strong> {{object.term_position|upper}}</p>
+  </div>
+  <div class="col-md-6">
+    <p><strong>Class Average:</strong> {{object.class_average}}%</p>
+    <p><strong>Total Subjects:</strong> {{object.total_subject}}</p>
+  </div>
+</div>
+
+<!-- Remarks -->
+<div class="remarks mt-4">
+  <p>
+    <strong>Class Teacher's Remarks:</strong> WOW, WHAT A BRILLIANT PERFORMANCE.
+    YOU ARE AMAZING!
+  </p>
+  <p><strong>Principal's Remarks:</strong> AN EXCELLENT RESULT, KEEP IT UP</p>
+</div>
