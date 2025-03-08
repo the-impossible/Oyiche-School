@@ -1121,23 +1121,42 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         class_id = self.kwargs.get('class_id')
 
         if school and class_id:
-
-             # Get all subjects assigned to the class
+            # Get all subjects assigned to the class
             subjects = SchoolClassSubjects.objects.filter(
                 school_info=school,
                 school_class=class_id
-            ).values_list('school_subject__subject_name', 'id',)
+            ).values_list('school_subject__subject_name', 'id')
 
+            # Get filter parameters from request.GET
+            session_filter = self.request.GET.get('session')
+            term_filter = self.request.GET.get('term')
 
+            # Base queryset
+            queryset = StudentPerformance.objects.filter(
+                school_info=school,
+                current_enrollment__student_class=class_id,
+            )
 
-            # Get student performance with scores for each subject
+            # Apply session and term filters
+            if session_filter:
+                queryset = queryset.filter(current_enrollment__academic_session__session=session_filter)
+            else:
+                # Default to current session if no filter
+                current_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+                if current_session:
+                    queryset = queryset.filter(current_enrollment__academic_session=current_session)
+
+            if term_filter:
+                queryset = queryset.filter(current_enrollment__academic_term__term=term_filter)
+            else:
+                # Default to current term if no filter
+                current_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+                if current_term:
+                    queryset = queryset.filter(current_enrollment__academic_term=current_term)
+
+            # Add related data
             queryset = (
-                StudentPerformance.objects.filter(
-                    school_info=school,
-                    current_enrollment__student_class=class_id,
-                    current_enrollment__academic_session__is_current=True,
-                    current_enrollment__academic_term__is_current=True,
-                )
+                queryset
                 .select_related('student', 'current_enrollment')
                 .prefetch_related(
                     Prefetch(
@@ -1156,56 +1175,73 @@ class ComputeResultView(LoginRequiredMixin, ListView):
 
         return StudentPerformance.objects.none(), []
 
-
     def get_context_data(self, **kwargs):
         class_id = self.kwargs.get('class_id', '')
         school = get_school(self.request)
 
         context = super().get_context_data(**kwargs)
-
         queryset, subjects = self.get_queryset()
-        context['queryset'] = queryset
-        context['subjects'] = subjects
-        context["class_name"] = SchoolClasses.objects.get(pk=class_id)
-        context['academic_session'] = AcademicSession.objects.filter(is_current=True, school_info=school).first()
-        context['academic_term'] = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+
+        # Full querysets for dropdowns
+        academic_sessions = AcademicSession.objects.filter(school_info=school)
+        academic_terms = AcademicTerm.objects.filter(school_info=school)
+
+        # Current session and term
+        academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+
+        context.update({
+            'queryset': queryset,
+            'subjects': subjects,
+            'class_name': SchoolClasses.objects.get(pk=class_id),
+            'academic_sessions': academic_sessions,  # All sessions for dropdown
+            'academic_terms': academic_terms,        # All terms for dropdown
+            'academic_session': academic_session,    # Current session object
+            'academic_term': academic_term,          # Current term object
+        })
         return context
 
     def post(self, request, class_id):
-
-        # All required variables
         school = get_school(self.request)
-        academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
-        academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+        
+        # Use filtered session/term from GET, or fall back to current
+        session_filter = request.GET.get('filter_session', '')
+        term_filter = request.GET.get('filter_term', '')
+        
+        academic_session = AcademicSession.objects.filter(
+            name=session_filter, school_info=school
+        ).first() if session_filter else AcademicSession.objects.filter(
+            is_current=True, school_info=school
+        ).first()
+        
+        academic_term = AcademicTerm.objects.filter(
+            name=term_filter, school_info=school
+        ).first() if term_filter else AcademicTerm.objects.filter(
+            is_current=True, school_info=school
+        ).first()
+
         class_detail = SchoolClasses.objects.get(pk=class_id)
 
         def perform_computation(which, student_performance_list):
-
-            # Create performances and calculate student averages
             with transaction.atomic():
-                # Bulk create student performances
-
                 if which == 'compute':
                     performances = StudentPerformance.objects.bulk_create(student_performance_list)
-
-                if which == 're-compute':
+                elif which == 're-compute':
                     performances = student_performance_list
 
                 # Calculate student averages and other individual data
                 for performance in performances:
                     performance.calculate_student_average_total_marks_total_subject()
 
-                # Bulk update all student-related fields
                 StudentPerformance.objects.bulk_update(
                     performances,
                     ['total_marks_obtained', 'total_subject', 'student_average']
                 )
 
-                # Calculate class averages after all student averages are ready
+                # Calculate class averages
                 for performance in performances:
                     performance.calculate_class_average()
 
-                # Bulk update all class average fields
                 StudentPerformance.objects.bulk_update(
                     performances,
                     ['class_average']
@@ -1219,11 +1255,8 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                     current_enrollment__academic_session=academic_session
                 ).first()
 
-
-                if first_performance: first_performance.calculate_term_position()
-
-        # List to hold the student performance instance for bulk creation
-        student_performance_list = []
+                if first_performance:
+                    first_performance.calculate_term_position()
 
         # Get all students enrolled in the class
         enrolled_class = StudentEnrollment.objects.filter(
@@ -1233,14 +1266,13 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             academic_status__status="active",
         )
 
-        # Validate if student exist in the enrolled class
         if not enrolled_class:
             messages.error(request, f"No student enrolled into {class_detail.class_name.upper()} class!!")
             return redirect('sch:compute_results', class_id)
 
-        if 'compute' in request.POST:
+        student_performance_list = []
 
-            # Create Performance for each student
+        if 'compute' in request.POST:
             student_performance_list = [
                 StudentPerformance(
                     school_info=school,
@@ -1251,18 +1283,14 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             ]
 
             try:
-
                 perform_computation(which='compute', student_performance_list=student_performance_list)
-
-                messages.success(request=request, message=f'computation successful!')
+                messages.success(request, 'Computation successful!')
                 return redirect('sch:compute_results', class_id)
             except ValueError as e:
-                messages.error(request=request, message=str(e))
+                messages.error(request, str(e))
                 return redirect('sch:compute_results', class_id)
 
-
         elif 're-compute' in request.POST:
-            # Create Performance for each student
             student_performance_list = StudentPerformance.objects.filter(
                 school_info=school,
                 current_enrollment__student_class=class_detail,
@@ -1271,19 +1299,15 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             )
 
             try:
-
                 perform_computation(which='re-compute', student_performance_list=student_performance_list)
-
-                messages.success(request=request, message=f'computation successful!')
+                messages.success(request, 'Computation successful!')
                 return redirect('sch:compute_results', class_id)
-
             except ValueError as e:
-                messages.error(request=request, message=str(e))
+                messages.error(request, str(e))
                 return redirect('sch:compute_results', class_id)
 
-        messages.error(request=request, message="Couldn't handle request, Try again!!")
+        messages.error(request, "Couldn't handle request, Try again!!")
         return redirect('sch:compute_results', class_id)
-
 class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
     template_name = "backend/school/manage_school_details.html"
