@@ -1354,8 +1354,7 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         messages.error(request=request, message="Couldn't handle request, Try again!!")
         return redirect('sch:compute_results', class_id)
 
-@method_decorator([is_school], name='dispatch')
-class ManageSchoolDetailsView(LoginRequiredMixin, View):
+@method_decorator([is_school], name='dispatch')class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
     template_name = "backend/school/manage_school_details.html"
 
