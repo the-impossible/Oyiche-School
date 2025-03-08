@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.db.models import Max
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 
 # My app imports
@@ -17,7 +18,6 @@ from oyiche_schMGT.views import get_school
 from oyiche_auth.decorators import *
 
 # Create your views here.
-
 
 class RegisterView(View):
     template_name = "backend/auth/register.html"
@@ -99,35 +99,6 @@ class ForgotPasswordView(TemplateView):
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "backend/dashboard.html"
 
-    # def get_context_data(self, **kwargs):
-
-    #     school = get_school(self.request)
-
-    #     context = super(DashboardView, self).get_context_data(**kwargs)
-    #     student_info = StudentInformation.objects.filter(school=school)
-    #     context['total_students'] = student_info.count()
-    #     context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
-    #     context['total_subjects'] = SchoolClassSubjects.objects.filter(school_info=school).distinct('school_class').count()
-    #     context['total_admins'] = SchoolAdminInformation.objects.filter(school=school).count()
-    #     context['new_student_list'] = student_info.order_by('-date_created')[:10]
-
-    #      # Get the highest student_average for each class
-    #     top_avg_per_class = (
-    #         StudentPerformance.objects.filter(school_info=school)
-    #         .values('current_enrollment__student_class')
-    #         .annotate(max_average=Max('student_average'))
-    #     )
-
-    #     # Get the actual students with the highest average in each class
-    #     exam_toppers = StudentPerformance.objects.filter(
-    #         school_info=school,
-    #         student_average__in=[entry['max_average'] for entry in top_avg_per_class]
-    #     ).select_related('student', 'current_enrollment__student_class')
-
-    #     context['exam_toppers'] = exam_toppers
-
-    #     return context
-
 def custom_404_view(request, exception=None):
     error_message = str(exception) if exception else "Page not found"
     return render(request, "404.html", {"error_message": error_message}, status=404)
@@ -157,6 +128,10 @@ class UpdateProfileView(LoginRequiredMixin, View):
             student = StudentInformation.objects.filter(user=self.object).first()
             self.context['student'] = student
 
+        if self.object.userType.user_title.lower() == 'admin':
+            admin = SchoolAdminInformation.objects.filter(user=self.object).first()
+            self.context['admin'] = admin
+
         self.form = self.form(instance=self.object)
         self.context['form'] = self.form
 
@@ -166,9 +141,14 @@ class UpdateProfileView(LoginRequiredMixin, View):
     def post(self, request):
 
         self.object = User.objects.filter(user_id=request.user.user_id).first()
+
         if self.object.userType.user_title.lower() == 'student':
             student = StudentInformation.objects.filter(user=self.object).first()
             self.context['student'] = student
+
+        if self.object.userType.user_title.lower() == 'admin':
+            admin = SchoolAdminInformation.objects.filter(user=self.object).first()
+            self.context['admin'] = admin
 
         if 'update_profile' in request.POST:
 
@@ -267,3 +247,61 @@ class DeleteAdminView(LoginRequiredMixin,SuccessMessageMixin, DeleteView):
 
     def get_success_url(self):
         return reverse("auth:manage_admin")
+
+@method_decorator([is_school], name='dispatch')
+class AdminEditView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        school = get_school(request)
+
+        try:
+            admin_info = SchoolAdminInformation.objects.get(school=school, pk=pk)
+            admin_user_info = User.objects.get(user_id=admin_info.user_id)
+            admin_form = AdminEditForm(instance=admin_user_info, initial={'password':'', 'gender':admin_info.gender, 'admin_name':admin_info.admin_name}, school=school)
+
+            return render(request=request, template_name="backend/auth/partials/admin_form.html", context={'form': admin_form, 'object': admin_info})
+
+        except SchoolAdminInformation.DoesNotExist:
+            return JsonResponse({'error': 'Admin not found!'}, status=404)
+
+    def post(self, request, pk):
+
+        school = get_school(request=request) #Get school info
+
+        try:
+
+            admin_info = SchoolAdminInformation.objects.get(school=school, pk=pk)
+            admin_user_info = User.objects.get(user_id=admin_info.user_id)
+
+            form = AdminEditForm(request.POST, instance=admin_user_info, school=school)
+
+            if form.is_valid():
+                print("form is valid")
+                data = form.save(commit=False)
+
+                admin_name = form.cleaned_data.get('admin_name')
+                gender = form.cleaned_data.get('gender')
+
+                admin_updated_info = SchoolAdminInformation.objects.filter(pk=pk).update(
+                    admin_name=admin_name,
+                    gender=gender,
+                )
+
+                data.save()
+
+                username = form.cleaned_data.get('username')
+                messages.success(request, f"Admin: {username} successfully edited!!")
+
+            else:
+                print("form is invalid")
+                print(form.errors.as_text())
+                # If form is invalid, re-render the page with errors message
+                messages.error(request, form.errors.as_text())
+
+        except (SchoolAdminInformation, User).DoesNotExist:
+            print("Admin not found")
+            messages.error(request, "Failed to edit admin!!")
+
+        finally:
+            return HttpResponse('<script>window.location.reload();</script>')
+

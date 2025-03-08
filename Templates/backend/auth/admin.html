@@ -61,9 +61,9 @@
                                                 <div class="text-muted"><b>TEL:</b> {{object.user.phone}} <b>EMAIL:</b> {{object.user.email}}</div>
                                                 <div class="text-muted mb-4"></div>
 
-                                                <button class="btn btn-primary btn-sm">Edit</button>
-                                                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#deleteAdmin{{forloop.counter}}">Delete</button>
+                                                <button class="btn btn-primary btn-sm" hx-get="{% url "auth:edit_admin" object.pk %}" hx-target="#adminDialog">Edit</button>
 
+                                                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#deleteAdmin{{forloop.counter}}">Delete</button>
 
                                             </div>
                                         </div>
@@ -152,6 +152,32 @@
         </div>
         </div>
 
+        <div class="modal fade" id="admin" style="display:none;" tabindex="-1" aria-labelledby="admin" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="adminDialog" hx-target="this">
+
+            </div>
+        </div>
+
+        <div class="modal fade" id="error" style="display:none;" tabindex="-1" aria-labelledby="error" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="errorDialog" hx-target="this">
+                <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+                    <div class="modal-header">
+                      <h6 class="modal-title text-danger">Error </h6>
+                      <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                    </div>
+                    <div class="modal-body">
+                        {% include 'partials/backend/messages.html' %}
+
+                    <div class="row">
+                        <div class="col-12">
+                        <p>Something went wrong, Failed to get Admin info!</p>
+                        </div>
+                    </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+
         <!-- Start main footer -->
         {% include 'partials/backend/footer.html' %}
 
@@ -161,5 +187,28 @@
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->
+<script>
+	var modal = new bootstrap.Modal(document.getElementById('admin'));
+	var modalError = new bootstrap.Modal(document.getElementById('error'));
 
+	htmx.on('htmx:afterSwap', (e) => {
+		if (e.detail.target.id === 'adminDialog'){
+		  modal.show();
+	  }
+	})
+
+	htmx.on('htmx:beforeSwap', (e) => {
+	  if (e.detail.target.id === 'adminDialog' && !e.detail.xhr.response){
+		  modal.hide();
+		}
+	})
+
+  document.addEventListener('htmx:responseError', function (event) {
+    if (event.detail.xhr.status === 404) {
+        modal.hide();
+        modalError.show()
+    }
+  });
+
+</script>
 {% endblock body %}

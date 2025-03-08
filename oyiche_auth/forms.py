@@ -86,7 +86,6 @@ class SchoolForm(forms.ModelForm):
         model = User
         fields = ('username', 'email', 'phone', 'password')
 
-
 class ProfleEditForm(forms.ModelForm):
 
     email = forms.EmailField(required=False, help_text='Enter a valid email address', empty_value=None, widget=forms.TextInput(

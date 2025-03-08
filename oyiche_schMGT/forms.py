@@ -272,6 +272,72 @@ class AdminForm(UserForm):
         model = User
         fields = ('username', 'admin_name', 'gender', 'email', 'phone', 'pic', 'password')
 
+class AdminEditForm(UserForm):
+    username = forms.CharField(required=True, help_text='Please enter adminID', widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+    admin_name = forms.CharField(help_text='Please enter admin Fullname', strip=True, widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+        }
+    ))
+
+    gender = forms.ModelChoiceField(queryset=Gender.objects.all(), empty_label="(Select student gender)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
+
+    password = forms.CharField(required=False, help_text="Leave blank if you don't want to update the password", widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'type': 'password',
+        }
+    ))
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            check = User.objects.filter(email=email.lower().strip())
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Email Already taken!')
+
+        return email
+
+    def clean_phone(self):
+
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            check = User.objects.filter(phone=phone)
+            if self.instance:
+                check = check.exclude(pk=self.instance.pk)
+            if check.exists():
+                raise forms.ValidationError('Phone Number Already taken!')
+
+        return phone
+
+    def clean_username(self):
+
+        username = self.cleaned_data.get('username')
+        check = User.objects.filter(username=username.upper().strip())
+
+        if self.instance:
+            check = check.exclude(pk=self.instance.pk)
+
+        if check.exists():
+            raise forms.ValidationError('AdminID already exist!')
+
+        return username.upper()
+
+
+    class Meta:
+        model = User
+        fields = ('username', 'admin_name', 'gender', 'email', 'phone', 'pic', 'password')
+
 
 class StudentInformationForm(forms.ModelForm):
     student_name = forms.CharField(help_text='Please enter student Fullname', strip=True, widget=forms.TextInput(

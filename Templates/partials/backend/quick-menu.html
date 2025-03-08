@@ -3,10 +3,6 @@
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#righttab-statistics">Statistics</a></li>
 
-        {% comment %} {% if not request.user.userType|lower == 'student' %}
-        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#righttab-Result">Result</a></li>
-        {% endif %} {% endcomment %}
-
     </ul>
     <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="righttab-statistics" role="tabpanel">
@@ -14,17 +10,17 @@
             <div class="card gradient">
                 <div class="card-body">
                     <div>Total Revenue</div>
-                    <div class="py-3 m-0 text-center h1 text-white font700">₦79,452</div>
+                    <div class="py-3 m-0 text-center h1 text-white font700">₦00,000</div>
                     <div class="d-flex">
                         <span class="text-white">Income</span>
-                        <div class="ml-auto"><i class="fa fa-caret-up text-white mr-1"></i>4%</div>
+                        <div class="ml-auto"><i class="fa fa-caret-up text-white mr-1"></i>0%</div>
                     </div>
                 </div>
                 <div class="card-footer">
                     <ul class="list-unstyled mb-0">
                         <li class="mb-3">
                             <div class="clearfix">
-                                <div class="float-left text-white"><strong>₦43,320</strong></div>
+                                <div class="float-left text-white"><strong>₦00,000</strong></div>
                                 <div class="float-right"><small class="text-white">2023/2024 session</small></div>
                             </div>
                             <div class="progress progress-xxs">
@@ -33,7 +29,7 @@
                         </li>
                         <li>
                             <div class="clearfix">
-                                <div class="float-left text-white"><strong>₦36,132</strong></div>
+                                <div class="float-left text-white"><strong>₦00,000</strong></div>
                                 <div class="float-right"><small class="text-white">2024/2025 session</small></div>
                             </div>
                             <div class="progress progress-xxs">
@@ -84,147 +80,5 @@
             </div>
 
         </div>
-        {% comment %} {% if not request.user.userType|lower == 'student' %}
-        <div class="tab-pane fade" id="righttab-Result" role="tabpanel">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Result 2024</h3>
-                    <div class="card-options">
-                        <a href="#"><i class="fa fa-file-excel-o" data-toggle="tooltip" title="Export Excel"></i></a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>87%</strong></div>
-                                <div class="float-right"><small class="text-muted">Art & Design</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-azure" role="progressbar" style="width: 87%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>80%</strong></div>
-                                <div class="float-right"><small class="text-muted">Fashion</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-green" role="progressbar" style="width: 80%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>63%</strong></div>
-                                <div class="float-right"><small class="text-muted">Sports Science</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-orange" role="progressbar" style="width: 63%" aria-valuenow="36" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>91%</strong></div>
-                                <div class="float-right"><small class="text-muted">Computers</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-indigo" role="progressbar" style="width: 91%" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="clearfix">
-                                <div class="float-left"><strong>35%</strong></div>
-                                <div class="float-right"><small class="text-muted">Biological Sciences</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-pink" role="progressbar" style="width: 35%" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer">
-                    <div class="row text-center">
-                        <div class="col-6 border-right">
-                            <label class="mb-0">Total Pass</label>
-                            <div class="font-20 font-weight-bold">1,052</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="mb-0">Total Fail</label>
-                            <div class="font-20 font-weight-bold">198</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Result 2023</h3>
-                    <div class="card-options">
-                        <a href="#"><i class="fa fa-file-excel-o" data-toggle="tooltip" title="Export Excel"></i></a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>80%</strong></div>
-                                <div class="float-right"><small class="text-muted">Fashion</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-green" role="progressbar" style="width: 80%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>87%</strong></div>
-                                <div class="float-right"><small class="text-muted">Art & Design</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-azure" role="progressbar" style="width: 87%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>91%</strong></div>
-                                <div class="float-right"><small class="text-muted">Computers</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-indigo" role="progressbar" style="width: 91%" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li class="mb-3">
-                            <div class="clearfix">
-                                <div class="float-left"><strong>35%</strong></div>
-                                <div class="float-right"><small class="text-muted">Biological Sciences</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-pink" role="progressbar" style="width: 35%" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="clearfix">
-                                <div class="float-left"><strong>63%</strong></div>
-                                <div class="float-right"><small class="text-muted">Sports Science</small></div>
-                            </div>
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar bg-orange" role="progressbar" style="width: 63%" aria-valuenow="36" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer">
-                    <div class="row text-center">
-                        <div class="col-6 border-right">
-                            <label class="mb-0">Total Pass</label>
-                            <div class="font-20 font-weight-bold">845</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="mb-0">Total Fail</label>
-                            <div class="font-20 font-weight-bold">142</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %} {% endcomment %}
     </div>
 </div>
