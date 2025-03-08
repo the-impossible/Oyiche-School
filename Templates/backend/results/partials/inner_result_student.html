@@ -47,29 +47,37 @@
 <!-- Results Table -->
 <div class="table-responsive">
   <table class="table table-bordered">
-    <thead class="thead-light">
-      <tr>
-        <th>Subject</th>
-        <th>1st CA</th>
-        <th>2nd CA</th>
-        <th>3rd CA</th>
-        <th>Exam</th>
-        <th>Total</th>
-        <th>Grade</th>
-        <th>Remark</th>
+    <thead class="thead-light" style="font-size: xx-small !important;">
+      <tr style="font-size: xx-small !important;">
+        <th style="font-size: xx-small !important;">Subject</th>
+        <th style="font-size: xx-small !important;">1st CA</th>
+        <th style="font-size: xx-small !important;">2nd CA</th>
+        <th style="font-size: xx-small !important;">NOTE</th>
+        <th style="font-size: xx-small !important;">Exam</th>
+        <th style="font-size: xx-small !important;">Total</th>
+        <th style="font-size: xx-small !important;">Average</th>
+        <th style="font-size: xx-small !important;">Highest</th>
+        <th style="font-size: xx-small !important;">Lowest</th>
+        <th style="font-size: xx-small !important;">Position</th>
+        <th style="font-size: xx-small !important;">Grade</th>
+        <th style="font-size: xx-small !important;">Remark</th>
       </tr>
     </thead>
     <tbody>
       {% for score in scores %}
-      <tr>
-        <td>{{score.subject.school_subject.subject_name|upper}}</td>
-        <td>{{score.first_ca|default:"N/A"}}</td>
-        <td>{{score.second_ca|default:"N/A"}}</td>
-        <td>{{score.third_ca|default:"N/A"}}</td>
-        <td>{{score.exam|default:"N/A"}}</td>
-        <td>{{score.total_score|default:"N/A"}}</td>
-        <td>{{score.grade.grade_letter|upper|default:"N/A"}}</td>
-        <td>{{score.grade.grade_description|upper|default:"N/A"}}</td>
+      <tr style="font-size: xx-small !important;">
+        <td style="font-size: xx-small !important;">{{score.subject.school_subject.subject_name|upper}}</td>
+        <td style="font-size: xx-small !important;">{{score.first_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.second_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.third_ca|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.exam|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.total_score|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">0.00</td>   <!-- Average -->
+        <td style="font-size: xx-small !important;">80</td>   <!-- Highest -->
+        <td style="font-size: xx-small !important;">0</td>   <!-- Lowest -->
+        <td style="font-size: xx-small !important;">1</td>   <!-- Position -->
+        <td style="font-size: xx-small !important;">{{score.grade.grade_letter|upper|default:"N/A"}}</td>
+        <td style="font-size: xx-small !important;">{{score.grade.grade_description|upper|default:"N/A"}}</td>
       </tr>
       {% endfor %}
     </tbody>
