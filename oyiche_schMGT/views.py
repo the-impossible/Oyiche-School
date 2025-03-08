@@ -38,7 +38,7 @@ def get_school(request):
                 student_info = StudentInformation.objects.get(user=request.user.user_id).school.sch_id
                 school = SchoolInformation.objects.get(sch_id=student_info)
             except (StudentInformation.DoesNotExist, SchoolInformation.DoesNotExist):
-                messages.error(request, "School profile not foud! Therefore, school details can't be retrieved.")
+                messages.error(request, "School profile not found! Therefore, school details can't be retrieved.")
                 return None  # Explicitly return None on failure
 
     except SchoolInformation.DoesNotExist:
@@ -1354,7 +1354,8 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         messages.error(request=request, message="Couldn't handle request, Try again!!")
         return redirect('sch:compute_results', class_id)
 
-@method_decorator([is_school], name='dispatch')class ManageSchoolDetailsView(LoginRequiredMixin, View):
+@method_decorator([is_school], name='dispatch')
+class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
     template_name = "backend/school/manage_school_details.html"
 

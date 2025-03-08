@@ -31,12 +31,16 @@ student_genders = ['Male', 'Female']
 # Create UserTypes
 user_types = [
     {
-        'user_title': 'admin',
-        'user_description': 'This is an admin role'
+        'user_title': 'superuser',
+        'user_description': 'This is a superuser role'
     },
     {
         'user_title': 'school',
         'user_description': 'This is a school role'
+    },
+    {
+        'user_title': 'admin',
+        'user_description': 'This is an admin role'
     },
     {
         'user_title': 'student',

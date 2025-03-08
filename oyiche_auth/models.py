@@ -5,6 +5,8 @@ import uuid
 from django.shortcuts import get_object_or_404
 from django.http import Http404, HttpResponseNotFound
 from django.template.loader import render_to_string
+from django.shortcuts import redirect, render
+
 
 # My app imports
 from oyiche_schMGT.models import *
@@ -51,7 +53,7 @@ class UserManager(BaseUserManager):
         if not username:
             raise ValueError('Username is required!')
 
-        userType = UserType.objects.get_or_create(user_title='admin')[0]
+        userType = UserType.objects.get_or_create(user_title='superuser')[0]
 
         if password is None:
             raise ValueError('Password should not be empty')
@@ -124,6 +126,9 @@ class User(AbstractBaseUser, PermissionsMixin):
                 admin = SchoolAdminInformation.objects.get(user_id=self.user_id)
                 return admin.school.school_username
 
+            elif str(self.userType) == 'superuser':
+                return 'Oyiche'
+
             # If userType does not match any expected value
             return None
 
@@ -135,9 +140,14 @@ class User(AbstractBaseUser, PermissionsMixin):
             # Redirecting to 404 page if StudentInformation not found
             raise Http404("School Information not Found! contact School.")
 
+        except SchoolAdminInformation.DoesNotExist:
+            # Redirecting to 404 page if AdminInformation not found
+            raise Http404("Admin Information not Found! contact School.")
+
         except Exception as e:
             # Handling any other exception and redirecting to login page
-            return redirect('auth:login')  # Redirect to login page in case of unexpected errors
+            raise Http404(e)
+
 
     class Meta:
         db_table = 'Users'
