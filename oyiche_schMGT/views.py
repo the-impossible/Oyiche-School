@@ -1789,7 +1789,7 @@ class ResultPreviewPage(LoginRequiredMixin, View):
 
             return JsonResponse({'error': 'School not found!'}, status=404)
 
-        except SchoolGrades.DoesNotExist:
+        except StudentPerformance.DoesNotExist:
             return JsonResponse({'error': 'Student result not found!'}, status=404)
 
 @method_decorator([is_school_or_admin], name='dispatch')
