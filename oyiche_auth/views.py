@@ -276,7 +276,7 @@ class AdminEditView(LoginRequiredMixin, View):
             form = AdminEditForm(request.POST, instance=admin_user_info, school=school)
 
             if form.is_valid():
-                print("form is valid")
+
                 data = form.save(commit=False)
 
                 admin_name = form.cleaned_data.get('admin_name')
@@ -293,13 +293,10 @@ class AdminEditView(LoginRequiredMixin, View):
                 messages.success(request, f"Admin: {username} successfully edited!!")
 
             else:
-                print("form is invalid")
-                print(form.errors.as_text())
                 # If form is invalid, re-render the page with errors message
                 messages.error(request, form.errors.as_text())
 
         except (SchoolAdminInformation, User).DoesNotExist:
-            print("Admin not found")
             messages.error(request, "Failed to edit admin!!")
 
         finally:

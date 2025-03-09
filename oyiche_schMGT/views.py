@@ -27,6 +27,10 @@ def get_school(request):
     school = None
 
     try:
+
+        if str(request.user.userType) == 'superuser':
+            return None
+
         admin = SchoolAdminInformation.objects.get(user=request.user)
         school = SchoolInformation.objects.get(sch_id=admin.school.sch_id)
 
@@ -64,7 +68,6 @@ class StudentPageView(LoginRequiredMixin, View):
 
     def get(self, request):
         self.school = get_school(request)
-        print(f'school1: {self.school}')
 
         self.all_student = 'active'
         self.add_student = ''
@@ -97,8 +100,6 @@ class StudentPageView(LoginRequiredMixin, View):
             self.form = self.form(initial=initial_data, school=self.school)
         else:
             self.form = self.form(school=self.school)
-
-        print(f'school2: {self.school}')
 
         return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
 
@@ -906,6 +907,10 @@ class ManageStudentSubjectGrades(LoginRequiredMixin, View):
 
                     subject = SchoolClassSubjects.objects.get(school_subject=request.POST.get('subject_name'), school_info=self.school, school_class=class_id)
 
+                    if not SchoolGrades.objects.filter(school_info=self.school).exists():
+                        messages.error(request, "upload Grades first!!")
+                        return redirect('sch:school_grade')
+
                     highest_score = 0
                     lowest_score = float('inf')
 
@@ -1270,9 +1275,7 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 # Calculate class averages after all student averages are ready
                 for performance in performances:
                     performance.calculate_class_average()
-                    print('Class Average Calculated')
                     performance.calculate_school_remark()
-                    print('School Remark Calculated')
 
                 # Bulk update all class average fields
                 StudentPerformance.objects.bulk_update(

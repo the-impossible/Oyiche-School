@@ -87,7 +87,6 @@ class FileHandler:
             # Fetch the student from the database
             try:
                 user = User.objects.get(username=student_id)
-                print(f'USER: {user}')
 
                 student = StudentInformation.objects.filter(school=self.school, user=user).first()
                 school_class_subject = SchoolClassSubjects.objects.filter(school_info=self.school, school_class=self.student_class, school_subject=self.subject).first()

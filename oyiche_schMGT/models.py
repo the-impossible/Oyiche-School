@@ -385,23 +385,32 @@ class StudentScores(models.Model):
                 session=self.session,
                 subject=self.subject,
                 term__in=term_dict.values()
-            ).values('term', 'average')
+            ).values('term', 'total_score')
 
-            score_dict = {score['term']: score['average'] for score in scores}
+            score_dict = {score['term']: score['total_score'] for score in scores}
 
             # Handle missing term scores
-            first_term_average = score_dict.get(term_dict['First Term'], 0)
-            second_term_average = score_dict.get(term_dict['Second Term'], 0)
-            third_term_average = score_dict.get(term_dict['Third Term'], 0)
+            first_term_total_score = score_dict.get(term_dict['First Term'], None)
+            second_term_total_score = score_dict.get(term_dict['Second Term'], None)
+            third_term_total_score = score_dict.get(term_dict['Third Term'], None)
 
-            if str(term.term) == 'First Term':
-                self.average = self.total_score
+            # Compute the average based on available scores
+            if term.term == 'First Term':
+                self.average = self.total_score  # Only First Term exists
 
-            elif str(term.term) == 'Second Term':
-                self.average = (first_term_average + second_term_average ) / 2
+            elif term.term == 'Second Term':
+                if first_term_total_score is not None:
+                    self.average = (first_term_total_score + self.total_score) / 2
+                else:
+                    self.average = self.total_score  # No First Term record, use Second Term alone
 
-            elif str(term.term) == 'Third Term':
-                self.average = (first_term_average + second_term_average + third_term ) / 3
+            elif term.term == 'Third Term':
+                if first_term_total_score is not None and second_term_total_score is not None:
+                    self.average = (first_term_total_score + second_term_total_score + self.total_score) / 3
+                elif second_term_average is not None:
+                    self.average = (second_term_total_score + self.total_score) / 2
+                else:
+                    self.average = self.total_score  # No prior records, use Third Term alone
 
         except AcademicTerm.DoesNotExist:
 
@@ -437,7 +446,6 @@ class StudentScores(models.Model):
             Calculate positions for all student scores based on average.
         """
         # Retrieve all filtered records
-        print("I WAS CALCULATED")
         scores = StudentScores.objects.filter(
             session=self.session,
             term=self.term,

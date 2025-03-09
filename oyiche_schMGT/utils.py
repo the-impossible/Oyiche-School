@@ -151,7 +151,6 @@ class BatchAccountCreationThread(threading.Thread):
     def upload_student_fees(self):
         df = pd.read_excel(self.file.file)
 
-        print(f"DATA: {df}")
         self.file.used = False
         self.file.save()
 

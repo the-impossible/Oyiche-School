@@ -13,7 +13,7 @@ def global_dashboard_context(request):
         student_info = StudentInformation.objects.filter(school=school)
         context['total_students'] = student_info.count()
         context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
-        context['total_subjects'] = SchoolClassSubjects.objects.filter(school_info=school).distinct('school_class').count()
+        context['total_subjects'] = SchoolSubject.objects.filter(school_info=school).count()
         context['total_admins'] = SchoolAdminInformation.objects.filter(school=school).count()
         context['new_student_list'] = student_info.order_by('-date_created')[:10]
 

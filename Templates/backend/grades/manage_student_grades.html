@@ -120,7 +120,7 @@
                                                 <td>{{ object.total_score }}</td>
                                                 <td>{{ object.average }}</td>
                                                 <td>{{ object.position }}</td>
-                                                <td>{{ object.grade.grade_letter }}</td>
+                                                <td>{{ object.grade.grade_letter|default:"N/A" }}</td>
                                                 <td>
                                                     <a href="" class="btn btn-sm" title="Edit" hx-get="{% url "sch:score_edit_form" object.pk %}" hx-target="#gradeDialog"><i class="fa fa-edit text-primary"></i></a>
 
@@ -226,7 +226,7 @@
                                                 <td>{{ object.third_ca }}</td>
                                                 <td>{{ object.exam }}</td>
                                                 <td>{{ object.total_score }}</td>
-                                                <td>{{ object.grade.grade_letter }}</td>
+                                                <td>{{ object.grade.grade_letter|default:"N/A" }}</td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}

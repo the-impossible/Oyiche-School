@@ -183,18 +183,6 @@
 
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
-<script>
-    $(document).ready(function() {
-        $('.custom_searchable').select2();
-
-        // Preserve filter parameters when downloading results
-        $('#filterForm').submit(function() {
-            // Store current filter values in local storage before submitting
-            localStorage.setItem('session_filter', $('#session_filter').val());
-            localStorage.setItem('term_filter', $('#term_filter').val());
-        });
-    });
-</script>
 
 <script>
     var modal = new bootstrap.Modal(document.getElementById('grade'));
@@ -257,9 +245,6 @@ function printResult(modalId) {
 
 <script>
 function downloadAllResults() {
-    // Get current filter values from the form
-    const sessionFilter = document.getElementById('session_filter').value;
-    const termFilter = document.getElementById('term_filter').value;
 
     const results = [];
 
@@ -284,14 +269,7 @@ function downloadAllResults() {
     });
 
     // Create a descriptive filename based on filters
-    let filename = 'all-student-results';
-    if (sessionFilter) {
-        filename += '-' + sessionFilter.replace('/', '-');
-    }
-    if (termFilter) {
-        filename += '-' + termFilter.toLowerCase();
-    }
-    filename += '.pdf';
+    let filename = 'all-student-results.pdf';
 
     // Create container for all results
     const container = document.createElement('div');
@@ -330,7 +308,7 @@ function downloadAllResults() {
 
     // PDF generation options
     const opt = {
-        margin: [10, 10, 10, 10],
+        margin: 0.3,
         filename: filename,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {

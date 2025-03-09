@@ -148,7 +148,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             # Handling any other exception and redirecting to login page
             raise Http404(e)
 
-
     class Meta:
         db_table = 'Users'
         verbose_name_plural = 'Users'
