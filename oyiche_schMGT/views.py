@@ -1,25 +1,4 @@
-# My Django imports
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import TemplateView, ListView, DeleteView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
-from django.views import View
-from django.http import HttpResponse, JsonResponse
-import pandas as pd
-from urllib.parse import urlencode
-from django.contrib.messages.views import SuccessMessageMixin
-from django.db import IntegrityError
-from django.db.models import Prefetch
-from django.utils.decorators import method_decorator
-from django.db.models import Q
-
-# My App imports
-from oyiche_schMGT.models import *
-from oyiche_schMGT.forms import *
-from oyiche_files.forms import *
-from oyiche_files.models import *
-from oyiche_schMGT.utils import *
-from oyiche_auth.decorators import *
+from oyiche_schMGT.imports import *
 
 # Create your views here.
 
@@ -143,7 +122,7 @@ class StudentPageView(LoginRequiredMixin, View):
                 query['academic_status'] = academic_status
 
             student_in_class_and_in_session = StudentEnrollment.objects.filter(
-                **query)
+                **query).order_by('-date_created')
 
             self.object_list = student_in_class_and_in_session
             self.form = form
@@ -1435,7 +1414,6 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
         self.school = get_school(request)
         self.object = SchoolInformation.objects.filter(principal_id=request.user).first()
 
-
         if 'update' in request.POST:
 
             form = SchoolInformationForm(data=request.POST, instance=self.object, files=request.FILES)
@@ -1468,15 +1446,11 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
                 is_current = data.is_current
 
-                if is_current:
-                    academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True).first()
+                all_academic_session = AcademicSession.objects.filter(school_info=self.school)
 
-                    if academic_session:
-                        academic_session.is_current = False
-                        academic_session.save()
+                if not all_academic_session.exists():
 
-                try:
-
+                    data.is_current = True
                     data.save()
 
                     messages.success(request=request, message="Academic Session Created!")
@@ -1485,11 +1459,36 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
                     return render(request, template_name=self.template_name, context=self.context)
 
-                except IntegrityError:
+                else:
 
-                    messages.error(request=request, message=f"{data.session} session already exist")
 
-                    self.context['form2'] = form2
+                    try:
+
+                        with transaction.atomic():
+
+                            if is_current:
+
+                                academic_sessions = AcademicSession.objects.filter(school_info=self.school, is_current=True)
+
+                                for session in academic_sessions:
+                                    session.is_current = False
+                                    session.is_completed = True
+
+                                AcademicSession.objects.bulk_update(academic_sessions, ['is_current', 'is_completed'])
+
+                            data.save()
+
+                        messages.success(request=request, message="Academic Session Created!")
+
+                        self.context['session_list'] = AcademicSession.objects.filter(school_info=self.school).order_by('-date_created')
+
+                        return render(request, template_name=self.template_name, context=self.context)
+
+                    except IntegrityError:
+
+                        messages.error(request=request, message=f"{data.session} session already exist")
+
+                        self.context['form2'] = form2
 
             else:
 
@@ -1514,15 +1513,30 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
                 data.session_description = session_desc
 
                 if is_current:
+
                     data.is_current = True
 
                     # Find the existing current session for the same school and unset it
                     academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True).first()
+
                     if academic_session and academic_session != data:
-                        academic_session.is_current = False
-                        academic_session.save()
+
+                        try:
+
+                            with transaction.atomic():
+                                academic_session.is_current = False
+                                academic_session.is_completed = True
+                                academic_session.save()
+                                data.save()
+                                messages.success(request, "Session updated successfully.")
+
+                        except IntegrityError:
+                            messages.error(request, f"Session '{data.session}' already exists.")
+                    else:
+                        messages.error(request, f"No specific action taken!!")
 
                 else:
+
                     # If no session is currently marked as "current", prompt the user
                     academic_session = AcademicSession.objects.filter(school_info=self.school, is_current=True)
 
@@ -1535,13 +1549,6 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
                         messages.error(request, "current session cannot be empty, kindly update first!.")
 
                         return render(request, template_name=self.template_name, context=self.context)
-
-                try:
-                    data.save()
-                    messages.success(request, "Session updated successfully.")
-
-                except IntegrityError:
-                    messages.error(request, f"Session '{data.session}' already exists.")
 
             except AcademicSession.DoesNotExist:
                 messages.error(request, "Failed to edit academic session. Try again!")
@@ -1558,59 +1565,19 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
                 academic_session = AcademicSession.objects.get(school_info=self.school, pk=session_id)
 
-                if not academic_session.is_current:
+                if academic_session.is_completed:
+                    messages.error(request, "Completed session cannot be deleted!!")
+
+                elif not academic_session.is_current and not academic_session.is_completed:
                     academic_session.delete()
                     messages.success(
                         request, "Academic session has been deleted successfully!!")
                 else:
                     messages.error(
-                        request, "Current academic session cannnot be deleted!!")
-
+                        request, "Current academic session or completed session cannnot be deleted!!")
 
             except AcademicSession.DoesNotExist:
                 messages.error(request, "Failed to delete session!!")
-
-        elif 'create_term' in request.POST:
-
-            self.context['school_session'] = ''
-            self.context['school_details'] = ''
-            self.context['school_term'] = 'active'
-
-            form3 = self.form3(data=request.POST)
-
-            if form3.is_valid():
-
-                data = form3.save(commit=False)
-                data.school_info = self.school
-
-                is_current = data.is_current
-
-                if is_current:
-                    academic_term = AcademicTerm.objects.filter(school_info=self.school, is_current=True).first()
-
-                    if academic_term:
-                        academic_term.is_current = False
-                        academic_term.save()
-
-                try:
-
-                    data.save()
-
-                    messages.success(request=request, message="Academic Term Created!")
-
-                    self.context['term_list'] = AcademicTerm.objects.filter(school_info=self.school).order_by('-date_created')
-
-                    return render(request, template_name=self.template_name, context=self.context)
-
-                except IntegrityError:
-
-                    messages.error(request=request, message=f"{data.term} term already exist")
-
-                    self.context['form3'] = form3
-
-            else:
-
-                messages.error(request=request, message=form3.errors.as_text())
 
         elif 'edit_term' in request.POST:
 
@@ -1662,30 +1629,6 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
             except AcademicTerm.DoesNotExist:
                 messages.error(request, "Failed to edit academic term. Try again!")
-
-        elif 'delete_term' in request.POST:
-
-            self.context['school_session'] = ''
-            self.context['school_details'] = ''
-            self.context['school_term'] = 'active'
-
-            term_id = request.POST.get('term_id')
-
-            try:
-
-                academic_term = AcademicTerm.objects.get(school_info=self.school, pk=term_id)
-
-                if not academic_term.is_current:
-                    academic_term.delete()
-                    messages.success(
-                        request, "Academic term has been deleted successfully!!")
-                else:
-                    messages.error(
-                        request, "Current academic term cannnot be deleted, update!!")
-
-            except AcademicTerm.DoesNotExist:
-                messages.error(request, "Failed to delete term!!")
-
 
         return render(request, template_name=self.template_name, context=self.context)
 

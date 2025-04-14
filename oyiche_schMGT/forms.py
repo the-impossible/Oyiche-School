@@ -108,7 +108,7 @@ class FileHandler:
 
                 # Check if student was enrolled to the class
                 if not StudentEnrollment.objects.filter(student=student, student_class=self.student_class, academic_session=self.session, academic_term=self.term).exists():
-                    raise forms.ValidationError(f"Student with ID {student_id} is not enrolled to this class, check file!")
+                    raise forms.ValidationError(f"Student with ID {student_id} is not enrolled to this class or current academic term, check file!")
 
             except User.DoesNotExist:
                 raise forms.ValidationError(f"Student with ID {student_id} is not registered!")
@@ -748,7 +748,7 @@ class StudentScoreGradeForm(forms.ModelForm):
             all_subjects = SchoolClassSubjects.objects.filter(school_info=self.school, school_class=self.school_class)
 
             # Get all student for the class and school
-            all_students = StudentEnrollment.objects.filter(student_class=self.school_class, student__school=self.school).values_list('student', flat=True)
+            all_students = StudentEnrollment.objects.filter(student_class=self.school_class, student__school=self.school, academic_term=self.term, academic_session=self.session).values_list('student', flat=True)
 
             # Customize the display of the subject names
             self.fields['subject'].queryset = all_subjects
@@ -956,6 +956,13 @@ class StudentScoreGradeEditForm(forms.ModelForm):
         fields = ('first_ca', 'second_ca', 'third_ca', 'exam',)
 
 class SchoolInformationForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SchoolInformationForm, self).__init__(*args, **kwargs)
+
+        # If an instance exists and has a school_username, disable the field
+        if self.instance and self.instance.pk and self.instance.school_username:
+            self.fields['school_username'].widget.attrs['readonly'] = True
 
     school_name = forms.CharField(help_text='Enter school name', strip=True, widget=forms.TextInput(
         attrs={

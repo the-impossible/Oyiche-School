@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Privacy Policy {% endblock title %}
+{% block head %} {% include 'partials/frontend/head.html' %} {% endblock head %}
+{% block body %}
+    <!-- Preloader Start -->
+    <div class="se-pre-con"></div>
+    <!-- Preloader Ends -->
+
+    <!-- Start Header  -->
+    {% block nav %}{% include 'partials/frontend/nav.html' %}{% endblock nav %}
+    <!-- End Header -->
+
+    <!-- Start Breadcrumb -->
+    <div class="breadcrumb-area shadow dark text-center bg-fixed text-light" style="background-image: url({% static 'frontend/img/banner/about.png' %});">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Privacy Policy</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="{% url 'basic:home' %}"><i class="fas fa-home"></i> Home</a></li>
+                        <li class="active">Privacy Policy</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Breadcrumb -->
+
+    <!-- Start Blog
+    ============================================= -->
+    <div class="blog-area full-blog standard full-blog default-padding">
+        <div class="container">
+            <div class="blog-items">
+                <div class="row">
+                    <div class="blog-content col-lg-10 col-xl-10 offset-xl-1  col-lg-10 offset-lg-1">
+                        <h1>Privacy Disclosure Agreement</h1>
+                        <p><strong>Between Oyiche Cyber Tech Solutions and Its Clients</strong></p>
+                        <p><strong>Last updated: January 2, 2025</strong></p>
+                        <p>This Privacy Disclosure Agreement ("Agreement") is entered into by and between Oyiche Cyber Tech Solutions ("Company") and its clients ("Client") to ensure transparency, confidentiality, and protection of data shared between both parties.</p>
+
+                        <h2>1. Purpose</h2>
+                        <p>This Agreement outlines the manner in which Oyiche Cyber Tech Solutions collects, processes, stores, and protects Client data while providing its services. It aims to uphold privacy rights and comply with applicable data protection laws.</p>
+
+                        <h2>2. Data Collection and Use</h2>
+                        <p>Oyiche Cyber Tech Solutions may collect personal and business-related information from the Client, including but not limited to:</p>
+                        <ul>
+                            <li>Contact details (name, email, phone number, etc.)</li>
+                            <li>Business information necessary for service delivery</li>
+                            <li>Payment and billing details (where applicable)</li>
+                            <li>User behavior data related to our platforms</li>
+                            <li>Any other information voluntarily provided by the Client</li>
+                        </ul>
+                        <p>The collected data will only be used for the following purposes:</p>
+                        <ul>
+                            <li>Service delivery and improvement</li>
+                            <li>Communication and customer support</li>
+                            <li>Security and fraud prevention</li>
+                            <li>Legal compliance and regulatory requirements</li>
+                        </ul>
+
+                        <h2>3. Data Protection and Security</h2>
+                        <p>Oyiche Cyber Tech Solutions implements robust security measures to protect Client data from unauthorized access, alteration, disclosure, or destruction. Security protocols include:</p>
+                        <ul>
+                            <li>Encrypted data storage</li>
+                            <li>Secure access controls</li>
+                            <li>Regular security audits</li>
+                            <li>Compliance with industry best practices</li>
+                        </ul>
+
+                        <h2>4. Data Sharing and Third Parties</h2>
+                        <p>Oyiche Cyber Tech Solutions does not sell, rent, or trade Client data to third parties. However, data may be shared under the following circumstances:</p>
+                        <ul>
+                            <li>With authorized third-party service providers assisting in service delivery (subject to confidentiality obligations)</li>
+                            <li>When required by law or legal processes</li>
+                            <li>In cases of business transfers, such as mergers or acquisitions</li>
+                        </ul>
+
+                        <h2>5. Client Rights</h2>
+                        <p>Clients have the right to:</p>
+                        <ul>
+                            <li>Access the personal data collected about them</li>
+                            <li>Request corrections to inaccurate or incomplete data</li>
+                            <li>Withdraw consent for data processing (where applicable)</li>
+                            <li>Request deletion of their data, subject to legal and business obligations</li>
+                        </ul>
+
+                        <h2>6. Data Retention</h2>
+                        <p>Oyiche Cyber Tech Solutions will retain Client data only as long as necessary for business and legal purposes. Upon termination of services, data may be securely archived or deleted in compliance with applicable regulations.</p>
+
+                        <h2>7. Amendments and Updates</h2>
+                        <p>This Agreement may be updated periodically to reflect changes in privacy laws or business practices. Clients will be notified of significant updates through appropriate communication channels.</p>
+
+                        <h2>8. Governing Law</h2>
+                        <p>This Agreement shall be governed by and interpreted under the laws of the Federal Republic of Nigeria. Any disputes arising from this Agreement shall be resolved in accordance with Nigerian legal procedures.</p>
+
+                        <h2>9. Acceptance and Consent</h2>
+                        <p>By engaging with Oyiche Cyber Tech Solutions and using our services, the Client acknowledges and agrees to the terms of this Privacy Disclosure Agreement.</p>
+
+                        <h2>10. Links to Other Websites</h2>
+                        <p>Our Service may contain links to other websites that are not operated by Us. If You click on a third party link, You will be directed to that third party’s site. We strongly advise You to review the Privacy Policy of every site You visit.</p>
+
+                        <p>We have no control over and assume no responsibility for the content, privacy policies or practices of any third party sites or services.Tech Solutions and using our services, the Client acknowledges and agrees to the terms of this Privacy Disclosure Agreement.</p>
+
+                        <h2>Contact Us</h2>
+                        <p>If you have any questions about this Privacy Policy, You can contact us:</p>
+                        <ul>
+                            <li>By email: info@oyichetech.com</li>
+                            <li>By visiting this page on our website: https://oyicheacademy.com/contact/</li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Blog -->
+
+    <!-- Start Footer -->
+    {% include 'partials/frontend/footer.html' %}
+    <!-- End Footer -->
+
+    <!-- Start Script -->
+    {% include 'partials/frontend/script.html' %}
+    <!-- End Script -->
+
+{% endblock body %}

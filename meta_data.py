@@ -10,6 +10,24 @@ from oyiche_schMGT.models import *
 from oyiche_auth.models import *
 from oyiche_files.models import *
 
+# Create Academic Term
+academic_term = [
+    {
+        'term': 'First Term',
+        'term_description': 'First term of the academic session'
+    },
+    {
+        'term': 'Second Term',
+        'term_description': 'Second term of the academic session'
+    },
+    {
+        'term': 'Third Term',
+        'term_description': 'Third term of the academic session'
+    },
+]
+
+[GeneralAcademicTerm.objects.get_or_create(**term) for term in academic_term]
+
 # Create Academic status
 academic_status = [
     {
@@ -105,6 +123,7 @@ school_types = [
 # FilesTemplates
 file_path = ['assets/student_with_ID_template.xlsx', 'assets/student_without_ID_template.xlsx', 'assets/student_fees_template.xlsx', 'assets/student_report_template.xlsx']
 
-for index, path in enumerate(file_path):
-    with open(path, 'rb') as file:
-        FilesTemplates.objects.get_or_create(template_type=FileTemplateType.objects.get(template_title=template_types[index]), file=File(file))
+# for index, path in enumerate(file_path):
+#     with open(path, 'rb') as file:
+#         FilesTemplates.objects.get_or_create(template_type=FileTemplateType.objects.get(template_title=template_types[index]), file=File(file))
+

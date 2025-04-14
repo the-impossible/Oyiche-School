@@ -37,6 +37,9 @@
                         <li {% if request.path == '/sch/students' %}class="active"{% endif %}>
                             <a href="{% url 'sch:students' %}"><i class="fa fa-users"></i><span>Students</span></a>
                         </li>
+                        <li {% if request.path == '/sch/enrollments' %}class="active"{% endif %}>
+                            <a href="{% url 'sch:enrollments' %}"><i class="fa fa-trello"></i><span>Enrollment</span></a>
+                        </li>
 
                     {% endif %}
 

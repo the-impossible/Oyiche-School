@@ -50,6 +50,7 @@ class AcademicSession(models.Model):
     school_info = models.ForeignKey(
         to='SchoolInformation', on_delete=models.CASCADE, related_name="school_academic_session", blank=True, null=True)
     is_current = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -82,6 +83,18 @@ class AcademicStatus(models.Model):
 
 # Term (First Term, Second Term)
 
+class GeneralAcademicTerm(models.Model):
+    term = models.CharField(max_length=20)
+    term_description = models.CharField(max_length=100, blank=True, null=True)
+    is_current = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.term
+
+    class Meta:
+        db_table = 'General Academic Term'
+        verbose_name_plural = 'General Academic Term'
 
 class AcademicTerm(models.Model):
     term = models.CharField(max_length=20)
@@ -202,19 +215,17 @@ class StudentEnrollment(models.Model):
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     student = models.ForeignKey(
         to="StudentInformation", on_delete=models.CASCADE, related_name="student_information")
-    # school_info = models.ForeignKey(
-    #     to="SchoolInformation", on_delete=models.CASCADE, related_name="school_information", blank=True, null=True)
     student_class = models.ForeignKey(
         to="SchoolClasses", on_delete=models.CASCADE, related_name="student_enrollment_class")
     promoted_class = models.ForeignKey(
         to="SchoolClasses", on_delete=models.CASCADE, blank=True, null=True, related_name="promoted_class")
     academic_session = models.ForeignKey(
-        to="AcademicSession", on_delete=models.CASCADE, related_name='student_academic_session', blank=True, null=True)
+        to="AcademicSession", on_delete=models.CASCADE, related_name='s_academic_session', blank=True, null=True)
     academic_term = models.ForeignKey(
         to="AcademicTerm", on_delete=models.CASCADE, related_name='student_academic_term', blank=True, null=True)
     academic_status = models.ForeignKey(
         to="AcademicStatus", on_delete=models.CASCADE)
-    date_created = models.DateField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student}: {self.student_class}"
@@ -374,7 +385,7 @@ class StudentScores(models.Model):
         try:
 
             # Get First Term, Second Term and Third Term in one query
-            terms = AcademicTerm.objects.filter(term__in=['First Term', 'Second Term', 'Third Term']).values('term', 'id')
+            terms = AcademicTerm.objects.filter(school_info=self.school_info).values('term', 'id')
             term_dict = {term['term']: term['id'] for term in terms}
 
             if len(term_dict) != 3:
@@ -407,7 +418,7 @@ class StudentScores(models.Model):
             elif term.term == 'Third Term':
                 if first_term_total_score is not None and second_term_total_score is not None:
                     self.average = (first_term_total_score + second_term_total_score + self.total_score) / 3
-                elif second_term_average is not None:
+                elif second_term_total_score is not None:
                     self.average = (second_term_total_score + self.total_score) / 2
                 else:
                     self.average = self.total_score  # No prior records, use Third Term alone
@@ -560,7 +571,7 @@ class StudentPerformance(models.Model):
 
         # Check to prevent division by zero
         if self.student_average == 0:
-            raise ValueError("Cannot calculate class average as student's average is zero!")
+            raise ValueError("Cannot calculate class average as some student score average is zero, upload those student grades!")
 
         # Calculate the class average
         self.class_average = round(total_class_averages / class_performances.count(), 2)

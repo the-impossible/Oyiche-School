@@ -44,10 +44,26 @@ class RegisterView(View):
 
                 data.userType = UserType.objects.get_or_create(user_title='school')[0]
                 data.save()
-                SchoolInformation.objects.create(
+                school_info = SchoolInformation.objects.create(
                     principal_id=data,
                     school_email=email
                 )
+
+                all_terms = GeneralAcademicTerm.objects.all()
+                academic_term_list = []
+
+                for term in all_terms:
+                    academic_term = AcademicTerm(
+                        school_info=school_info,
+                        term=term.term,
+                        term_description=term.term_description,
+                        is_current=term.is_current
+                    )
+
+                    academic_term_list.append(academic_term)
+
+                AcademicTerm.objects.bulk_create(academic_term_list)
+
                 messages.success(request, "Account created successfully, You can login now")
                 return redirect('auth:login')
             else:

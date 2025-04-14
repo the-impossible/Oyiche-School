@@ -36,4 +36,4 @@ admin.site.register(StudentScores)
 admin.site.register(StudentPerformance)
 admin.site.register(SchoolClassSubjects)
 admin.site.register(SchoolRemark)
-
+admin.site.register(GeneralAcademicTerm)

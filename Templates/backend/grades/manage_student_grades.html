@@ -65,17 +65,42 @@
 
                 <div class="tab-content">
                     <div class="tab-pane {{ manage_all }}" id="manage-all">
+
                         <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Get Student Grades and Download Grade Templates</h3>
+                                <div class="card-options ">
+                                    <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                    <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                </div>
+                            </div>
+
                             <div class="card-body">
+
                               <form action="" method="post">
                                 {% csrf_token %}
                                 <div class="row">
+                                    <div class="col-lg-3 col-md-3 col-sm-3">
+                                        <div class="file_folder">
+                                            <a href="{% url "sch:export_grade_template" class_name.pk %}">
+                                                <div class="icon">
+                                                    <i class="fa fa-file-excel-o text-success"></i>
+                                                </div>
+                                                <div class="file-name">
+                                                    <p class="mb-0 text-muted">{{class_name.class_name|upper}} Grades Template</p>
+                                                    <small>Click to download</small>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+
                                     <div class="col-lg-4 col-md-4 col-sm-4">
                                         {{form3.subject_name|as_crispy_field}}
                                     </div>
                                     <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
                                       <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_grades">Get grades</button>
                                     </div>
+
                                 </div>
                               </form>
                             </div>

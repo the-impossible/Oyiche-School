@@ -29,3 +29,6 @@ class ContactView(SuccessMessageMixin, CreateView):
 class BlogView(TemplateView):
     template_name = "frontend/blog.html"
 
+class PrivacyPolicyView(TemplateView):
+    template_name = "frontend/privacy-policy.html"
+

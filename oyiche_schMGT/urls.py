@@ -1,5 +1,7 @@
 from django.urls import path, re_path
 from oyiche_schMGT.views import *
+from oyiche_schMGT.templates.grades_template import *
+from oyiche_schMGT.enrollments.manage_enrollment import *
 
 app_name = "sch"
 
@@ -42,4 +44,11 @@ urlpatterns = [
      # School Details
      path("manage_school_details", ManageSchoolDetailsView.as_view(), name="manage_school_details"),
      path("manage_school_remarks", ManageSchoolResultView.as_view(), name="manage_school_remarks"),
+
+     # Download Grade Templates
+     path("export_grade_template/<str:class_id>", ExportGradeTemplateView.as_view(), name="export_grade_template"),
+
+     # Manage Student Enrollment
+     path("enrollments", ManageStudentEnrollment.as_view(), name="enrollments"),
+
 ]

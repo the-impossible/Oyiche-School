@@ -11,4 +11,5 @@ urlpatterns = [
     path('about', AboutView.as_view(), name="about"),
     path('contact', ContactView.as_view(), name="contact"),
     path('blog', BlogView.as_view(), name="blog"),
+    path('privacy-policy', PrivacyPolicyView.as_view(), name="privacy-policy"),
 ]

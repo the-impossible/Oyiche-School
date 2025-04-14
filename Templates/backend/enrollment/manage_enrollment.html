@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Manage Enrollment {% endblock title %}
+{% load crispy_forms_tags %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+							{% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center ">
+                    <div class="header-action">
+                        <h1 class="page-title">{{class_name.class_name|upper}} Enrollment</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item active" aria-current="page">Student enrollment</li>
+                        </ol>
+                    </div>
+                    <div class="d-none d-lg-block">
+                        <ul class="nav nav-tabs page-header-tab">
+                            <li class="nav-item"><a class="nav-link {{ manage_enrollement }}" data-toggle="tab" href="#manage_enrollement">Manage Enrollment</a></li>
+                            <li class="nav-item"><a class="nav-link {{ migrate_enrollment }}" data-toggle="tab" href="#migrate_enrollment">Migrate Enrollment </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="d-block d-lg-none mb-3 mx-2">
+                        <ul class="nav nav-tabs" >
+                            <li class="nav-item"><a class="nav-link {{ migrate_enrollment }}" data-toggle="tab" href="#migrate_enrollment">Migrate Enrollment</a></li>
+                            <li class="nav-item"><a class="nav-link {{ manage_enrollement }}" data-toggle="tab" href="#manage_enrollement">Manage Enrollment </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane {{ manage_enrollement }}" id="manage_enrollement">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Migrating Enrollment Information</h3>
+                                <div class="card-options ">
+                                    <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                    <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <strong>NOTE:</strong>
+                                <ul>
+                                    <li>When migrating students from one term to another within the same session or to a new academic session, update their academic status to "completed" for the current enrollment, indicating successful completion.</li>
+                                    <li>Students who are not selected or excluded during the migration process—likely because they are no longer in the school—should have their enrollment migrated but with academic status updated to "inactive" to reflect their non-continuation.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-3 col-sm-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <form action="" method="post">
+                                                    {% csrf_token %}
+                                                    <p>Note: <small>You are getting student enrollments</small> </p>
+                                                    {{ form|crispy }}
+                                                    <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_enrollment">Get Enrollment</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9 col-md-9 col-sm-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="float-right">
+                                                                {% if object_list %}
+                                                                <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#migrate_modal" name="migrate_enrollment">Migrate Enrollment</button>
+
+                                                                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete_modal" name="delete_enrollment">Delete Enrollment</button>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="table-responsive card">
+                                                        <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+                                                            <thead>
+                                                                <tr>
+                                                                <th><input type="checkbox" id="select_all"> &nbsp;SN</th>
+                                                                <th></th>
+                                                                <th>StudentID.</th>
+                                                                <th>Name</th>
+                                                                <th>Term</th>
+                                                                <th>Status</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% if object_list %}
+                                                                    {% for object in object_list %}
+                                                                        <tr>
+                                                                            <td><input type="checkbox" name="selected_ids" value="{{ object.enrollment_id }}" class="select_item"> &nbsp; {{forloop.counter }}</td>
+                                                                            <td class="w60">
+                                                                                <img class="avatar" src="{{ object.student.user.pic.url }}" alt="img">
+                                                                            </td>
+                                                                            <td>{{ object.student.user.username }}</td>
+                                                                            <td title="{{ object.student.student_name }}">{{ object.student.student_name|truncatechars:25 }}</td>
+                                                                            <td>{{ object.academic_term.term|title }}</td>
+                                                                            <td>{{ object.academic_status.status|title }}</td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                {% else %}
+                                                                {% include 'partials/backend/empty_list.html' %}
+                                                                {% endif %}
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <td colspan="12">
+                                                                        <div class="row">
+                                                                            <div class="col-lg-4 col-md-4 col-sm-4 ">
+                                                                            </div>
+                                                                            <div class="col-lg-4 col-md-4 col-sm-4 ">
+                                                                            </div>
+                                                                            <div class="col-lg-4 col-md-4 col-sm-4 ">
+                                                                                {% if object_list %}
+                                                                                {% comment %} <button type="button" class="btn btn-sm btn-primary btn-block" data-toggle="modal" data-target="#migrate_modal" name="migrate_enrollment">Migrate Enrollment</button> {% endcomment %}
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+
+                                                    <input type="hidden" name="get_student_class" value="{{form.student_class.value}}">
+                                                    <input type="hidden" name="get_academic_session" value="{{form.academic_session.value}}">
+                                                    <input type="hidden" name="get_academic_term" value="{{form.academic_term.value}}">
+                                                    <input type="hidden" name="get_academic_status" value="{{form.academic_status.value}}">
+
+                                                    <div class="modal fade" id="migrate_modal" tabindex="-1" aria-labelledby="migrate_enrollment" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="migrate_enrollment" >
+                                                            <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+                                                            <div class="modal-header">
+                                                                <h6 class="modal-title text-danger">Migrate Enrollment </h6>
+                                                                <button type="button" class="close" data-dismiss="modal"><span>×</span>
+                                                                </button>
+                                                            </div>
+
+                                                                <div class="modal-body">
+
+                                                                    <div class="row">
+                                                                        <div class="col-12">
+                                                                            {{ form2|crispy }}
+                                                                            <br>
+                                                                            <p><b>NB: This action applies the migration enrollment information on the selected student</b></p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+
+                                                                <div class="modal-footer">
+                                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                                    <button type="submit" class="btn btn-primary btn-block text-white" name="migrate_enrollment" value="true">Migrate Enrollment </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="modal fade" id="delete_modal" tabindex="-1" aria-labelledby="delete_enrollment" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="delete_enrollment" >
+                                                            <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+                                                            <div class="modal-header">
+                                                                <h6 class="modal-title text-danger">Delete Enrollment </h6>
+                                                                <button type="button" class="close" data-dismiss="modal"><span>×</span>
+                                                                </button>
+                                                            </div>
+                                                                <div class="modal-body">
+
+                                                                    <div class="row">
+                                                                        <div class="col-12">
+
+                                                                            <p>You about deleting the currently marked enrollments</p>
+                                                                            <br>
+                                                                            <p><b>NB: This action is irreversible, you will have to add the enrollment back manually</b></p>
+
+                                                                            <p><b>NB: This action might delele student result, if it exist for this enrollment</b></p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+
+                                                                <div class="modal-footer">
+                                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                                    <button type="submit" class="btn btn-primary btn-block text-white" name="delete_enrollment" formnovalidate>Delete Enrollment</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane {{ migrate_enrollment }}" id="migrate_enrollment">
+                        <div class="card">
+                            <div class="card-body">
+                              <form action="" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-3 col-sm-3">
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-3">
+                                    </div>
+                                    <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
+                                      <button type="submit" class="btn btn-sm btn-primary btn-block" name="upload_grade">Upload grades</button>
+                                    </div>
+                                </div>
+                              </form>
+                            </div>
+                        </div>
+                        <div class="table-responsive card">
+                            <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
+                                <thead>
+                                    <tr>
+                                      <th>SN</th>
+                                      <th></th>
+                                      <th>StudentID.</th>
+                                      <th>Name</th>
+                                      <th>Subject</th>
+                                      <th>CA1</th>
+                                      <th>CA2</th>
+                                      <th>CA3</th>
+                                      <th>Exam</th>
+                                      <th>Total</th>
+                                      <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    {% if object_list %}
+                                        {% for object in object_list %}
+                                            <tr>
+                                                <td>{{forloop.counter }}</td>
+                                                <td class="w60">
+                                                    <img class="avatar" src="{{ object.student.user.pic.url }}" alt="">
+                                                </td>
+                                                <td>{{ object.student.user.username }}</td>
+                                                <td>{{ object.student.student_name }}</td>
+                                                <td>{{ object.subject.school_subject.subject_name|upper }}</td>
+                                                <td>{{ object.first_ca }}</td>
+                                                <td>{{ object.second_ca }}</td>
+                                                <td>{{ object.third_ca }}</td>
+                                                <td>{{ object.exam }}</td>
+                                                <td>{{ object.total_score }}</td>
+                                                <td>{{ object.grade.grade_letter|default:"N/A" }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                    {% include 'partials/backend/empty_list.html' %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Start main footer -->
+        {% include 'partials/backend/footer.html' %}
+    </div>
+</div>
+
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+
+<script>
+    document.getElementById("select_all").addEventListener("change", function() {
+        let checkboxes = document.querySelectorAll(".select_item");
+        checkboxes.forEach((cb) => cb.checked = this.checked);
+    });
+</script>
+
+<!-- End Script -->
+
+{% endblock body %}

@@ -154,7 +154,7 @@
 
                     <div class="tab-pane {{ school_session }}" id="school_session">
                         <div class="row">
-                            <div class="col-lg-4 col-md-4 col-sm-12">
+                            <div class="col-lg-3 col-md-3 col-sm-12">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">School Sessions</h3>
@@ -176,7 +176,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-8 col-md-8 col-sm-12">
+                            <div class="col-lg-9 col-md-9 col-sm-12">
                                 <div class="table-responsive card">
                                     <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
                                         <thead>
@@ -185,6 +185,7 @@
                                                 <th>Session</th>
                                                 <th>Description</th>
                                                 <th>Is Current</th>
+                                                <th>Is Completed</th>
                                                 <th>Date Created</th>
                                                 <th>Action</th>
                                             </tr>
@@ -202,6 +203,13 @@
                                                             <input type="checkbox" class="custom-control-input" id="customCheck1"
                                                             {% if object.is_current %}checked disabled {% endif %}
                                                             {% if not object.is_current %}disabled{% endif %}>
+                                                            <label class="custom-control-label" for="customCheck1"></label>
+                                                        </div>
+                                                    <td class="text-center">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" id="customCheck1"
+                                                            {% if object.is_completed %}checked disabled {% endif %}
+                                                            {% if not object.is_completed %}disabled{% endif %}>
                                                             <label class="custom-control-label" for="customCheck1"></label>
                                                         </div>
                                                     </td>
@@ -228,8 +236,8 @@
                                                                     <input type="text" name="session_desc" class="form-control" value="{{ object.session_description|title }}">
 
                                                                     <div class="form-group form-check mt-3">
-                                                                        <input type="checkbox" class="form-check-input" id="exampleCheck2" name="is_current" {% if object.is_current %}checked{% endif %}>
-                                                                        <label class="form-check-label" for="exampleCheck2">is Current session?</label>
+                                                                        <input type="checkbox" class="form-check-input" id="editCheck{{forloop.counter}}" name="is_current" {% if object.is_current %}checked{% endif %}>
+                                                                        <label class="form-check-label" for="editCheck{{forloop.counter}}">is Current session?</label>
                                                                     </div>
 
                                                                     <input type="hidden" name="session_id" class="form-control" value="{{ object.pk }}">
@@ -268,11 +276,14 @@
                                                                         <br>
                                                                         <p><b>Session</b>: {{ object.session|upper }}</p>
 
-                                                                        <div class="custom-control custom-checkbox">
-                                                                            <input type="checkbox" class="custom-control-input" id="customCheck1"
-                                                                            {% if object.is_current %}checked disabled {% endif %}
-                                                                            {% if not object.is_current %}disabled{% endif %}>
-                                                                            <label class="custom-control-label" for="customCheck1">is current session</label>
+                                                                        <div class="form-group form-check mt-3">
+                                                                            <input type="checkbox" class="form-check-input" id="deleteCheck{{forloop.counter}}" name="is_current" {% if object.is_current %}checked{% endif %} disabled>
+                                                                            <label class="form-check-label" for="deleteCheck{{forloop.counter}}">is current session?</label>
+                                                                        </div>
+
+                                                                        <div class="form-group form-check mt-3">
+                                                                            <input type="checkbox" class="form-check-input" id="deleteCheckSecond{{forloop.counter}}" name="is_completed" {% if object.is_completed %}checked{% endif %} disabled>
+                                                                            <label class="form-check-label" for="deleteCheckSecond{{forloop.counter}}">is current session completed?</label>
                                                                         </div>
 
                                                                         <br>
@@ -306,7 +317,7 @@
 
                     <div class="tab-pane {{ school_term }}" id="school_term">
                         <div class="row">
-                            <div class="col-lg-4 col-md-4 col-sm-12">
+                            {% comment %} <div class="col-lg-4 col-md-4 col-sm-12">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">School Terms</h3>
@@ -328,8 +339,9 @@
                                         </form>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-lg-8 col-md-8 col-sm-12">
+                            </div> {% endcomment %}
+
+                            <div class="col-12">
                                 <div class="table-responsive card">
                                     <table class="table table-hover table-vcenter table-striped mb-0 text-nowrap">
                                         <thead>
@@ -349,8 +361,8 @@
                                               <tr>
                                                 <td>{{forloop.counter }}</td>
                                                 <td>{{ object.term|title }}</td>
-                                                <td>{{ object.term_description|title|truncatechars:30 }}</td>
-                                                <td class="text-center">
+                                                <td>{{ object.term_description|title }}</td>
+                                                <td class="text-left">
                                                     <div class="custom-control custom-checkbox">
                                                         <input type="checkbox" class="custom-control-input" id="customCheck1"
                                                         {% if object.is_current %}checked disabled {% endif %}
@@ -381,8 +393,8 @@
                                                                 <input type="text" name="term_desc" class="form-control" value="{{ object.term_description|title }}">
 
                                                                 <div class="form-group form-check mt-3">
-                                                                    <input type="checkbox" class="form-check-input" id="exampleCheck2" name="is_current" {% if object.is_current %}checked{% endif %}>
-                                                                    <label class="form-check-label" for="exampleCheck2">is Current term?</label>
+                                                                    <input type="checkbox" class="form-check-input" id="termCheck{{forloop.counter}}" name="is_current" {% if object.is_current %}checked{% endif %}>
+                                                                    <label class="form-check-label" for="termCheck{{forloop.counter}}">is Current term?</label>
                                                                 </div>
 
                                                                 <input type="hidden" name="term_id" class="form-control" value="{{ object.pk }}">
@@ -401,7 +413,7 @@
                                                     </div>
                                                   </div>
 
-                                                <button type="button" class="btn btn-sm" title="Delete" data-toggle="modal" data-target="#deleteTerm{{forloop.counter}}"><i class="fa fa-trash-o text-danger"></i></button>
+                                                {% comment %} <button type="button" class="btn btn-sm" title="Delete" data-toggle="modal" data-target="#deleteTerm{{forloop.counter}}"><i class="fa fa-trash-o text-danger"></i></button>
 
                                                     <div class="modal fade" id="deleteTerm{{forloop.counter}}" tabindex="-1" aria-labelledby="deleteTerm" aria-hidden="true">
                                                       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="deleteTerm{{forloop.counter}}" >
@@ -441,8 +453,7 @@
                                                           </form>
                                                         </div>
                                                         </div>
-                                                    </div>
-
+                                                    </div> {% endcomment %}
 
                                                 </td>
                                             </tr>
