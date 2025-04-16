@@ -76,6 +76,16 @@
                                     <li>When migrating students from one term to another within the same session or to a new academic session, update their academic status to "completed" for the current enrollment, indicating successful completion.</li>
                                     <li>Students who are not selected or excluded during the migration process—likely because they are no longer in the school—should have their enrollment migrated but with academic status updated to "inactive" to reflect their non-continuation.</li>
                                 </ul>
+                                <strong>Migration Tips:</strong>
+                                <ul>
+                                    <li><b>Active</b> - <b>Active</b> = "Enrollment not possible"</li>
+                                    <li><b>Active</b> - <b>Completed</b> = "Create new Enrollment"</li>
+                                    <li><b>Active</b> - <b>Inactive</b> = "Terminate Enrollment"</li>
+                                    <li><b>Inactive</b> - <b>Inactive</b> = "Enrollment not possible"</li>
+                                    <li><b>Inactive</b> - <b>Completed</b> = "Create new Enrollment"</li>
+                                    <li><b>Completed</b> - <b>Inactive</b> = "Terminate Enrollment"</li>
+                                    <li><b>Completed</b> - <b>Completed</b> = "Create new Enrollment, helpful for wrong deletion"</li>
+                                </ul>
                             </div>
                         </div>
 
@@ -119,6 +129,7 @@
                                                                 <th></th>
                                                                 <th>StudentID.</th>
                                                                 <th>Name</th>
+                                                                <th>Session</th>
                                                                 <th>Term</th>
                                                                 <th>Status</th>
                                                                 </tr>
@@ -127,12 +138,13 @@
                                                                 {% if object_list %}
                                                                     {% for object in object_list %}
                                                                         <tr>
-                                                                            <td><input type="checkbox" name="selected_ids" value="{{ object.enrollment_id }}" class="select_item"> &nbsp; {{forloop.counter }}</td>
+                                                                            <td><input type="checkbox" name="selected_ids" value="{{ object.enrollment_id }}" id="checkID{{ object.enrollment_id }}" class="select_item"> &nbsp; <label for="checkID{{ object.enrollment_id }}">{{forloop.counter }}</label></td>
                                                                             <td class="w60">
                                                                                 <img class="avatar" src="{{ object.student.user.pic.url }}" alt="img">
                                                                             </td>
-                                                                            <td>{{ object.student.user.username }}</td>
+                                                                            <td><label for="checkID{{ object.enrollment_id }}">{{ object.student.user.username }}</label></td>
                                                                             <td title="{{ object.student.student_name }}">{{ object.student.student_name|truncatechars:25 }}</td>
+                                                                            <td>{{ object.academic_session.session|title }}</td>
                                                                             <td>{{ object.academic_term.term|title }}</td>
                                                                             <td>{{ object.academic_status.status|title }}</td>
                                                                         </tr>
@@ -181,6 +193,7 @@
                                                                         <div class="col-12">
                                                                             {{ form2|crispy }}
                                                                             <br>
+                                                                            <p><b>NB: you are migrating selected student to <b>{{ school_academic_term }}</b> of the <b>{{ school_academic_session }}</b> academic session, if incorrect <a href="{% url "sch:manage_school_details" %}"> click here to update </a>school details</b></p>
                                                                             <p><b>NB: This action applies the migration enrollment information on the selected student</b></p>
                                                                         </div>
                                                                     </div>

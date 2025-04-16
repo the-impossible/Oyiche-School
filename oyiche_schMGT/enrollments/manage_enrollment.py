@@ -1,6 +1,7 @@
 from oyiche_schMGT.imports import *
 from oyiche_schMGT.views import get_school
 from oyiche_schMGT.enrollments.forms import *
+from django.db.models import Q
 
 @method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ManageStudentEnrollment(LoginRequiredMixin, View):
@@ -74,6 +75,9 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
         form = self.form(data=request.POST, school=self.school)
         form2 = self.form2(school=self.school)
 
+        school_academic_session = AcademicSession.objects.filter(is_current=True, school_info=self.school).first()
+        school_academic_term = AcademicTerm.objects.filter(is_current=True, school_info=self.school).first()
+
         def get_enrollment():
 
             nonlocal form
@@ -89,8 +93,6 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
 
             student_enrollment = StudentEnrollment.objects.filter(
                 **query).order_by('-date_created')
-
-            print(f"CHECK: {student_enrollment}")
 
             self.object_list = student_enrollment
             self.form = form
@@ -108,12 +110,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
 
             student_class = form.cleaned_data.get('student_class')
             academic_session = form.cleaned_data.get('academic_session')
-            academic_term = form.cleaned_data.get('academic_term')
             academic_status = form.cleaned_data.get('academic_status')
-
-            if academic_status.status.lower() == "active":
-                messages.error(request=request, message="select academic status as a reason why current enrollment is been migrated")
-                return
 
             current_enrollments = StudentEnrollment.objects.filter(enrollment_id__in=selected_ids)
 
@@ -125,18 +122,26 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
             current_academic_session = current_enrollments.first().academic_session.session.lower()
             current_academic_status = current_enrollments.first().academic_status.status.lower()
 
-            new_academic_term = academic_term.term.lower()
-            new_academic_session = academic_session.session.lower()
+            school_current_session = school_academic_session.session.lower()
+            school_current_term = school_academic_term.term.lower()
 
-            school_current_term = AcademicTerm.objects.filter(school_info=self.school, is_current=True).first()
-            school_current_session = AcademicSession.objects.filter(school_info=self.school, is_current=True).first()
+            statuses = AcademicStatus.objects.filter(status__in=["completed", "active"])
+            completed_status = statuses.get(status="completed")
+            active_status = statuses.get(status="active")
 
-            # Handing migrating student to inactive
-            if current_academic_status == 'completed' or academic_status.status.lower() == 'inactive':
+            # Handle Migration to Same Term
 
-                if academic_status.status.lower() == 'inactive':
+            # Handing Inactive to Inactive
+            if current_academic_status == 'inactive' and academic_status.status.lower() == 'inactive':
+                messages.error(request, "selected enrollment is already marked as inactive")
+                return
 
-                    in_active_status = AcademicStatus.objects.get(status="inactive")
+            # (Active | Completed) to Inactive
+            if academic_status.status.lower() == 'inactive' and (current_academic_status == 'active' or current_academic_status == 'completed'):
+
+                in_active_status = AcademicStatus.objects.get(status="inactive")
+
+                if current_academic_status == 'active':
 
                     with transaction.atomic():
 
@@ -146,57 +151,104 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                         messages.success(request, f"{len(current_enrollments)} student enrollment status has been updated successfully.")
                         return
 
+                elif current_academic_status == 'completed':
+                    # Get student IDs from the current enrollments
+                    selected_active = [active_id.student.student_id for active_id in current_enrollments]
 
-            # Ensure school details has been updated
-            if school_current_term != academic_term or school_current_session != academic_session:
-                messages.error(request, "Ensure current school academic term and session has been updated")
-                return
+                    # Query the actual active enrollments (not just check existence)
+                    active_enrollments = StudentEnrollment.objects.filter(
+                        student__student_id__in=selected_active,
+                        academic_status=active_status
+                    )
 
-            # Ensure the current enrollment term is not the same as the new enrollment term
-            if current_academic_term == academic_term.term.lower():
-                messages.error(request=request, message="current enrollment term and new enrollment term are the same")
-                return
+                    if active_enrollments.exists():
+
+                        messages.success(request, f"Active record exist for the selected enrollment, kindly update the active records to inactive.")
+
+                    else:
+
+                        with transaction.atomic():
+
+                            # Bulk update current enrollments
+                            current_enrollments.update(academic_status=in_active_status, promoted_class=student_class)
+
+                            messages.success(request, f"{len(current_enrollments)} student enrollment status has been updated successfully.")
+                            return
+
+            # Handling Completed to Completed:
+            if current_academic_status == 'completed' and academic_status.status.lower() == 'completed':
+                # Get student IDs from the current enrollments
+                selected_active = [active_id.student.student_id for active_id in current_enrollments]
+
+                # Query the actual active enrollments (not just check existence)
+                active_enrollments = StudentEnrollment.objects.filter(
+                    student__student_id__in=selected_active,
+                    academic_status=active_status
+                )
+
+                if active_enrollments.exists():
+
+                    messages.error(request, f"Active record exist for the selected enrollment, kindly update the active records to inactive.")
+                    return
 
             # Handle term progression
             if current_academic_term == "first term":
-                if new_academic_term != "second term":
+
+                if school_current_term != "second term":
                     messages.error(
                         request,
-                        "When migrating from the first term, the new academic term must be 'second'."
+                        "When migrating from first term, the new academic term must be 'second term' kindly update school term."
                     )
                     return
 
             elif current_academic_term == "second term":
-                if new_academic_term != "third term":
+
+                if school_current_term != "third term":
                     messages.error(
                         request,
-                        "When migrating from the second term, the new academic term must be 'third'."
+                        "When migrating from second term, the new academic term must be 'third term' kindly update school term."
                     )
                     return
 
             elif current_academic_term == "third term":
 
-                if new_academic_session == current_academic_session:
+                if school_current_session == current_academic_session:
                     messages.error(
                         request,
                         "Migration from the third term is not allowed in the same session. Please change to a new session."
                     )
                     return
 
-                if new_academic_term != "first term":
+                if school_current_term != "first term":
                     messages.error(
                         request,
-                        "When migrating from the third term, the new academic term must be 'first term'."
+                        "When migrating from the third term, the new academic term must be 'first term' kindly update school term."
                     )
                     return
-
             else:
-                messages.error(request, f"Unrecognized current academic term: {current_academic_term}")
+                messages.error(
+                    request,
+                    "update to the valid term."
+                )
                 return
 
-            completed_status = AcademicStatus.objects.get(status="completed")
-            active_status = AcademicStatus.objects.get(status="active")
+            # Handle (Completed | Active) to Active
+            if (current_academic_status == 'completed' or current_academic_status == 'active') and (academic_status.status.lower() == 'completed' or academic_status.status.lower() == 'inactive'):
+                # Get student IDs from the current enrollments
+                selected_active = [active_id.student.student_id for active_id in current_enrollments]
 
+                # Query enrollments that exist in other classes (exclude current class)
+                existing_enrollment = StudentEnrollment.objects.filter(
+                    student__student_id__in=selected_active
+                ).exclude(student_class=student_class)
+
+                if existing_enrollment.exists():
+                    if school_academic_session == current_academic_session:
+                        messages.error(request, "Invalid enrollment, migration is to a previously enrolled class.")
+                        return
+
+
+            # (Inactive | Completed | Active ) to Completed
             with transaction.atomic():
 
                 # Bulk update current enrollments
@@ -209,8 +261,8 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                     new_enrollment = StudentEnrollment(
                         student=enrollment.student,
                         student_class=student_class,
-                        academic_session=academic_session,
-                        academic_term=academic_term,
+                        academic_session=school_academic_session,
+                        academic_term=school_academic_term,
                         academic_status=active_status,
                     )
                     new_enrollments.append(new_enrollment)
@@ -261,6 +313,8 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                 'object_list': self.object_list,
                 'manage_enrollement': self.manage_enrollement,
                 'migrate_enrollment': self.migrate_enrollment,
+                'school_academic_session': school_academic_session,
+                'school_academic_term': school_academic_term,
             }
 
         elif 'migrate_enrollment' in request.POST:
@@ -290,6 +344,8 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                     'object_list': self.object_list,
                     'manage_enrollement': self.manage_enrollement,
                     'migrate_enrollment': self.migrate_enrollment,
+                    'school_academic_session': school_academic_session,
+                    'school_academic_term': school_academic_term,
                 }
 
             else:
@@ -318,6 +374,8 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                 'object_list': self.object_list,
                 'manage_enrollement': self.manage_enrollement,
                 'migrate_enrollment': self.migrate_enrollment,
+                'school_academic_session': school_academic_session,
+                'school_academic_term': school_academic_term,
                 }
 
         else:
