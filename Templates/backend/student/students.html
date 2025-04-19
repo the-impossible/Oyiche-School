@@ -68,12 +68,12 @@
                                     <div class="col-lg-3 col-md-3 col-sm-3">
                                         {{form.student_class|as_crispy_field}}
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-3">
+                                    {% comment %} <div class="col-lg-3 col-md-3 col-sm-3">
                                       {{form.academic_session|as_crispy_field}}
                                     </div>
                                     <div class="col-lg-3 col-md-3 col-sm-3">
                                       {{form.academic_status|as_crispy_field}}
-                                    </div>
+                                    </div> {% endcomment %}
                                     <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
                                       <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_students">Get students</button>
                                     </div>
@@ -112,7 +112,7 @@
                                                 <td>{{ object.student.user.phone }}</td>
                                                 <td>{{ object.date_created }}</td>
                                                 <td>
-                                                  <a href="{% url 'sch:edit_student' object.student.user.pk %}?student_class={{form.student_class.value}}&academic_session={{form.academic_session.value}}&academic_status={{form.academic_status.value}}" class="btn btn-icon btn-sm" title="Edit"><i class="fa fa-edit"></i></a>
+                                                  <a href="{% url 'sch:edit_student' object.student.user.pk %}?student_class={{form.student_class.value}}" class="btn btn-icon btn-sm" title="Edit"><i class="fa fa-edit"></i></a>
                                                   <button type="button" class="btn btn-sm" title="Delete" data-toggle="modal" data-target="#deleteStudent{{forloop.counter}}"><i class="fa fa-trash-o text-danger"></i></button>
 
                                                   <div class="modal fade" id="deleteStudent{{forloop.counter}}" tabindex="-1" aria-labelledby="deleteStudent" aria-hidden="true">
@@ -130,8 +130,6 @@
                                                                           <div class="col-12">
                                                                                                                                                                               <input type="hidden" name="user_id" value="{{ object.student.user.pk }}">
                                                                                                                                                                               <input type="hidden" name="student_class" value="{{ form.student_class.value }}">
-                                                                                                                                                                              <input type="hidden" name="academic_session" value="{{ form.academic_session.value }}">
-                                                                                                                                                                              <input type="hidden" name="academic_status" value="{{ form.academic_status.value }}">
 
 
                                                                             <p>Are you sure you want to delete this student</p>

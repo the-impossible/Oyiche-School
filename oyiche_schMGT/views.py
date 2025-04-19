@@ -31,183 +31,11 @@ def get_school(request):
     return school
 
 @method_decorator([is_school_or_admin, has_updated], name='dispatch')
-class StudentPageView(LoginRequiredMixin, View):
-    template_name = "backend/student/students.html"
-
-    form = GetStudentForm
-    user_form = UserForm
-    info_form = StudentInformationForm
-    enrollment_form = StudentEnrollmentForm
-    school = None
-
-    # Context variables
-    object_list = None
-    all_student = ''
-    add_student = ''
-
-    def get(self, request):
-        self.school = get_school(request)
-
-        self.all_student = 'active'
-        self.add_student = ''
-
-        # Extract filtering parameters
-        student_class = request.GET.get("student_class")
-        academic_session = request.GET.get("academic_session")
-        academic_status = request.GET.get("academic_status")
-
-        query = {}
-
-        # Prepare initial values for the form
-        initial_data = {}
-
-        # Filter students if parameters exist
-        if student_class and student_class != 'None':
-            query["student_class"] = student_class
-            initial_data['student_class'] = student_class
-
-        if academic_session and academic_session != 'None':
-            query["academic_session"] = academic_session,
-            initial_data['academic_session'] = academic_session
-
-        if academic_status and academic_status != 'None':
-            query["academic_status"] = academic_status
-            initial_data['academic_status'] = academic_status
-
-        if query:
-            self.object_list = StudentEnrollment.objects.filter(**query)
-            self.form = self.form(initial=initial_data, school=self.school)
-        else:
-            self.form = self.form(school=self.school)
-
-        return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
-
-    def post(self, request):
-
-        self.school = get_school(request)
-
-        form = self.form(data=request.POST, school=self.school)
-
-        def get_students(self, add_student, all_student):
-
-            nonlocal form
-            academic_status = None
-
-            try:
-                student_class = form.cleaned_data.get('student_class')
-                academic_session = form.cleaned_data.get('academic_session')
-                academic_status = form.cleaned_data.get('academic_status')
-
-            except AttributeError:
-
-                student_class = SchoolClasses.objects.get(
-                    pk=request.POST.get('student_class'))
-                academic_session = AcademicSession.objects.get(
-                    is_current=True,
-                    school_info=self.school,
-                )
-                status = request.POST.get('academic_status')
-
-                if status != 'None' and status !='' and status is not None:
-                    academic_status = AcademicStatus.objects.get(
-                        pk=request.POST.get('academic_status'),
-                    )
-
-            query = {
-                'student_class': student_class,
-                'academic_session': academic_session,
-            }
-
-            if academic_status != 'None' and academic_status !='' and academic_status is not None:
-                query['academic_status'] = academic_status
-
-            student_in_class_and_in_session = StudentEnrollment.objects.filter(
-                **query).order_by('-date_created')
-
-            self.object_list = student_in_class_and_in_session
-            self.form = form
-
-            self.all_student = all_student
-            self.add_student = add_student
-
-        if 'get_students' in request.POST:
-
-            if form.is_valid():
-                get_students(self, '', 'active')
-            else:
-                messages.error(request=request, message=form.errors.as_text())
-
-        elif 'delete' in request.POST:
-            student_id = request.POST.get('user_id')
-
-            try:
-                User.objects.get(user_id=student_id).delete()
-                messages.success(
-                    request, "Account has been deleted successfully!!")
-            except User.DoesNotExist:
-                messages.error(request, "Failed to delete account!!")
-            finally:
-                get_students(self, '', 'active')
-
-        elif 'create' in request.POST:
-            user_form = self.user_form(
-                data=request.POST, files=request.FILES, school=self.school)
-            info_form = self.info_form(data=request.POST)
-            enrollment_form = self.enrollment_form(data=request.POST, school=self.school)
-
-            # Get session, status & term
-            academic_status = AcademicStatus.objects.get(status="active")
-            session = self.school.school_academic_session.filter(is_current=True).first()
-            term = self.school.school_academic_term.filter(is_current=True).first()
-
-            if user_form.is_valid() and info_form.is_valid() and enrollment_form.is_valid():
-
-                user_form_data = user_form.save(commit=False)
-                info_form_data = info_form.save(commit=False)
-                enrollment_form_data = enrollment_form.save(commit=False)
-
-                user_form_data.userType = UserType.objects.get(
-                    user_title="student")
-                user_form_data.save()
-
-                info_form_data.school = self.school
-                info_form_data.user = user_form_data
-                info_form_data.save()
-
-                enrollment_form_data.student = info_form_data
-                enrollment_form_data.academic_session = session
-                enrollment_form_data.academic_term = term
-                enrollment_form_data.academic_status = academic_status
-                enrollment_form_data.save()
-
-                messages.success(
-                    request=request, message="Student Account has been created successfully!!")
-
-                get_students(self, 'active', '')
-
-            else:
-                messages.error(request=request,
-                               message="Fix Form Errors!!")
-
-                get_students(self, 'active', '')
-
-                return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': user_form, 'info_form': info_form, 'enrollment_form': enrollment_form, 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
-
-        else:
-
-            get_students(self, '', 'active')
-            messages.error(request=request,
-                           message="couldn't handle request, Try again!!")
-
-        return render(request=request, template_name=self.template_name, context={'form': self.form, 'user_form': self.user_form, 'info_form': self.info_form, 'enrollment_form': self.enrollment_form(school=self.school), 'object_list': self.object_list, 'all_student': self.all_student, 'add_student': self.add_student})
-
-@method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class EditStudentPageView(LoginRequiredMixin, View):
     template_name = "backend/student/edit_student.html"
 
     user_form = EditUserForm
     info_form = StudentInformationForm
-    enrollment_form = StudentEnrollmentForm
 
     @method_decorator(has_updated)
     def get(self, request, user_id):
@@ -216,22 +44,25 @@ class EditStudentPageView(LoginRequiredMixin, View):
 
         query_params = {
             'student_class': request.GET.get("student_class"),
-            'academic_session': request.GET.get("academic_session"),
-            'academic_status': request.GET.get("academic_status"),
         }
 
         url = f"{reverse('sch:students')}?{urlencode(query_params)}"
 
         try:
+            school_academic_session = AcademicSession.objects.get(school_info=school, is_current=True)
+            school_academic_term = AcademicTerm.objects.get(school_info=school, is_current=True)
+            academic_status = AcademicStatus.objects.get(status="active")
+
+            query_params['academic_session'] = school_academic_session
+            query_params['academic_term'] = school_academic_term
+            query_params['academic_status'] = academic_status
+
             user = User.objects.get(user_id=user_id)
             student_info = StudentInformation.objects.get(user=user)
-            student_enrollment = StudentEnrollment.objects.get(
-                student=student_info)
 
             context = {
                 'user_form': self.user_form(instance=user),
                 'info_form': self.info_form(instance=student_info),
-                'enrollment_form': self.enrollment_form(instance=student_enrollment, school=school),
                 'student_class': query_params['student_class'],
                 'academic_session': query_params['academic_session'],
                 'academic_status': query_params['academic_status']
@@ -246,10 +77,6 @@ class EditStudentPageView(LoginRequiredMixin, View):
             messages.error(request=request,
                            message="Error getting student, Try Again!!")
             return redirect(url)
-        except StudentEnrollment.DoesNotExist:
-            messages.error(request=request,
-                           message="Error getting student, Try Again!!")
-            return redirect(url)
 
     @method_decorator(has_updated)
     def post(self, request, user_id):
@@ -258,46 +85,57 @@ class EditStudentPageView(LoginRequiredMixin, View):
 
         user = User.objects.get(user_id=user_id)
         student_info = StudentInformation.objects.get(user=user)
-        student_enrollment = StudentEnrollment.objects.get(
-            student=student_info)
 
         user_form = self.user_form(
             instance=user, data=request.POST, files=request.FILES)
         info_form = self.info_form(instance=student_info, data=request.POST)
-        enrollment_form = self.enrollment_form(
-            instance=student_enrollment, data=request.POST, school=school)
 
-        query_params = {
-            'student_class': request.POST.get("student_class"),
-            'academic_session': request.POST.get("academic_session"),
-            'academic_status': request.POST.get("academic_status"),
-        }
+        try:
+            school_academic_term = AcademicTerm.objects.get(school_info=school, is_current=True)
+            school_academic_session = AcademicSession.objects.get(school_info=school, is_current=True)
+            academic_status = AcademicStatus.objects.get(status="active")
 
-        context = {
-            'user_form': user_form,
-            'info_form': info_form,
-            'enrollment_form': enrollment_form,
-            'student_class': query_params['student_class'],
-            'academic_session': query_params['academic_session'],
-            'academic_status': query_params['academic_status']
-        }
+            query_params = {
+                'student_class': request.POST.get("student_class"),
+            }
 
-        if user_form.is_valid() and info_form.is_valid() and enrollment_form.is_valid():
+            context = {
+                'user_form': user_form,
+                'info_form': info_form,
+                'student_class': query_params['student_class'],
+            }
 
-            user_form.save()
-            info_form.save()
-            enrollment_form.save()
+            if user_form.is_valid() and info_form.is_valid():
 
-            messages.success(
-                request=request, message="Student Record Updated!!")
+                user_form.save()
+                info_form.save()
 
-            url = f"{reverse('sch:students')}?{urlencode(query_params)}"
-            return redirect(url)
+                messages.success(
+                    request=request, message="Student Record Updated!!")
 
-        else:
+                url = f"{reverse('sch:students')}?{urlencode(query_params)}"
+                return redirect(url)
 
-            messages.error(request=request, message="Fix Form Errors!!")
-            return render(request=request, template_name=self.template_name, context=context)
+            else:
+
+                messages.error(request=request, message="Fix Form Errors!!")
+                return render(request=request, template_name=self.template_name, context=context)
+        except User.DoesNotExist:
+            messages.error(request=request,
+                           message="Error getting student, Try Again!!")
+        except StudentInformation.DoesNotExist:
+            messages.error(request=request,
+                           message="Error getting student, Try Again!!")
+        except AcademicSession.DoesNotExist:
+            messages.error(request, "Academic Session not Found!!")
+        except AcademicTerm.DoesNotExist:
+            messages.error(request, "Academic Term not found!!")
+        except AcademicStatus.DoesNotExist:
+            messages.error(request, "Academic Status not found!!")
+        return redirect(reverse('sch:students'))
+
+        url = f"{reverse('sch:students')}?{urlencode(query_params)}"
+        return redirect(url)
 
 @method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class SchoolFileUploadView(LoginRequiredMixin, ListView):

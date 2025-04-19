@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from oyiche_schMGT.views import *
 from oyiche_schMGT.templates.grades_template import *
 from oyiche_schMGT.enrollments.manage_enrollment import *
+from oyiche_schMGT.students.students import *
 
 app_name = "sch"
 
