@@ -225,6 +225,7 @@ class StudentEnrollment(models.Model):
         to="AcademicTerm", on_delete=models.CASCADE, related_name='student_academic_term', blank=True, null=True)
     academic_status = models.ForeignKey(
         to="AcademicStatus", on_delete=models.CASCADE)
+    has_paid = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

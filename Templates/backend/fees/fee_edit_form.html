@@ -1,0 +1,22 @@
+{% load crispy_forms_tags %}
+<div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+    <div class="modal-header">
+      <h6 class="modal-title">Edit Fee Status</h6>
+      <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+    </div>
+    <form hx-post="{% url "sch:fee_edit_form" object.pk %}" method="post">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-12">
+            {% csrf_token %}
+            {{form|crispy}}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block text-white" name="edit">Edit Fees</button>
+      </div>
+    </form>
+  </div>

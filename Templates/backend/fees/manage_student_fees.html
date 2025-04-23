@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Manage Student Fees {% endblock title %}
+{% load crispy_forms_tags %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+							{% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center ">
+                    <div class="header-action">
+                        <h1 class="page-title">Manage School Fees for {{class_name.class_name|upper}}</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item" aria-current="page"><a href="{% url "sch:school_options" class_name.pk %}">Class Features</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">School Fees</li>
+                        </ol>
+                    </div>
+                    <div class="d-none d-lg-block">
+                        <ul class="nav nav-tabs page-header-tab">
+                            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#manage-all">Manage Fees </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="d-block d-lg-none mb-3 mx-2">
+                        <ul class="nav nav-tabs" >
+                            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#manage-all">Manage Fees </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="manage-all">
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    Download fees template</h3>
+                                <div class="card-options ">
+                                    <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                    <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+
+                              <form action="" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-3 col-sm-3">
+                                        <div class="file_folder">
+                                            <a href="{% url "sch:export_fees_template" class_name.pk %}">
+                                                <div class="icon">
+                                                    <i class="fa fa-file-excel-o text-success"></i>
+                                                </div>
+                                                <div class="file-name">
+                                                    <p class="mb-0 text-muted">{{class_name.class_name|upper}} Fees Template</p>
+                                                    <small>Click to download</small>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <h5 class="card-title">Bulk update student fees</h5>
+                                    <br>
+                                </div>
+                                <div class="row">
+
+                                    <div class="col-lg-4 col-md-4 col-sm-4">
+                                        {{form.file|as_crispy_field}}
+                                    </div>
+                                    <div class="col-lg-2 col-md-2 col-sm-2 mt-4 pt-1">
+                                      <button type="submit" class="btn btn-sm btn-primary btn-block" name="bulk_upload">Bulk Update</button>
+                                    </div>
+
+                                </div>
+                              </form>
+                            </div>
+                        </div>
+
+                        <div hx-get="{% url 'sch:list_school_fees' class_name.pk %}" hx-trigger="load, listChanged from:body">
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Start main footer -->
+        {% include 'partials/backend/footer.html' %}
+    </div>
+</div>
+
+<div class="modal fade" id="edit" style="display:none;" tabindex="-1" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="editDialog" hx-target="this">
+
+    </div>
+</div>
+
+<div class="modal fade" id="error" style="display:none;" tabindex="-1" aria-labelledby="error" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="errorDialog" hx-target="this">
+        <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+            <div class="modal-header">
+              <h6 class="modal-title text-danger">Error </h6>
+              <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <div class="modal-body">
+                {% include 'partials/backend/messages.html' %}
+
+            <div class="row">
+                <div class="col-12">
+                <p>Something went wrong, Failed to get Student fee details!</p>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<script>
+    $(document).ready(function() {
+        $('.custom_searchable').select2();
+    });
+</script>
+
+<script>
+	var modal = new bootstrap.Modal(document.getElementById('grade'));
+	var modalError = new bootstrap.Modal(document.getElementById('error'));
+	htmx.on('htmx:afterSwap', (e) => {
+		if (e.detail.target.id === 'editDialog'){
+		    modal.show();
+	    }
+    })
+
+	htmx.on('htmx:beforeSwap', (e) => {
+	  if (e.detail.target.id === 'editDialog' && !e.detail.xhr.response){
+		modal.hide();
+		}
+    })
+
+    document.addEventListener('htmx:responseError', function (event) {
+        if (event.detail.xhr.status === 404) {
+            modalError.show()
+        }
+    });
+
+</script>
+<!-- End Script -->
+
+{% endblock body %}

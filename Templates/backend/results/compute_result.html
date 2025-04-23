@@ -254,18 +254,32 @@ function downloadAllResults() {
         // Get the printable content div from each modal
         const printContent = modal.querySelector('.print');
         if (printContent) {
-            // Clone the content
-            const clonedContent = printContent.cloneNode(true);
+            // Check if it contains a table with data
+            const table = printContent.querySelector('table');
+            const hasData = table && table.querySelectorAll('tbody tr').length > 0;
 
-            // Make sure the cloned content is visible
-            clonedContent.style.display = 'block';
+            if (hasData) {
+                // Clone the content
+                const clonedContent = printContent.cloneNode(true);
 
-            // Add page break
-            clonedContent.style.pageBreakAfter = 'always';
+                // Make sure the cloned content is visible
+                clonedContent.style.display = 'block';
 
-            results.push(clonedContent.outerHTML);
+                // Add page break
+                clonedContent.style.pageBreakAfter = 'always';
+
+                results.push(clonedContent.outerHTML);
+            }
         }
     });
+
+    // If no results found, alert or exit
+    if (results.length === 0) {
+        alert("No result data found to download.");
+        return;
+    }
+
+
 
     // Create a descriptive filename based on filters
     let filename = 'all-student-results.pdf';

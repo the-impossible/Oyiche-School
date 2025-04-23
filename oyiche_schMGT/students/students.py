@@ -42,6 +42,7 @@ class StudentPageView(LoginRequiredMixin, View):
                 query['academic_session'] = school_academic_session
                 query['academic_term'] = school_academic_term
                 query['academic_status'] = academic_status
+                query['studennt__school'] = self.school
                 initial_data['student_class'] = student_class
 
             if query:
@@ -80,6 +81,7 @@ class StudentPageView(LoginRequiredMixin, View):
                 'academic_session': school_academic_session,
                 'academic_term': school_academic_term,
                 'academic_status': academic_status,
+                'student__school': self.school,
             }
 
             student_in_class_and_in_session = StudentEnrollment.objects.filter(

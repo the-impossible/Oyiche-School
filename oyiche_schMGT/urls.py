@@ -3,6 +3,7 @@ from oyiche_schMGT.views import *
 from oyiche_schMGT.templates.grades_template import *
 from oyiche_schMGT.enrollments.manage_enrollment import *
 from oyiche_schMGT.students.students import *
+from oyiche_schMGT.fees.student_fees import *
 
 app_name = "sch"
 
@@ -46,10 +47,16 @@ urlpatterns = [
      path("manage_school_details", ManageSchoolDetailsView.as_view(), name="manage_school_details"),
      path("manage_school_remarks", ManageSchoolResultView.as_view(), name="manage_school_remarks"),
 
-     # Download Grade Templates
+     # Download Templates
      path("export_grade_template/<str:class_id>", ExportGradeTemplateView.as_view(), name="export_grade_template"),
+     path("export_fees_template/<str:class_id>", ExportFeeTemplateView.as_view(), name="export_fees_template"),
 
      # Manage Student Enrollment
      path("enrollments", ManageStudentEnrollment.as_view(), name="enrollments"),
+
+     # Manage Student Fees
+     path("manage_student_fees/<str:class_id>", ManageStudentFees.as_view(), name="manage_student_fees"),
+     path("fee_edit_form/<str:enrollment_id>", StudentFeeEditView.as_view(), name="fee_edit_form"),
+     path("list_school_fees/<str:class_id>", ListStudentFeesView.as_view(), name="list_school_fees"),
 
 ]
