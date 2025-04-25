@@ -1481,7 +1481,7 @@ class StudentResultView(LoginRequiredMixin, ListView):
         try:
             student = StudentInformation.objects.get(user=self.request.user)
             if school:
-                return StudentPerformance.objects.filter(school_info=school, student=student).order_by('-date_created')[:5]
+                return StudentPerformance.objects.filter(school_info=school, student=student, current_enrollment__has_paid=True).select_related('current_enrollment').order_by('-date_created')[:5]
 
         except StudentInformation.DoesNotExist:
             messages.error(request, "Student record not found!!")
@@ -1523,7 +1523,8 @@ class StudentResultView(LoginRequiredMixin, ListView):
                     current_enrollment__student_class=student_class,
                     current_enrollment__academic_term=academic_term,
                     current_enrollment__academic_session=academic_session,
-                )
+                    current_enrollment__has_paid=True,
+                ).select_related('current_enrollment')
 
                 return render(
                     request=request,

@@ -123,7 +123,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="edit" style="display:none;" tabindex="-1" aria-labelledby="edit" aria-hidden="true">
+<div class="modal fade" id="editFee" style="display:none;" tabindex="-1" aria-labelledby="edit" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="editDialog" hx-target="this">
 
     </div>
@@ -158,7 +158,7 @@
 </script>
 
 <script>
-	var modal = new bootstrap.Modal(document.getElementById('grade'));
+	var modal = new bootstrap.Modal(document.getElementById('editFee'));
 	var modalError = new bootstrap.Modal(document.getElementById('error'));
 	htmx.on('htmx:afterSwap', (e) => {
 		if (e.detail.target.id === 'editDialog'){

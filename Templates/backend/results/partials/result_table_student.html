@@ -46,9 +46,11 @@
                         <td>{{ object.class_average }}</td>
                         <td>{{ object.term_position }}</td>
                         <td>
+                            {% if object.current_enrollment.has_paid %}
                             <button type="button" class="btn btn-sm btn-info" hx-get="{% url "sch:result_preview" object.pk %}" hx-target="#viewResultDialog">
                                 <i class="fa fa-eye"></i> View
                             </button>
+                            {% endif %}
 
                         </td>
                     </tr>
