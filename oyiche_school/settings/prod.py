@@ -4,7 +4,8 @@ from .base import *
 # # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-ALLOWED_HOSTS = ['school.oyichetech.com', 'www.school.oyichetech.com']
+# ALLOWED_HOSTS = ['school.oyichetech.com', 'www.school.oyichetech.com']
+ALLOWED_HOSTS = ['oyicheacademy.com', 'www.oyicheacademy.com']
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -20,5 +21,10 @@ DATABASES = {
     }
 }
 
-STATIC_ROOT = '/home/ocukczjrol/school.oyichetech.com/static'
-MEDIA_ROOT = '/home/ocukczjrol/school.oyichetech.com/media'
+STATIC_ROOT = '/home/ocukczjrol/oyicheacademy.com/static'
+MEDIA_ROOT = '/home/ocukczjrol/oyicheacademy.com/media'
+
+HTTP = 'https://'
+
+# STATIC_ROOT = '/home/ocukczjrol/school.oyichetech.com/static'
+# MEDIA_ROOT = '/home/ocukczjrol/school.oyichetech.com/media'

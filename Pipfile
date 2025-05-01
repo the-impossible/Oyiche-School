@@ -15,6 +15,7 @@ psycopg2-binary = "*"
 pymysql = "*"
 crispy-bootstrap5 = "*"
 pillow = "*"
+requests = "*"
 
 [dev-packages]
 

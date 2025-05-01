@@ -9,6 +9,7 @@ django.setup()
 from oyiche_schMGT.models import *
 from oyiche_auth.models import *
 from oyiche_files.models import *
+from oyiche_payment.models import *
 
 # Create Academic Term
 academic_term = [
@@ -33,6 +34,10 @@ academic_status = [
     {
         'status': 'active',
         'status_description': 'student is currently in the enrolled class'
+    },
+    {
+        'status': 'inactive',
+        'status_description': 'student no longer in the system'
     },
     {
         'status': 'completed',
@@ -89,6 +94,17 @@ school_categories = [
 ]
 
 [SchoolCategory.objects.get_or_create(**category) for category in school_categories]
+
+# Create Product Cost
+product_cost = [
+    {
+        'product_cost': 500,
+        'company_incentive': 400,
+        'school_incentive': 100,
+    },
+]
+
+[ProductCost.objects.get_or_create(**product) for product in product_cost]
 
 # Create School Types
 school_types = [

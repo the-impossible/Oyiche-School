@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Dashboard {% endblock title %}
+{% load crispy_forms_tags %}
+{% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
+{% block body %}
+
+{% include 'partials/backend/loader.html' %}
+
+<div id="main_content">
+
+    <!-- Start Main top header -->
+    {% include 'partials/backend/sidebar-mini.html' %}
+
+    <!-- Start Theme panel do not add in project -->
+    {% include 'partials/backend/theme.html' %}
+
+    <!-- Start Quick menu with more function -->
+    {% include 'partials/backend/quick-menu.html' %}
+
+    <!-- Start Main left-bar navigation -->
+    {% include 'partials/backend/sidebar-main.html' %}
+
+    <!-- Start project content area -->
+    <div class="page">
+        <!-- Start Page header -->
+        {% include 'partials/backend/nav.html' %}
+
+        <!-- Start Page title and tab -->
+        <div class="section-body">
+            <div class="container-fluid">
+                {% include 'partials/backend/messages.html' %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="header-action">
+                        <h1 class="page-title">Payment</h1>
+                        <ol class="breadcrumb page-breadcrumb">
+                            {% include 'partials/backend/breadcrumb.html' %}
+                            <li class="breadcrumb-item active" aria-current="page">Payment</li>
+                        </ol>
+                    </div>
+                    <ul class="nav nav-tabs page-header-tab">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#admin-Dashboard">Payment</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-body mt-4">
+            <div class="container-fluid">
+                <div class="row clearfix row-deck">
+                    {% if request.user.userType|lower == 'school' or request.user.userType|lower == 'admin' %}
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card">
+                            <div class="card-body top_counter">
+                                <div class="icon bg-success"><i class="fa fa-credit-card-alt"></i></div>
+                                <div class="content">
+                                    <span>Current Unit Balance</span>
+                                    <h5 class="number mb-0 font600">{{available_unit}} Units</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card">
+                            <div class="card-body top_counter">
+                                <div class="icon bg-yellow"><i class="fa fa-archive"></i></div>
+                                <div class="content">
+                                    <span>Total Unit Purchased</span>
+                                    <h5 class="number mb-0 font600">{{total_unit}} Units</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card">
+                            <div class="card-body top_counter">
+                                <div class="icon bg-gray"><i class="fa fa-folder-open"></i></div>
+                                <div class="content">
+                                    <span>Unit Used This Term</span>
+                                    <h5 class="number mb-0 font600">{{unit_used}} Units</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card">
+                            <div class="card-body top_counter">
+                                <div class="icon bg-azure"><i class="fa fa-money"></i></div>
+                                <div class="content">
+                                    <span>Last Payment Amount</span>
+                                    <h5 class="number mb-0 font600">₦{{last_amount_paid}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% endif %}
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="admin-Dashboard" role="tabpanel">
+
+                        <div class="row clearfix row-deck mt-4">
+                            <div class="col-xl-5 col-lg-5 col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Buy Units</h3>
+                                        <div class="card-options">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <strong>NOTE:</strong>
+                                        <ul>
+                                            <li>1 Unit = ₦400</li>
+                                            <li>Each student result computation = 1 Unit deduction</li>
+                                            <li>You can top up units anytime via our secure payment system</li>
+                                            <li>Units are required per term and per student.</li>
+                                            <li>Ensure your school has enough units before computating result</li>
+                                            <li>Units are non-refundable but can be rolled over to the next term if unused</li>
+                                        </ul>
+                                        <p class"mt-2">Fill form below to purchase unit</p>
+
+                                        <form method="POST" action="" class"mt-3">
+                                            {% csrf_token %}
+                                            {{ form|crispy}}
+
+                                            <div class="form-group text-right">
+                                                <button type="submit" class="btn btn-primary">Buy Units</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-7 col-lg-7 col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Payment History</h3>
+                                        <div class="card-options">
+                                            <a href="#" class="card-options-collapse" data-toggle="card-collapse"><i class="fe fe-chevron-up"></i></a>
+                                            <a href="#" class="card-options-fullscreen" data-toggle="card-fullscreen"><i class="fe fe-maximize"></i></a>
+                                            <a href="#" class="card-options-remove" data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped mb-0 text-nowrap">
+                                                <thead>
+                                                    <tr>
+                                                        <th>SN</th>
+                                                        <th>Date</th>
+                                                        <th>Unit Purchased</th>
+                                                        <th>Status</th>
+                                                        <th>Amount Paid</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% if payment_list %}
+                                                        {% for obj in payment_list %}
+                                                            <tr>
+                                                                <td>{{forloop.counter}}</td>
+                                                                <td>{{obj.created_at|date:"d/m/Y"}}</td>
+                                                                <td class="text-center">{{obj.unit_purchased}}</td>
+                                                                <td>
+                                                                    {% if obj.payment_status == 'success' %}
+                                                                    <span class="tag tag-success">{{ obj.payment_status|upper }}</span>
+                                                                    {% elif obj.payment_status == 'failed' %}
+                                                                    <span class="tag tag-danger">{{ obj.payment_status|upper }}</span>
+                                                                    {% else %}
+                                                                    <span class="tag tag-info">{{ obj.payment_status|upper }}</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td class="text-center">₦{{obj.amount_paid }}</td>
+                                                                <td>
+                                                                    {% if obj.payment_status != 'success' and obj.payment_status != 'failed' %}
+                                                                    <a href="{% url 'payment:verify_payment' %}?reference={{ obj.reference }}" class="btn btn-primary btn-sm" title="Query"><i class="fa fa-refresh text-white"></i>  query</a>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        {% include "partials/backend/empty_list.html" %}
+                                                    {% endif %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% include 'partials/backend/footer.html' %}
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const units = document.getElementById("id_units");
+        const amount = document.getElementById("id_amount");
+
+        units.addEventListener("input", function () {
+            let value = parseInt(units.value);
+
+            if (!isNaN(value)) {
+                if (value === 0) {
+                    alert("Minimum unit is 1. Resetting to default.");
+                    value = 1;
+                    units.value = value;
+                }
+                amount.value = value * 400;
+            } else {
+                amount.value = "";
+            }
+        });
+    });
+</script>
+
+<!-- Start Script -->
+{% include 'partials/backend/script.html' %}
+<!-- End Script -->
+
+
+{% endblock body %}

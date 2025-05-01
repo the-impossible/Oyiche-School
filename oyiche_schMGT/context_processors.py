@@ -1,5 +1,6 @@
 from django.db.models import Max
 from oyiche_schMGT.models import *
+from oyiche_payment.models import *
 from oyiche_schMGT.views import get_school
 
 def global_dashboard_context(request):
@@ -31,5 +32,37 @@ def global_dashboard_context(request):
         ).select_related('student', 'current_enrollment__student_class')
 
         context['exam_toppers'] = exam_toppers
+
+    return context
+
+def global_payment_context(request):
+    if not request.user.is_authenticated:
+        return {}
+
+    school = get_school(request)
+
+    context = {}
+
+    if school:
+
+        school_unit = SchoolUnit.objects.filter(school=school).first()
+        # get current unit
+        context['available_unit'] = school_unit.available_unit if school_unit else 0
+        # get total unit purchased
+        context['total_unit'] = school_unit.total_unit if school_unit else 0
+
+        # unit used this term
+        academic_session = AcademicSession.objects.filter(school_info=school, is_current=True).first()
+        academic_term = AcademicTerm.objects.filter(school_info=school, is_current=True).first()
+
+        unit_used = UnitUsedByTerm.objects.filter(school=school, academic_session=academic_session, academic_term=academic_term).first()
+        context['unit_used'] = unit_used.unit_used if unit_used else 0
+
+        # last amount paid
+        payment_history = SchoolPaymentHistory.objects.filter(school=school, payment_status='success').order_by('-created_at')
+        context['last_amount_paid'] = payment_history.first().amount_paid
+        # payment history
+        payment_history = SchoolPaymentHistory.objects.filter(school=school).order_by('-created_at')[:10]
+        context['payment_list'] = payment_history
 
     return context

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'oyiche_schMGT',
     'oyiche_files',
     'oyiche_basic',
+    'oyiche_payment',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'oyiche_schMGT.context_processors.global_dashboard_context',
+                'oyiche_schMGT.context_processors.global_payment_context',
             ],
         },
     },
