@@ -9,10 +9,19 @@ def global_dashboard_context(request):
 
     school = get_school(request)
 
+    academic_term = AcademicTerm.objects.filter(is_current=True, school_info=school).first()
+    academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
+    academic_status = AcademicStatus.objects.filter(status='active').first()
+
     context = {}
     if school:
         student_info = StudentInformation.objects.filter(school=school)
-        context['total_students'] = student_info.count()
+        current_enrollment_total = StudentEnrollment.objects.filter(
+            academic_session=academic_session,
+            academic_term=academic_term,
+            academic_status=academic_status,
+        ).count()
+        context['total_students'] = current_enrollment_total
         context['total_classes'] = SchoolClasses.objects.filter(school_info=school).count()
         context['total_subjects'] = SchoolSubject.objects.filter(school_info=school).count()
         context['total_admins'] = SchoolAdminInformation.objects.filter(school=school).count()

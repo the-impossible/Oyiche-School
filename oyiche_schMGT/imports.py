@@ -20,3 +20,4 @@ from oyiche_files.forms import *
 from oyiche_files.models import *
 from oyiche_schMGT.utils import *
 from oyiche_auth.decorators import *
+from oyiche_payment.models import *

@@ -1067,7 +1067,7 @@ class ComputeResultView(LoginRequiredMixin, ListView):
         academic_session = AcademicSession.objects.filter(is_current=True, school_info=school).first()
         class_detail = class_name
 
-        def perform_computation(which, student_performance_list):
+        def perform_computation(which, student_performance_list, required_unit=None, school_unit_info=None):
 
             # Create performances and calculate student averages
             with transaction.atomic():
@@ -1108,8 +1108,23 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                     current_enrollment__academic_session=academic_session
                 ).first()
 
-
                 if first_performance: first_performance.calculate_term_position()
+
+                if which == 'compute':
+                    
+                    # Deduct Units
+                    school_unit_info.available_unit -= required_units
+                    school_unit_info.save()
+
+                    # Update the unit used for the current term
+                    obj, _ = UnitUsedByTerm.objects.get_or_create(
+                        school=school,
+                        academic_session=academic_session,
+                        academic_term=academic_term,
+                    )
+
+                    obj.unit_used += required_units
+                    obj.save()
 
         # List to hold the student performance instance for bulk creation
         student_performance_list = []
@@ -1141,7 +1156,18 @@ class ComputeResultView(LoginRequiredMixin, ListView):
 
             try:
 
-                perform_computation(which='compute', student_performance_list=student_performance_list)
+                # Get the current unit balance for the school
+                school_unit = SchoolUnit.objects.filter(school=school).first()
+
+                required_units = len(student_performance_list)
+
+                if not school_unit or school_unit.available_unit < required_units:
+                    messages.error(request, f"Insufficient units for computation! Required: {required_units}, Available: {school_unit.available_unit if school_unit else 0}")
+                    return redirect('sch:compute_results', class_id)
+
+                # Proceed with computation
+                perform_computation(which='compute', student_performance_list=student_performance_list, required_unit=required_units, school_unit_info=school_unit)
+
 
                 messages.success(request=request, message=f'computation successful!')
                 return redirect('sch:compute_results', class_id)

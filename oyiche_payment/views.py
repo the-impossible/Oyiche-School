@@ -23,7 +23,6 @@ def generate_transaction_reference():
 
     return str(unique_id)
 
-
 # Create your views here.
 class PaymentDashboard(TemplateView):
     template_name = "backend/payment/payment_dashboard.html"
