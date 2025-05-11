@@ -46,8 +46,8 @@ class SchoolUnit(models.Model):
 class UnitUsedByTerm(models.Model):
 
     school = models.ForeignKey(to=SchoolInformation, related_name="school_unit_used", on_delete=models.CASCADE)
-    academic_session = models.ForeignKey(to=AcademicSession, related_name="school_unit_session", on_delete=models.CASCADE)
-    academic_term = models.ForeignKey(AcademicTerm, related_name="school_unit_term", on_delete=models.CASCADE)
+    academic_session = models.ForeignKey(to=AcademicSession, related_name="school_unit_session", on_delete=models.CASCADE, db_constraint=False)
+    academic_term = models.ForeignKey(AcademicTerm, related_name="school_unit_term", on_delete=models.CASCADE, db_constraint=False)
 
     unit_used = models.IntegerField(default=0)
 
@@ -55,15 +55,15 @@ class UnitUsedByTerm(models.Model):
         return f"School: {self.school} - unit used:{self.unit_used}"
 
     class Meta:
-        db_table = "Unit Used By Term"
+        db_table = "Term_Unit"
         verbose_name = "Unit Used By Term"
         verbose_name_plural = "Unit Used By Terms"
 
 class SchoolPaymentHistory(models.Model):
 
     school = models.ForeignKey(to=SchoolInformation, related_name="school_payment_info", on_delete=models.CASCADE)
-    academic_session = models.ForeignKey(to=AcademicSession, related_name="payment_academic_session", on_delete=models.CASCADE)
-    academic_term = models.ForeignKey(AcademicTerm, related_name="payment_academic_term", on_delete=models.CASCADE)
+    academic_session = models.ForeignKey(to=AcademicSession, related_name="payment_session", on_delete=models.CASCADE, db_constraint=False)
+    academic_term = models.ForeignKey(AcademicTerm, related_name="payment_academic_term", on_delete=models.CASCADE, db_constraint=False)
     purchased_by = models.ForeignKey(to=User, related_name="purchased_by", on_delete=models.CASCADE)
 
     reference = models.CharField(max_length=500, null=True, blank=True)
@@ -79,7 +79,7 @@ class SchoolPaymentHistory(models.Model):
         return f"School: {self.school} - Status:{self.payment_status} - Units: {self.unit_purchased}"
 
     class Meta:
-        db_table = "School Payment History"
+        db_table = "payment_history"
         verbose_name = "School Payment History"
         verbose_name_plural = "School Payment History"
 

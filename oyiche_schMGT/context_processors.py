@@ -69,7 +69,12 @@ def global_payment_context(request):
 
         # last amount paid
         payment_history = SchoolPaymentHistory.objects.filter(school=school, payment_status='success').order_by('-created_at')
-        context['last_amount_paid'] = payment_history.first().amount_paid
+
+        if payment_history.exists():
+            context['last_amount_paid'] = payment_history.first().amount_paid
+        else:
+            context['last_amount_paid'] = 0
+
         # payment history
         payment_history = SchoolPaymentHistory.objects.filter(school=school).order_by('-created_at')[:10]
         context['payment_list'] = payment_history
