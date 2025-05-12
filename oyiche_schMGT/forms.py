@@ -135,18 +135,6 @@ class GetStudentForm(forms.Form):
         }
     ))
 
-    # academic_session = forms.ModelChoiceField(queryset=AcademicSession.objects.none(), empty_label="(Select academic session)", required=True, widget=forms.Select(
-    #     attrs={
-    #         'class': 'form-control input-height',
-    #     }
-    # ))
-
-    # academic_status = forms.ModelChoiceField(queryset=AcademicStatus.objects.all(), empty_label="(Select academic status)", required=False, widget=forms.Select(
-    #     attrs={
-    #         'class': 'form-control input-height',
-    #     }
-    # ))
-
 class UserForm(forms.ModelForm):
 
 

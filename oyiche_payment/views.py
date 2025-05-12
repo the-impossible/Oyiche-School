@@ -17,6 +17,11 @@ from oyiche_payment.models import *
 from oyiche_payment.forms import *
 from oyiche_schMGT.views import get_school
 
+if settings.DEBUG:
+    AUTHORIZATION_KEY = f"Bearer {config('PAYSTACK_TEST_SECRET_KEY')}"
+else:
+    AUTHORIZATION_KEY = f"Bearer {config('PAYSTACK_LIVE_SECRET_KEY')}"
+
 def generate_transaction_reference():
     # Generate a random UUID
     unique_id = uuid.uuid4()
@@ -69,7 +74,7 @@ class PaymentDashboard(TemplateView):
         url = "https://api.paystack.co/transaction/initialize"
 
         headers = {
-            "Authorization": f"Bearer {config('PAYSTACK_TEST_SECRET_KEY')}",
+            "Authorization": AUTHORIZATION_KEY,
             "Content-Type": "application/json"
         }
 
@@ -199,7 +204,7 @@ class VerifyPayment(View):
             return redirect("payment:payment_dashboard")
 
         headers = {
-            "Authorization": f"Bearer {config('PAYSTACK_TEST_SECRET_KEY')}"
+            "Authorization": AUTHORIZATION_KEY,
         }
 
         url = f"https://api.paystack.co/transaction/verify/{reference}"
@@ -207,8 +212,6 @@ class VerifyPayment(View):
         try:
             response = requests.get(url, headers=headers)
             response_data = response.json()
-
-            print(f'Response Data: {response_data}')
 
             if response_data.get("status") is True:
                 payment_data = response_data["data"]

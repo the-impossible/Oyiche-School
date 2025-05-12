@@ -34,21 +34,22 @@ class FileHandler:
             raise forms.ValidationError('Excel File Contains Missing DATA!!')
 
         # Check for duplicates in the data
-        duplicates = self.data[self.data.duplicated(
-            subset=[self.data.columns[0]])]
-        if not duplicates.empty:
-            studentID = duplicates.iloc[0, 0]
-            raise forms.ValidationError(
-                f'File contains duplicated studentID: {studentID}')
+        if column_length == 3:
+            duplicates = self.data[self.data.duplicated(
+                subset=[self.data.columns[0]])]
+            if not duplicates.empty:
+                studentID = duplicates.iloc[0, 0]
+                raise forms.ValidationError(
+                    f'File contains duplicated studentID: {studentID}')
 
-        # Check if record is already created on the database
-        if self.file_type in ['Registration']:
-            for index, row in self.data.iterrows():
-                studentID = row.iloc[0].upper()
+            # Check if record is already created on the database
+            if self.file_type in ['Registration']:
+                for index, row in self.data.iterrows():
+                    studentID = row.iloc[0].upper()
 
-                if User.objects.filter(username=studentID).exists():
-                    raise forms.ValidationError(
-                        f'File contains already registered studentID! {studentID}')
+                    if User.objects.filter(username=studentID).exists():
+                        raise forms.ValidationError(
+                            f'File contains already registered studentID! {studentID}')
 
         if str(self.file_type) in ['School Fees']:
             if column_length != 2:

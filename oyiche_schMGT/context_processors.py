@@ -42,6 +42,10 @@ def global_dashboard_context(request):
 
         context['exam_toppers'] = exam_toppers
 
+        path = request.path in ['/auth/manage_admin', '/payment/payment_dashboard']
+        context['is_admin_path'] = path
+        context['is_not_admin_path'] = not path
+
     return context
 
 def global_payment_context(request):

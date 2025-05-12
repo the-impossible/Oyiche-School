@@ -68,10 +68,13 @@ class StudentPageView(LoginRequiredMixin, View):
 
         form = self.form(data=request.POST, school=self.school)
 
-        def get_students(self, add_student, all_student):
+        def get_students(self, add_student, all_student, student_class=None):
 
             nonlocal form
-            student_class = form.cleaned_data.get('student_class')
+            try:
+                student_class = form.cleaned_data.get('student_class')
+            except AttributeError:
+                student_class = student_class
             school_academic_session = AcademicSession.objects.get(school_info=self.school, is_current=True)
             school_academic_term = AcademicTerm.objects.get(school_info=self.school, is_current=True)
             academic_status = AcademicStatus.objects.get(status="active")
@@ -146,7 +149,9 @@ class StudentPageView(LoginRequiredMixin, View):
                 messages.success(
                     request=request, message="Student Account has been created successfully!!")
 
-                get_students(self, 'active', '')
+                student_class = request.POST.get('student_class')
+                get_students(self, 'active', '', student_class)
+
 
             else:
                 messages.error(request=request,

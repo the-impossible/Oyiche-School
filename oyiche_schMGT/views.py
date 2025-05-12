@@ -1079,6 +1079,18 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 if which == 're-compute':
                     performances = student_performance_list
 
+                if which == 're-compute-new':
+                    new_enrollements = StudentPerformance.objects.bulk_create(student_performance_list)
+
+                    combined_student_performance_list = StudentPerformance.objects.filter(
+                        school_info=school,
+                        current_enrollment__student_class=class_detail,
+                        current_enrollment__academic_term=academic_term,
+                        current_enrollment__academic_session=academic_session,
+                    )
+
+                    performances = combined_student_performance_list
+
                 # Calculate student averages and other individual data
                 for performance in performances:
                     performance.calculate_student_average_total_marks_total_subject()
@@ -1110,8 +1122,8 @@ class ComputeResultView(LoginRequiredMixin, ListView):
 
                 if first_performance: first_performance.calculate_term_position()
 
-                if which == 'compute':
-                    
+                if which == 'compute' or which == 're-compute-new':
+
                     # Deduct Units
                     school_unit_info.available_unit -= required_units
                     school_unit_info.save()
@@ -1168,7 +1180,6 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 # Proceed with computation
                 perform_computation(which='compute', student_performance_list=student_performance_list, required_unit=required_units, school_unit_info=school_unit)
 
-
                 messages.success(request=request, message=f'computation successful!')
                 return redirect('sch:compute_results', class_id)
 
@@ -1176,9 +1187,8 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 messages.error(request=request, message=str(e))
                 return redirect('sch:compute_results', class_id)
 
-
         elif 're-compute' in request.POST:
-            # Create Performance for each student
+            # Get already computed student performances
             student_performance_list = StudentPerformance.objects.filter(
                 school_info=school,
                 current_enrollment__student_class=class_detail,
@@ -1186,9 +1196,59 @@ class ComputeResultView(LoginRequiredMixin, ListView):
                 current_enrollment__academic_session=academic_session,
             )
 
+            already_computed_ids = student_performance_list.values_list('current_enrollment__enrollment_id', flat=True)
+
+            # Student currently enrolled in the class
+            current_enrollment_ids = enrolled_class.values_list('enrollment_id', flat=True)
+
+            # Check if there are any students who have not been computed
+            not_computed_ids = set(current_enrollment_ids) - set(already_computed_ids)
+
+            # prepare list of new student objects
+            not_computed_performance_list = [
+                StudentPerformance(
+                    school_info=school,
+                    student=student.student,
+                    current_enrollment=student
+                )
+                for student in enrolled_class if student.enrollment_id in not_computed_ids
+            ]
+
             try:
 
-                perform_computation(which='re-compute', student_performance_list=student_performance_list)
+                if not_computed_performance_list:
+
+                    # check if not_computed_performance_list grades has been uploaded
+                    student_scores = StudentScores.objects.filter(
+                        school_info=school,
+                        session=academic_session,
+                        term=academic_term,
+                        student__in=[student.student for student in not_computed_performance_list]
+                    )
+
+                    if not student_scores.exists():
+                        student_names = [student.student.student_name for student in not_computed_performance_list]
+
+                        messages.error(request, f"Grades have not been uploaded for newly enrolled students {student_names} !!")
+
+                        return redirect('sch:compute_results', class_id)
+
+                    # Get the current unit balance for the school
+                    required_units = len(not_computed_performance_list)
+                    school_unit = SchoolUnit.objects.filter(school=school).first()
+
+                    if required_units > 0:
+                        if not school_unit or school_unit.available_unit < required_units:
+                            messages.error(request, f"Insufficient units for recomputation with new enrollments! Required: {required_units}, Available: {school_unit.available_unit if school_unit else 0}")
+
+                            return redirect('sch:compute_results', class_id)
+
+                    # Deduct units only for new students
+                    perform_computation(which='re-compute-new', student_performance_list=not_computed_performance_list, required_unit=required_units, school_unit_info=school_unit)
+
+                else:
+
+                    perform_computation(which='re-compute', student_performance_list=student_performance_list)
 
                 messages.success(request=request, message=f'computation successful!')
                 return redirect('sch:compute_results', class_id)
