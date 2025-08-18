@@ -1,7 +1,6 @@
 from oyiche_schMGT.imports import *
 from django_weasyprint import WeasyTemplateResponseMixin
 from django.http import HttpResponse
-
 # Create your views here.
 
 def get_school(request):
