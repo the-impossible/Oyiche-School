@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{object.student.student_name|title}} - Result</title>
+        <style>
+
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                margin: 0;
+                position: relative;
+                width: 190mm; /* fits inside A4 margins */
+                margin: 0 auto;
+            }
+
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+
+            /* Result Header Section */
+            .result-header {
+                margin-bottom: 20px;
+            }
+
+            .result-header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                padding-right: 50px;
+            }
+
+            .result-logo-left {
+                height: 80px; /* Equal height for balance */
+                width: auto;
+            }
+
+            .result-logo-right {
+                position: absolute;
+                right: 0;
+                height: 80px; /* Equal height for balance */
+                width: auto;
+            }
+
+            .result-school-name {
+                text-align: center;
+                flex: 1;
+            }
+
+            .result-school-name h1 {
+                margin: 0;
+                font-size: 22px;
+                max-width: 560px;
+                color: #333;
+            }
+
+            .result-school-name p {
+                margin: 5px 0 0;
+                font-size: 14px;
+                max-width: 560px;
+                color: #555;
+            }
+
+            /* Student Info */
+            .result-student-info {
+                display: grid;
+                background-color: #f8f9fa;
+                grid-template-columns: repeat(2, 1fr); /* 2 columns */
+                gap: 10px 20px; /* row and column gaps */
+                font-size: 12px;
+                margin-bottom: 20px;
+            }
+
+            .result-info-item {
+                background: white;
+                padding: 8px 10px;
+                border-radius: 4px;
+                border: 1px solid #ddd;
+            }
+
+            /* Table Styles */
+
+            .result-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+                margin-top: 20px;
+            }
+
+            .result-table th,
+            .result-table td {
+                border: 1px solid #ddd;
+                padding: 4px;
+                text-align: center;
+            }
+
+            .result-table th {
+                font-size: 12px; /* slightly larger text */
+                background-color: #e9ecef;
+                color: #333;
+            }
+
+            .subject {
+                text-align: left !important;
+            }
+
+            .result-tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+
+            /* Watermark */
+            .watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                opacity: 0.05; /* very light */
+                z-index: 0; /* behind content in container */
+                pointer-events: none;
+            }
+
+            .watermark img {
+                width: 600px; /* adjust size */
+                height: auto;
+            }
+
+            @media print {
+                .watermark {
+                    opacity: 0.03;
+                }
+            }
+
+            .result-summary {
+                margin-top: 20px;
+                padding: 8px 0px;
+                background-color: #f8f9fa;
+                border-radius: 4px;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px 20px;
+                font-size: 12px;
+            }
+
+            .result-summary .result-summary-item {
+                background: white;
+                padding: 8px 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+
+            .result-summary .full-width {
+                grid-column: span 2;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <div>
+            <!-- Watermark -->
+            <div class="watermark">
+                <img src="{{ school.school_logo.url }}" alt="Watermark Logo">
+            </div>
+
+            <!-- result-Header -->
+            <div class="result-header">
+                <div class="result-header-top">
+                    <img src="{{ school.school_logo.url }}" alt="School Logo" class="result-logo-left">
+                    <div class="result-school-name">
+                        <h1>{{ school.school_name|upper }}  </h1>
+                        <p>{{ school.school_address|upper }}</p>
+                    </div>
+                    <img src="{{ object.student.user.pic.url }}" alt="Student Icon" class="result-logo-right">
+                </div>
+            </div>
+
+            <!-- Student Info -->
+            <div class="result-student-info">
+                <div class="result-info-item"><strong>Name:</strong> {{object.student.student_name|upper}}</div>
+                <div class="result-info-item"><strong>Sex:</strong> {{object.student.gender|upper}}</div>
+                <div class="result-info-item"><strong>Class:</strong> {{object.current_enrollment.student_class.class_name|upper }}</div>
+                <div class="result-info-item"><strong>Term:</strong> {{object.current_enrollment.academic_term|upper }}</div>
+                <div class="result-info-item"><strong>Student ID:</strong> {{object.student.user.username|upper}}</div>
+                <div class="result-info-item"><strong>Session:</strong> {{object.current_enrollment.academic_session|upper }}</div>
+            </div>
+
+            <!-- Results Table -->
+            <table class="result-table">
+                <thead class="result-thead">
+                    <tr class="result-tr">
+                        <th>SUBJECT</th>
+                        <th>1ST CA</th>
+                        <th>2ND CA</th>
+                        <th>3RD CA</th>
+                        <th>EXAM</th>
+                        <th>TOTAL</th>
+                        <th>AVERAGE</th>
+                        <th>HIGHEST</th>
+                        <th>LOWEST</th>
+                        <th>POSITION</th>
+                        <th>GRADE</th>
+                        <th>REMARK</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for score in scores %}
+                    <tr class="result-tr">
+                        <td class="subject">{{score.subject.school_subject.subject_name|upper}}</td>
+                        <td>{{score.first_ca|default:"N/A"}}</td>
+                        <td>{{score.second_ca|default:"N/A"}}</td>
+                        <td>{{score.third_ca|default:"N/A"}}</td>
+                        <td>{{score.exam|default:"N/A"}}</td>
+                        <td>{{score.total_score|default:"N/A"}}</td>
+                        <td>{{score.average|default:"N/A"}}</td>
+                        <td>{{score.highest_score|default:"N/A"}}</td>
+                        <td>{{score.lowest_score|default:"N/A"}}</td>
+                        <td>{{score.position|default:"N/A"}}</td>
+                        <td>{{score.grade.grade_letter|upper|default:"N/A"}}</td>
+                        <td>{{score.grade.grade_description|upper|default:"N/A"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Result Summary -->
+            <div class="result-summary">
+                <div class="result-summary-item"><strong>Total Marks:</strong> {{object.total_marks_obtained}}</div>
+                <div class="result-summary-item"><strong>Average Score:</strong> {{object.student_average}}%</div>
+                <div class="result-summary-item"><strong>Position in Class:</strong> {{object.term_position|title}} / {{ out_of }}</div>
+                <div class="result-summary-item"><strong>Class Average:</strong> {{object.class_average}}%</div>
+                <div class="result-summary-item"><strong>Total Subjects:</strong> {{object.total_subject}}</div>
+                <div class="result-summary-item full-width"><strong>Class Teacher's Remarks:</strong> {{ object.school_remark.teacher_remark|default:"N/A" }}</div>
+                <div class="result-summary-item full-width"><strong>Principal's Remarks:</strong> {{ object.school_remark.principal_remark|default:"N/A" }}</div>
+            </div>
+        </div>
+    </body>
+</html>

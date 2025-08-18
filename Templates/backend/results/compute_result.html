@@ -58,9 +58,6 @@
                               <form action="" method="post">
                                 {% csrf_token %}
                                 <div class="row justify-content-end">
-                                    {% comment %} <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
-                                        <button type="submit" class="btn btn-sm btn-primary btn-block" name="get_grades"><i class="fa fa-file text-white"></i> Get Results</button>
-                                    </div> {% endcomment %}
                                     <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
                                         {% if queryset %}
                                         <button type="button" class="btn btn-sm btn-info btn-block" data-toggle="modal" data-target="#reComputeResult" compute="re-compute"><i class="fa fa-refresh text-white"></i> Re-Compute Result</button>
@@ -69,9 +66,9 @@
                                         {% endif %}
                                     </div>
                                     <div class="col-lg-4 col-md-4 col-sm-4 mt-4 pt-1">
-                                        <button type="button" class="btn btn-sm btn-success btn-block" onclick="downloadAllResults()">
+                                        <a href="{% url "sch:download_multiple_result" class_name.pk %}" target="_blank" class="btn btn-sm btn-success btn-block" >
                                             <i class="fa fa-download text-white"></i> Download All Results
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                               </form>
@@ -88,8 +85,6 @@
         {% include 'partials/backend/footer.html' %}
     </div>
 </div>
-
-{% include "backend/results/partials/result_modal.html" %}
 
 <div class="modal fade" id="computeResult" style="display:none;" tabindex="-1" aria-labelledby="computeResult" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="computeResult">
@@ -205,149 +200,6 @@
     });
 
 </script>
-{% block extrascripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-function printResult(modalId) {
-    const element = document.querySelector(`#${modalId} .print`);
-
-    if (!element) {
-        console.error("Element not found");
-        return;
-    }
-
-    const originalDisplay = element.style.display;
-    const originalOverflow = element.style.overflow;
-
-    // Make the element visible and ensure full content is shown
-    element.style.display = "block";
-    element.style.overflow = "visible";
-
-    const opt = {
-        margin: 0.3,
-        filename: 'student-result.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        element.style.display = originalDisplay;
-        element.style.overflow = originalOverflow;
-    }).catch(error => {
-        console.error("Error generating PDF:", error);
-        element.style.display = originalDisplay;
-        element.style.overflow = originalOverflow;
-    });
-}
-</script>
-
-<script>
-function downloadAllResults() {
-
-    const results = [];
-
-    // Get all student result modals
-    const resultModals = document.querySelectorAll('[id^="viewResult"]');
-
-    resultModals.forEach(modal => {
-        // Get the printable content div from each modal
-        const printContent = modal.querySelector('.print');
-        if (printContent) {
-            // Check if it contains a table with data
-            const table = printContent.querySelector('table');
-            const hasData = table && table.querySelectorAll('tbody tr').length > 0;
-
-            if (hasData) {
-                // Clone the content
-                const clonedContent = printContent.cloneNode(true);
-
-                // Make sure the cloned content is visible
-                clonedContent.style.display = 'block';
-
-                // Add page break
-                clonedContent.style.pageBreakAfter = 'always';
-
-                results.push(clonedContent.outerHTML);
-            }
-        }
-    });
-
-    // If no results found, alert or exit
-    if (results.length === 0) {
-        alert("No result data found to download.");
-        return;
-    }
-
-
-
-    // Create a descriptive filename based on filters
-    let filename = 'all-student-results.pdf';
-
-    // Create container for all results
-    const container = document.createElement('div');
-    container.innerHTML = results.join('');
-
-    // Add styles for PDF generation
-    const style = document.createElement('style');
-    style.textContent = `
-        @page {
-            margin: 20mm;
-        }
-        .result-container {
-            width: 210mm;
-            padding: 20mm;
-            background: white;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f5f5f5;
-        }
-        .school-logo {
-            max-width: 100px;
-            height: auto;
-        }
-    `;
-    container.appendChild(style);
-
-    // PDF generation options
-    const opt = {
-        margin: 0.3,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        }
-    };
-
-    // Generate PDF
-    html2pdf()
-        .set(opt)
-        .from(container)
-        .save()
-        .catch(err => {
-            console.error('PDF generation failed:', err);
-            alert('Failed to generate PDF. Please try again.');
-        });
-}
-</script>
-{% endblock extrascripts %}
 <!-- End Script -->
 
 {% endblock body %}

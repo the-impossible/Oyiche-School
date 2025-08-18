@@ -4,6 +4,7 @@ from oyiche_payment.models import *
 from oyiche_schMGT.views import get_school
 
 def global_dashboard_context(request):
+
     if not request.user.is_authenticated:
         return {}
 
@@ -26,6 +27,65 @@ def global_dashboard_context(request):
         context['total_subjects'] = SchoolSubject.objects.filter(school_info=school).count()
         context['total_admins'] = SchoolAdminInformation.objects.filter(school=school).count()
         context['new_student_list'] = student_info.order_by('-date_created')[:10]
+
+        if request.user.userType.user_title.lower() == 'student':
+            student = request.user.student_user
+            enrollment = StudentEnrollment.objects.filter(
+                student=student,
+                academic_session=academic_session,
+                academic_term=academic_term,
+                academic_status=academic_status
+            ).select_related('student_class').first()
+
+            if enrollment:
+                context['total_classmate'] = StudentEnrollment.objects.filter(
+                    academic_session=academic_session,
+                    academic_term=academic_term,
+                    academic_status=academic_status,
+                    student_class=enrollment.student_class
+                ).count()
+
+                context['total_class_subjects'] = SchoolClassSubjects.objects.filter(
+                    school_info=school,
+                    school_class=enrollment.student_class
+                ).count()
+
+            else:
+                context['total_classmate'] = 0
+                context['total_class_subjects'] = 0
+
+            context['total_student_result'] = StudentPerformance.objects.filter(
+                school_info=school,
+                student=student
+            ).count()
+
+            context['academic_term'] = academic_term
+            context['academic_session'] = academic_session
+
+            # Check if the student current session and term result is available
+            student_result = StudentPerformance.objects.filter(
+                school_info=school,
+                student=student,
+                current_enrollment__academic_session=academic_session,
+                current_enrollment__academic_term=academic_term
+            )
+
+            if student_result.exists():
+                context['result_available'] = True
+                context['performance_id'] = student_result.first().id
+            else:
+                context['result_available'] = False
+
+
+            enrollment = StudentEnrollment.objects.filter(
+                student=student,
+                academic_session=academic_session,
+                academic_term=academic_term,
+                academic_status=academic_status,
+            ).first()
+
+            context['payment_status'] = enrollment.has_paid if enrollment else False
+
 
         # Get the highest student_average for each class
         top_avg_per_class = (

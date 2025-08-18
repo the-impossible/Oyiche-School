@@ -1,4 +1,6 @@
 from oyiche_schMGT.imports import *
+from django_weasyprint import WeasyTemplateResponseMixin
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -1786,3 +1788,110 @@ class ManageSchoolResultView(LoginRequiredMixin, View):
                 messages.error(request, "Failed to delete remark!!")
 
         return render(request, template_name=self.template_name, context=self.context)
+
+class ResultPreviewPage(WeasyTemplateResponseMixin, LoginRequiredMixin, DetailView):
+    model = StudentPerformance
+    template_name = "backend/results/result_template.html"
+    pk_url_kwarg = "performance_id"
+    context_object_name = "object"
+
+    def get_object(self, queryset=None):
+        self.school = get_school(self.request)  # store once
+        return get_object_or_404(
+            StudentPerformance.objects.select_related('student', 'current_enrollment'),
+            school_info=self.school,
+            pk=self.kwargs.get(self.pk_url_kwarg)
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        performance = self.object  # already set by DetailView
+
+        student_scores = StudentScores.objects.filter(
+            school_info=self.school,
+            student=performance.student,
+            term=performance.current_enrollment.academic_term,
+            session=performance.current_enrollment.academic_session,
+        )
+
+        out_of = StudentPerformance.objects.filter(
+            school_info=self.school,
+            current_enrollment__student_class=performance.current_enrollment.student_class,
+            current_enrollment__academic_term=performance.current_enrollment.academic_term,
+            current_enrollment__academic_session=performance.current_enrollment.academic_session,
+        ).count()
+
+        context["out_of"] = out_of
+        context["school"] = self.school
+        context["scores"] = student_scores
+        return context
+
+class DownloadMultipleResultPage(WeasyTemplateResponseMixin, LoginRequiredMixin, DetailView):
+    model = SchoolClasses  # main object for the class
+    template_name = "backend/results/multiple_result_template.html"
+    pk_url_kwarg = "class_id"
+    context_object_name = "class_name"
+
+    # filename for the download
+    # pdf_filename = "class_results.pdf"
+    # pdf_options = {'pdf_variant': 'pdf/ua-1'}
+
+    def get_queryset_and_subjects(self):
+        self.school = get_school(self.request)
+        class_id = self.kwargs.get('class_id')
+
+        if not self.school or not class_id:
+            raise Http404("Class not found")
+
+        subjects = SchoolClassSubjects.objects.filter(
+            school_info=self.school,
+            school_class=class_id
+        ).values_list('school_subject__subject_name', 'id',)
+
+        self.class_name = SchoolClasses.objects.filter(pk=class_id, school_info=self.school).first()
+
+        queryset = (
+            StudentPerformance.objects.filter(
+                school_info=self.school,
+                current_enrollment__student_class=class_id,
+                current_enrollment__academic_session__is_current=True,
+                current_enrollment__academic_term__is_current=True,
+            )
+            .select_related('student', 'current_enrollment')
+            .prefetch_related(
+                Prefetch(
+                    'student__student_scores',
+                    queryset=StudentScores.objects.filter(
+                        school_info=self.school,
+                        term__is_current=True,
+                        session__is_current=True,
+                    )
+                )
+            )
+            .order_by('-student_average')
+        )
+
+        return queryset, subjects
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        try:
+            queryset, subjects = self.get_queryset_and_subjects()
+        except Http404:
+            messages.error(self.request, "Class not found!!")
+            return redirect('sch:school_classes')
+
+
+        context["out_of"] = queryset.count()
+        context['students'] = queryset
+        context['subjects'] = subjects
+        context['school'] = self.school
+        context['class_name'] = self.class_name
+        context['academic_session'] = AcademicSession.objects.filter(
+            is_current=True, school_info=self.school
+        ).first()
+        context['academic_term'] = AcademicTerm.objects.filter(
+            is_current=True, school_info=self.school
+        ).first()
+        return context

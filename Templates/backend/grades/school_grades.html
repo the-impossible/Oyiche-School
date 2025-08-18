@@ -150,11 +150,12 @@
 
 	})
 
-  document.addEventListener('htmx:responseError', function (event) {
-    if (event.detail.xhr.status === 404) {
-        modalError.show()
-    }
-  });
+    document.addEventListener('htmx:responseError', function (event) {
+        if (event.detail.xhr.status === 404) {
+            modalError.show()
+        }
+    });
+
 
 </script>
 

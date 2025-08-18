@@ -103,9 +103,9 @@
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="card overflow-hidden">
                             <div class="card-body">
-                                <div class="mb-2 h6">Total Students</div>
-                                <div><span class="h4 font700">{{total_students}}</span></div>
-                                <small class="text-muted">Total student in the school</small>
+                                <div class="mb-2 h6">Total Classmate</div>
+                                <div><span class="h4 font700">{{total_classmate}}</span></div>
+                                <small class="text-muted">Total student in your class</small>
                             </div>
                             <div class="progress" style="height: 4px;">
                                 <div class="progress-bar bg-danger" role="progressbar" style="width: 35%" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
@@ -116,11 +116,23 @@
                         <div class="card overflow-hidden">
                             <div class="card-body">
                                 <div class="mb-2 h6">Total Subjects</div>
-                                <div><span class="h4 font700">{{total_subjects}}</span> </div>
-                                <small class="text-muted">Total number of subject enrolled</small>
+                                <div><span class="h4 font700">{{total_class_subjects}}</span> </div>
+                                <small class="text-muted">Total number of subject enrolled in your class</small>
                             </div>
                             <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <div class="card overflow-hidden">
+                            <div class="card-body">
+                                <div class="mb-2 h6">Total Result</div>
+                                <div><span class="h4 font700">{{total_student_result}}</span></div>
+                                <small class="text-muted">Total number of computed result</small>
+                            </div>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     </div>
@@ -129,10 +141,10 @@
                             <div class="card-body">
                                 <div class="mb-2 h6">Total Classes</div>
                                 <div><span class="h4 font700">{{total_classes}}</span></div>
-                                <small class="text-muted">Total number of classes registered</small>
+                                <small class="text-muted">Total number of registered classes</small>
                             </div>
                             <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     </div>
@@ -142,7 +154,75 @@
                     <div class="tab-pane fade show active" id="admin-Dashboard" role="tabpanel">
 
                         <div class="row clearfix row-deck mt-4">
-                            <div class="{% if request.user.userType|lower == 'student' %} col-xl-12 col-lg-12 col-md-12 {% else %} col-xl-6 col-lg-6 col-md-12{% endif %}">
+                            {% if request.user.userType|lower == 'student' %}
+                            <div class="col-xl-6 col-lg-6 col-md-12">
+                                <div class="card text-center
+                                    {% if result_available and payment_status %}
+                                        border-success bg-light
+                                    {% elif result_available and not payment_status %}
+                                        border-warning bg-light
+                                    {% else %}
+                                        border-secondary bg-light
+                                    {% endif %}
+                                ">
+
+                                    <div class="card-body">
+                                        <!-- Status Icon -->
+                                        <div class="mb-3">
+                                            {% if result_available and payment_status %}
+                                                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                                            {% elif result_available and not payment_status %}
+                                                <i class="bi bi-exclamation-circle-fill text-warning" style="font-size: 3rem;"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill text-secondary" style="font-size: 3rem;"></i>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Title -->
+                                        <h4 class="card-title fw-bold">
+                                            {% if result_available %}
+                                                Result for {{ academic_term }} - {{ academic_session }}
+                                            {% else %}
+                                                Current Result Not Available
+                                            {% endif %}
+                                        </h4>
+
+                                        <!-- Status Message -->
+                                        <p class="card-text mt-2">
+                                            {% if result_available %}
+                                                {% if payment_status %}
+                                                    ✅ Your result is ready. Click below to view.
+                                                {% else %}
+                                                    ⚠️ Your result is ready, but requires you to pay your fees before viewing.
+                                                {% endif %}
+                                            {% else %}
+                                               📅 The result for {{ academic_term }} of {{ academic_session }} academic session is not yet published.
+                                                You can still view your previous results below.
+                                            {% endif %}
+                                        </p>
+
+                                        <!-- Buttons -->
+                                        <div class="mt-3">
+                                            {% if result_available %}
+                                                {% if payment_status %}
+                                                    <a href="{% url "sch:result_preview" performance_id %}" target="_blank"
+                                                       class="btn btn-success btn-lg mb-2">View Result</a>
+                                                {% else %}
+                                                    <button class="btn btn-warning btn-lg mb-2" disabled>Payment Required</button>
+                                                {% endif %}
+                                            {% else %}
+                                                <!-- Always show previous results button -->
+                                                <a href="{% url "sch:student_result" %}"
+                                                class="btn btn-outline-primary btn-lg">View Previous Results</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% endif %}
+
+                            <div class="col-xl-6 col-lg-6 col-md-12">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">Exam Toppers</h3>
@@ -186,7 +266,9 @@
                                     </div>
                                 </div>
                             </div>
+
                             {% if not request.user.userType|lower == 'student' %}
+
                             <div class="col-xl-6 col-lg-6 col-md-12">
                                 <div class="card">
                                     <div class="card-header">

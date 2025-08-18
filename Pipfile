@@ -13,9 +13,10 @@ crispy-bootstrap4 = "*"
 openpyxl = "*"
 psycopg2-binary = "*"
 pymysql = "*"
-crispy-bootstrap5 = "*"
 pillow = "*"
 requests = "*"
+django-weasyprint = "*"
+crispy-bootstrap5 = "*"
 
 [dev-packages]
 

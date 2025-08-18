@@ -1,6 +1,6 @@
 # My Django imports
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import TemplateView, ListView, DeleteView, CreateView
+from django.views.generic import TemplateView, ListView, DeleteView, CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.views import View

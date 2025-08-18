@@ -48,9 +48,9 @@
                         <td>{{ object.class_average }}</td>
                         <td>{{ object.term_position }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#viewResult{{object.pk}}">
+                            <a href="{% url "sch:result_preview" object.pk %}" target="_blank" class="btn btn-sm btn-info">
                                 <i class="fa fa-eye"></i> View
-                            </button>
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}
