@@ -513,7 +513,7 @@ class SchoolClassSubjectForm(forms.ModelForm):
             # Exclude these subjects from the queryset for school_subject
             self.fields['school_subject'].queryset = SchoolSubject.objects.filter(
                 school_info=self.school
-            ).exclude(id__in=assigned_subjects)
+            ).exclude(pk__in=assigned_subjects)
 
             # Customize the display of the subject names
             self.fields['school_subject'].label_from_instance = lambda obj: obj.subject_name.upper()
@@ -674,8 +674,8 @@ class UploadStudentSubjectGradeForm(forms.Form):
 
             # Filter subjects that have not been uploaded
             available_subjects = SchoolSubject.objects.filter(
-                id__in=assigned_subjects
-            ).exclude(id__in=uploaded_subjects)
+                pk__in=assigned_subjects
+            ).exclude(pk__in=uploaded_subjects)
 
             # Customize the display of the subject names
             self.fields['subject_name'].queryset = available_subjects
@@ -1068,7 +1068,7 @@ class StudentPerformanceForm(forms.Form):
         if self.school:
             enrolled_class_ids = StudentEnrollment.objects.filter(student=self.student).values_list('student_class', flat=True)
 
-            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school, id__in=enrolled_class_ids)
+            self.fields['student_class'].queryset = SchoolClasses.objects.filter(school_info=self.school, pk__in=enrolled_class_ids)
 
             self.fields['student_class'].label_from_instance = lambda obj: obj.class_name.upper()
 

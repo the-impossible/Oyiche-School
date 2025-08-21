@@ -112,7 +112,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
             academic_session = form.cleaned_data.get('academic_session')
             academic_status = form.cleaned_data.get('academic_status')
 
-            current_enrollments = StudentEnrollment.objects.filter(enrollment_id__in=selected_ids)
+            current_enrollments = StudentEnrollment.objects.filter(enrollment_pk__in=selected_ids)
 
             if not current_enrollments.exists():
                 messages.error(request, "Selected enrollments could not be found.")
@@ -157,7 +157,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
 
                     # Query the actual active enrollments (not just check existence)
                     active_enrollments = StudentEnrollment.objects.filter(
-                        student__student_id__in=selected_active,
+                        student__student_pk__in=selected_active,
                         academic_status=active_status
                     )
 
@@ -182,7 +182,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
 
                 # Query the actual active enrollments (not just check existence)
                 active_enrollments = StudentEnrollment.objects.filter(
-                    student__student_id__in=selected_active,
+                    student__student_pk__in=selected_active,
                     academic_status=active_status
                 )
 
@@ -239,7 +239,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
 
                 # Query enrollments that exist in other classes (exclude current class)
                 existing_enrollment = StudentEnrollment.objects.filter(
-                    student__student_id__in=selected_active
+                    student__student_pk__in=selected_active
                 ).exclude(student_class=student_class)
 
                 if existing_enrollment.exists():
@@ -281,7 +281,7 @@ class ManageStudentEnrollment(LoginRequiredMixin, View):
                 messages.error(request, "No enrolllment selected for deletion.")
                 return
 
-            enrollments_to_delete = StudentEnrollment.objects.filter(enrollment_id__in=selected_ids)
+            enrollments_to_delete = StudentEnrollment.objects.filter(enrollment_pk__in=selected_ids)
 
             # Check if the selected enrollments exist
             if not enrollments_to_delete.exists():

@@ -1002,7 +1002,7 @@ class ComputeResultView(LoginRequiredMixin, ListView):
             subjects = SchoolClassSubjects.objects.filter(
                 school_info=school,
                 school_class=class_id
-            ).values_list('school_subject__subject_name', 'id',)
+            ).values_list('school_subject__subject_name', 'pk',)
 
             # Get student performance with scores for each subject
             queryset = (
@@ -1845,7 +1845,7 @@ class DownloadMultipleResultPage(WeasyTemplateResponseMixin, LoginRequiredMixin,
         subjects = SchoolClassSubjects.objects.filter(
             school_info=self.school,
             school_class=class_id
-        ).values_list('school_subject__subject_name', 'id',)
+        ).values_list('school_subject__subject_name', 'pk',)
 
         self.class_name = SchoolClasses.objects.filter(pk=class_id, school_info=self.school).first()
 

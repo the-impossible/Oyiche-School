@@ -2,19 +2,14 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 import uuid
-from django.shortcuts import get_object_or_404
-from django.http import Http404, HttpResponseNotFound
-from django.template.loader import render_to_string
-from django.shortcuts import redirect, render
-
 
 # My app imports
 from oyiche_schMGT.models import *
 
 # Create your models here.
 
-
 class UserType(models.Model):
+    user_type_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     user_title = models.CharField(max_length=20, unique=True)
     user_description = models.CharField(max_length=100, blank=True, null=True)
 
@@ -22,8 +17,7 @@ class UserType(models.Model):
         return self.user_title
 
     class Meta:
-        db_table = 'UserType'
-        verbose_name_plural = 'UserType'
+        verbose_name_plural = 'User Types'
 
 class UserManager(BaseUserManager):
     def create_user(self, schId, userType, password=None):
@@ -77,6 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=uuid.uuid4, primary_key=True, unique=True, editable=False)
     username = models.CharField(
         max_length=20, db_index=True, unique=True, blank=True)
+
     userType = models.ForeignKey(
         to="UserType", on_delete=models.CASCADE, blank=True, null=True)
 
@@ -149,10 +144,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             raise Http404(e)
 
     class Meta:
-        db_table = 'Users'
         verbose_name_plural = 'Users'
 
 class EmailSendCount(models.Model):
+    email_count_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, null=True)
     count = models.IntegerField(default=0)
 
@@ -170,6 +165,3 @@ class EmailSendCount(models.Model):
 
     def __str__(self):
         return f'{self.user}, has used ({self.count})/({10})'
-
-    class Meta:
-        db_table = 'EmailCounter'

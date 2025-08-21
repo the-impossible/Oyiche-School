@@ -42,7 +42,7 @@ class StudentPageView(LoginRequiredMixin, View):
                 query['academic_session'] = school_academic_session
                 query['academic_term'] = school_academic_term
                 query['academic_status'] = academic_status
-                query['studennt__school'] = self.school
+                query['student__school'] = self.school
                 initial_data['student_class'] = student_class
 
             if query:

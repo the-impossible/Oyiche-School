@@ -72,7 +72,7 @@ def global_dashboard_context(request):
 
             if student_result.exists():
                 context['result_available'] = True
-                context['performance_id'] = student_result.first().id
+                context['performance_id'] = student_result.first().pk
             else:
                 context['result_available'] = False
 

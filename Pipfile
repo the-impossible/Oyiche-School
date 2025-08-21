@@ -17,6 +17,7 @@ pillow = "*"
 requests = "*"
 crispy-bootstrap5 = "*"
 django-weasyprint = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 

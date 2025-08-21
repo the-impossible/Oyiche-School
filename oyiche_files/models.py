@@ -11,26 +11,26 @@ from oyiche_schMGT.models import *
 
 
 class FileType(models.Model):
+    file_type_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     file_title = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
         return self.file_title
 
     class Meta:
-        db_table = 'File Types'
         verbose_name_plural = 'File Types'
 
 # File Template Type (with:studentID, without:studentID, Fees)
 
 
 class FileTemplateType(models.Model):
+    file_template_type_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     template_title = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.template_title
 
     class Meta:
-        db_table = 'File Template Type'
         verbose_name_plural = 'File Template Type'
 
 
@@ -46,9 +46,12 @@ class FilesManager(models.Model):
     file_id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     file = models.FileField(upload_to=path_and_rename)
+
     class_name = models.ForeignKey(
         to=SchoolClasses, on_delete=models.CASCADE, blank=True, null=True)
-    file_type = models.ForeignKey(to=FileType, on_delete=models.CASCADE)
+
+    file_type = models.ForeignKey(to=FileType, on_delete=models.CASCADE, null=True, blank=True)
+
     school = models.ForeignKey(to=SchoolInformation, on_delete=models.CASCADE)
     processing_status = models.CharField(
         default="File has not been processed Yet!", max_length=200)
@@ -63,14 +66,16 @@ class FilesManager(models.Model):
         super().delete()
 
     class Meta:
-        db_table = 'Files Manager'
         verbose_name_plural = 'Files Manager'
 
 
 class FilesTemplates(models.Model):
+    file_template_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     file = models.FileField(upload_to='uploads/templates')
+
     template_type = models.ForeignKey(
-        to=FileTemplateType, on_delete=models.CASCADE)
+        to=FileTemplateType, on_delete=models.CASCADE, null=True, blank=True)
+
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -81,5 +86,4 @@ class FilesTemplates(models.Model):
         super().delete()
 
     class Meta:
-        db_table = 'Files Templates'
         verbose_name_plural = 'Files Templates'

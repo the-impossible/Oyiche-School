@@ -14,6 +14,7 @@ from oyiche_auth.models import *
 
 
 class SchoolType(models.Model):
+    sch_type_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     school_title = models.CharField(max_length=100, unique=True)
     school_description = models.CharField(
         max_length=200, blank=True, null=True)
@@ -22,13 +23,13 @@ class SchoolType(models.Model):
         return self.school_title
 
     class Meta:
-        db_table = 'School Type'
         verbose_name_plural = 'School Type'
 
 # SchoolCategory (Public, Private)
 
 
 class SchoolCategory(models.Model):
+    sch_category_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     category_title = models.CharField(max_length=20, unique=True)
     category_description = models.CharField(
         max_length=100, blank=True, null=True)
@@ -37,13 +38,13 @@ class SchoolCategory(models.Model):
         return self.category_title
 
     class Meta:
-        db_table = 'School Category'
         verbose_name_plural = 'School Categories'
 
 # Academic Session (2024/2025)
 
 
 class AcademicSession(models.Model):
+    academic_session_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     session = models.CharField(max_length=20)
     session_description = models.CharField(
         max_length=100, blank=True, null=True)
@@ -57,7 +58,6 @@ class AcademicSession(models.Model):
         return self.session
 
     class Meta:
-        db_table = 'Academic Session'
         verbose_name_plural = 'Academic Session'
         constraints = [
             models.UniqueConstraint(
@@ -70,6 +70,7 @@ class AcademicSession(models.Model):
 
 
 class AcademicStatus(models.Model):
+    academic_status_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     status = models.CharField(max_length=20)
     status_description = models.CharField(
         max_length=100, blank=True, null=True)
@@ -78,12 +79,12 @@ class AcademicStatus(models.Model):
         return self.status
 
     class Meta:
-        db_table = 'Academic Status'
         verbose_name_plural = 'Academic Status'
 
 # Term (First Term, Second Term)
 
 class GeneralAcademicTerm(models.Model):
+    general_academic_term_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     term = models.CharField(max_length=20)
     term_description = models.CharField(max_length=100, blank=True, null=True)
     is_current = models.BooleanField(default=False)
@@ -93,10 +94,10 @@ class GeneralAcademicTerm(models.Model):
         return self.term
 
     class Meta:
-        db_table = 'General Academic Term'
         verbose_name_plural = 'General Academic Term'
 
 class AcademicTerm(models.Model):
+    academic_term_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     term = models.CharField(max_length=20)
     term_description = models.CharField(max_length=100, blank=True, null=True)
     school_info = models.ForeignKey(
@@ -109,7 +110,6 @@ class AcademicTerm(models.Model):
         return self.term
 
     class Meta:
-        db_table = 'Academic Term'
         verbose_name_plural = 'Academic Term'
         constraints = [
             models.UniqueConstraint(
@@ -123,13 +123,13 @@ class AcademicTerm(models.Model):
 
 
 class Gender(models.Model):
+    gender_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     gender_title = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
         return self.gender_title
 
     class Meta:
-        db_table = 'Gender'
         verbose_name_plural = 'Gender'
 
 
@@ -150,10 +150,13 @@ class SchoolInformation(models.Model):
         null=True, blank=True, upload_to="uploads/logos/")
     school_address = models.CharField(max_length=200, db_index=True, blank=True, null=True)
     school_updated = models.BooleanField(default=False, blank=True, null=True)
+
     school_category = models.ForeignKey(
-        to="SchoolCategory", on_delete=models.CASCADE, blank=True, null=True)
+        to="SchoolCategory", on_delete=models.CASCADE,null=True, blank=True)
+
     school_type = models.ForeignKey(
-        to="SchoolType", on_delete=models.CASCADE, blank=True, null=True)
+        to="SchoolType", on_delete=models.CASCADE,null=True, blank=True)
+
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -163,7 +166,6 @@ class SchoolInformation(models.Model):
             return f'{self.principal_id.username}'
 
     class Meta:
-        db_table = 'School Information'
         verbose_name_plural = 'School Information'
 
 # School Admins (School administrators info)
@@ -176,14 +178,15 @@ class SchoolAdminInformation(models.Model):
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     school = models.ForeignKey(to=SchoolInformation, on_delete=models.CASCADE)
     admin_name = models.CharField(max_length=500, db_index=True, blank=True, null=True)
-    gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE, blank=True, null=True)
+
+    gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE, null=True, blank=True)
+
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user} is an admin of {self.school}"
 
     class Meta:
-        db_table = 'School Admin Information'
         verbose_name_plural = 'School Admin Information'
 
 # Student Information (pupils & Student)
@@ -197,14 +200,15 @@ class StudentInformation(models.Model):
     school = models.ForeignKey(
         to="SchoolInformation", on_delete=models.CASCADE, related_name='student_school')
     student_name = models.CharField(max_length=500, db_index=True)
-    gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE)
+
+    gender = models.ForeignKey(to="Gender", on_delete=models.CASCADE, null=True, blank=True)
+
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.student_name
 
     class Meta:
-        db_table = 'Student Information'
         verbose_name_plural = 'Student Information'
 
 # Enrollment (Student class history and tracking)
@@ -215,16 +219,22 @@ class StudentEnrollment(models.Model):
         default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     student = models.ForeignKey(
         to="StudentInformation", on_delete=models.CASCADE, related_name="student_information")
+
     student_class = models.ForeignKey(
-        to="SchoolClasses", on_delete=models.CASCADE, related_name="student_enrollment_class")
+        to="SchoolClasses", on_delete=models.CASCADE, related_name="student_enrollment_class", null=True, blank=True)
+
     promoted_class = models.ForeignKey(
         to="SchoolClasses", on_delete=models.CASCADE, blank=True, null=True, related_name="promoted_class")
+
     academic_session = models.ForeignKey(
         to="AcademicSession", on_delete=models.CASCADE, related_name='s_academic_session', blank=True, null=True)
+
     academic_term = models.ForeignKey(
         to="AcademicTerm", on_delete=models.CASCADE, related_name='student_academic_term', blank=True, null=True)
+
     academic_status = models.ForeignKey(
-        to="AcademicStatus", on_delete=models.CASCADE)
+        to="AcademicStatus", on_delete=models.CASCADE, null=True, blank=True)
+
     has_paid = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -232,12 +242,12 @@ class StudentEnrollment(models.Model):
         return f"{self.student}: {self.student_class}"
 
     class Meta:
-        db_table = 'Student Enrollment'
         verbose_name_plural = 'Student Enrollments'
 
 
 # School Classes (JS1, JS2)
 class SchoolClasses(models.Model):
+    class_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     class_name = models.CharField(max_length=20)
     school_info = models.ForeignKey(
         to=SchoolInformation, on_delete=models.CASCADE, related_name="school_class")
@@ -252,7 +262,6 @@ class SchoolClasses(models.Model):
         super(SchoolClasses, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'School Classes'
         verbose_name_plural = 'School Classes'
         constraints = [
             models.UniqueConstraint(
@@ -265,6 +274,7 @@ class SchoolClasses(models.Model):
 
 
 class SchoolSubject(models.Model):
+    sch_subject_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     subject_name = models.CharField(max_length=20)
     school_info = models.ForeignKey(
         to=SchoolInformation, on_delete=models.CASCADE, related_name="school_subject")
@@ -279,7 +289,6 @@ class SchoolSubject(models.Model):
         super(SchoolSubject, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'School Subject'
         verbose_name_plural = 'School Subject'
         constraints = [
             models.UniqueConstraint(
@@ -293,26 +302,30 @@ class SchoolSubject(models.Model):
 
 
 class SchoolClassSubjects(models.Model):
+    sch_class_subject_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
 
     school_class = models.ForeignKey(
-        to='SchoolClasses', on_delete=models.CASCADE, related_name='school_class')
+        to='SchoolClasses', on_delete=models.CASCADE, related_name='school_class', null=True, blank=True)
+
     school_info = models.ForeignKey(
         to=SchoolInformation, on_delete=models.CASCADE, related_name="school_class_subject", blank=True, null=True)
+
     school_subject = models.ForeignKey(
-        to='SchoolSubject', on_delete=models.CASCADE, related_name='school_subject')
+        to='SchoolSubject', on_delete=models.CASCADE, related_name='school_subject', null=True, blank=True)
+
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.school_class.class_name} {self.school_subject.subject_name}'
 
     class Meta:
-        db_table = 'School Class Subjects'
         verbose_name_plural = 'School Class Subjects'
 
 # School Grades
 
 
 class SchoolGrades(models.Model):
+    sch_grade_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     grade_letter = models.CharField(max_length=1)
     min_score = models.IntegerField(default=0)
     max_score = models.IntegerField(default=100)
@@ -330,7 +343,6 @@ class SchoolGrades(models.Model):
         super(SchoolGrades, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'School Grades'
         verbose_name_plural = 'School Grades'
         constraints = [
             models.UniqueConstraint(
@@ -343,14 +355,18 @@ class SchoolGrades(models.Model):
 
 
 class StudentScores(models.Model):
-
+    student_score_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     student = models.ForeignKey(
         to='StudentInformation', on_delete=models.CASCADE, related_name='student_scores', blank=True, null=True)
     school_info = models.ForeignKey(
         to='SchoolInformation', on_delete=models.CASCADE, related_name='school_student_scores', blank=True, null=True)
+
     subject = models.ForeignKey(to='SchoolClassSubjects', on_delete=models.CASCADE, blank=True, null=True, related_name='student_subject_scores')
+
     term = models.ForeignKey(to='AcademicTerm', on_delete=models.CASCADE, blank=True, null=True, related_name='student_term_scores')
+
     session = models.ForeignKey(to='AcademicSession', on_delete=models.CASCADE, blank=True, null=True, related_name='student_session_scores')
+
     grade = models.ForeignKey(to='SchoolGrades', on_delete=models.CASCADE, blank=True, null=True, related_name='student_grade_scores')
 
     first_ca = models.IntegerField(default=0)
@@ -386,8 +402,8 @@ class StudentScores(models.Model):
         try:
 
             # Get First Term, Second Term and Third Term in one query
-            terms = AcademicTerm.objects.filter(school_info=self.school_info).values('term', 'id')
-            term_dict = {term['term']: term['id'] for term in terms}
+            terms = AcademicTerm.objects.filter(school_info=self.school_info).values('term', 'pk')
+            term_dict = {term['term']: term['pk'] for term in terms}
 
             if len(term_dict) != 3:
                 raise ValueError("One or More Academic Term is missing!")
@@ -495,13 +511,12 @@ class StudentScores(models.Model):
             return suffix_map.get(rank % 10, "th")
 
     class Meta:
-        db_table = 'Student Scores'
         verbose_name_plural = 'Student Scores'
 
 # Student Performance
 
 class StudentPerformance(models.Model):
-
+    performance_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     student = models.ForeignKey(
         to='StudentInformation', on_delete=models.CASCADE, related_name='student_performance', blank=True, null=True)
     school_info = models.ForeignKey(
@@ -635,10 +650,10 @@ class StudentPerformance(models.Model):
         super(StudentPerformance, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'Student Performance'
         verbose_name_plural = 'Student Performance'
 
 class SchoolRemark(models.Model):
+    sch_remark_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
     min_average = models.FloatField(default=0)
     max_average = models.FloatField(default=100)
     teacher_remark = models.CharField(max_length=500, blank=True, null=True)
@@ -656,5 +671,4 @@ class SchoolRemark(models.Model):
         super(SchoolRemark, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'School Remark'
         verbose_name_plural = 'School Remarks'
