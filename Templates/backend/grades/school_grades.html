@@ -122,6 +122,7 @@
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->
+<script src="{% static 'backend/js/htmx.min.js' %}"></script>
 
 <script>
 	var modal = new bootstrap.Modal(document.getElementById('grade'));
@@ -155,9 +156,6 @@
             modalError.show()
         }
     });
-
-
 </script>
-
 
 {% endblock body %}

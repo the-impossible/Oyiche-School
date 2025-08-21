@@ -1,6 +1,7 @@
 # My Django imports
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.http import Http404
 import uuid
 
 # My app imports

@@ -1,6 +1,6 @@
 from oyiche_schMGT.imports import *
 from django_weasyprint import WeasyTemplateResponseMixin
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 # Create your views here.
 
 def get_school(request):
@@ -531,7 +531,6 @@ class SchoolGradesView(LoginRequiredMixin, SuccessMessageMixin, TemplateView):
             messages.error(request, form.errors.as_text())
             return render(request=request, template_name=self.template_name, context={'form':form, 'school':school})
 
-        return redirect("sch:school_grade")
 
 @method_decorator([is_school_or_admin, has_updated], name='dispatch')
 class ListGradesView(LoginRequiredMixin, ListView):
