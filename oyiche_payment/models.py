@@ -1,5 +1,6 @@
 # My Django app imports
 from django.db import models
+from django.utils import timezone
 
 # My app imports
 from oyiche_schMGT.models import *
@@ -8,7 +9,10 @@ from oyiche_auth.models import *
 # Create your models here.
 
 class ProductCost(models.Model):
-    product_cost_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
+
+
+    product_cost_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+
     product_cost = models.DecimalField(max_digits=10, decimal_places=2)
     company_incentive = models.DecimalField(max_digits=10, decimal_places=2)
     school_incentive = models.DecimalField(max_digits=10, decimal_places=2)
@@ -21,7 +25,10 @@ class ProductCost(models.Model):
         verbose_name_plural = "Product Costs"
 
 class SchoolUnit(models.Model):
-    sch_unit_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
+
+
+    sch_unit_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+
     school = models.ForeignKey(to=SchoolInformation, related_name="school_unit_info", on_delete=models.CASCADE)
 
     available_unit = models.IntegerField(default=0)
@@ -42,12 +49,16 @@ class SchoolUnit(models.Model):
         verbose_name_plural = "School Units"
 
 class UnitUsedByTerm(models.Model):
-    unit_used_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
+
+
+    unit_used_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
 
     school = models.ForeignKey(to=SchoolInformation, related_name="school_unit_used", on_delete=models.CASCADE)
 
+    # academic_session = models.ForeignKey(to=AcademicSession, related_name="school_unit_session", on_delete=models.CASCADE, db_constraint=False)
     academic_session = models.ForeignKey(to=AcademicSession, related_name="school_unit_session", on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
 
+    # academic_term = models.ForeignKey(AcademicTerm, related_name="school_unit_term", on_delete=models.CASCADE, db_constraint=False)
     academic_term = models.ForeignKey(AcademicTerm, related_name="school_unit_term", on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
 
     unit_used = models.IntegerField(default=0)
@@ -60,11 +71,16 @@ class UnitUsedByTerm(models.Model):
         verbose_name_plural = "Unit Used By Terms"
 
 class SchoolPaymentHistory(models.Model):
-    sch_payment_history_id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4, unique=True)
+
+
+    sch_payment_history_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+
     school = models.ForeignKey(to=SchoolInformation, related_name="school_payment_info", on_delete=models.CASCADE)
 
+    # academic_session = models.ForeignKey(to=AcademicSession, related_name="payment_session", on_delete=models.CASCADE, db_constraint=False)
     academic_session = models.ForeignKey(to=AcademicSession, related_name="payment_session", on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
 
+    # academic_term = models.ForeignKey(AcademicTerm, related_name="payment_academic_term", on_delete=models.CASCADE, db_constraint=False)
     academic_term = models.ForeignKey(AcademicTerm, related_name="payment_academic_term", on_delete=models.CASCADE, db_constraint=False, null=True, blank=True)
 
     purchased_by = models.ForeignKey(to=User, related_name="purchased_by", on_delete=models.CASCADE)

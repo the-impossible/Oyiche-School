@@ -1352,6 +1352,7 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
                 return redirect('sch:manage_school_details')
             else:
+                
                 messages.error(request=request, message=form.errors.as_text())
                 self.context['form'] = form
 
@@ -1893,3 +1894,4 @@ class DownloadMultipleResultPage(WeasyTemplateResponseMixin, LoginRequiredMixin,
             is_current=True, school_info=self.school
         ).first()
         return context
+

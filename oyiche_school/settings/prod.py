@@ -3,6 +3,19 @@ from .base import *
 # # Database
 # # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+INSTALLED_APPS += [
+    'debug_toolbar',
+]
+
+MIDDLEWARE += [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
 
 # ALLOWED_HOSTS = ['school.oyichetech.com', 'www.school.oyichetech.com']
 ALLOWED_HOSTS = ['oyicheacademy.com', 'www.oyicheacademy.com']

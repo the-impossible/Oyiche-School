@@ -28,6 +28,17 @@ DATABASES = {
     }
 }
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME'),
+        'USER': 'root',
+        'PASSWORD': '@Eghe@eghe1',
+        'HOST': 'localhost',
+        'PORT': 3306,
+    }
+}
+
 # Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
