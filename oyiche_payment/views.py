@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.generic import *
 from decouple import config
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 import requests
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
@@ -29,7 +31,7 @@ def generate_transaction_reference():
     return str(unique_id)
 
 # Create your views here.
-class PaymentDashboard(TemplateView):
+class PaymentDashboard(LoginRequiredMixin, TemplateView):
     template_name = "backend/payment/payment_dashboard.html"
     form_class = BuyUnitsForm
 
@@ -155,7 +157,7 @@ class PaymentDashboard(TemplateView):
 
         return render(request, self.template_name, {'form': form})
 
-class VerifyPayment(View):
+class VerifyPayment(LoginRequiredMixin, View):
     template_name = "backend/payment/payment_dashboard.html"
     form_class = BuyUnitsForm
     school = None

@@ -81,8 +81,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
         max_length=20, db_index=True, unique=True, blank=True)
 
-    # userType = models.ForeignKey(
-    #     to="UserType", on_delete=models.CASCADE, blank=True, null=True)
     userType = models.ForeignKey(
         to="UserType", on_delete=models.CASCADE, blank=True, null=True)
 
