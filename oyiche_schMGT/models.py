@@ -339,7 +339,7 @@ class SchoolGrades(models.Model):
 
     sch_grade_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
 
-    grade_letter = models.CharField(max_length=1)
+    grade_letter = models.CharField(max_length=2)
     min_score = models.IntegerField(default=0)
     max_score = models.IntegerField(default=100)
     grade_description = models.CharField(max_length=500, blank=True, null=True)
