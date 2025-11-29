@@ -16,7 +16,9 @@
               <th>T.Sub</th>
               <th>AVG</th>
               <th>C.AVG</th>
+              {% if school.school_result_type.result_title == 'Position Based Result' %}
               <th>POS</th>
+              {% endif %}
               <th>Action</th>
             </tr>
         </thead>
@@ -45,7 +47,9 @@
                         {% if object.current_enrollment.has_paid %}
                             <td>{{ object.student_average }}</td>
                             <td>{{ object.class_average }}</td>
+                            {% if school.school_result_type.result_title == 'Position Based Result' %}
                             <td>{{ object.term_position }}</td>
+                            {% endif %}
                         {% else %}
                             <td colspan="4" class="text-danger fst-italic fw-semibold bg-light">
                                 <i class="bi bi-lock-fill me-1"></i> Payment required to view results

@@ -997,11 +997,11 @@ class SchoolInformationForm(forms.ModelForm):
         }
     ))
 
-    # result_type = forms.ModelChoiceField(queryset=ResultType.objects.all(), empty_label="(Select Result type)", required=True, widget=forms.Select(
-    #     attrs={
-    #         'class': 'form-control input-height',
-    #     }
-    # ))
+    school_result_type = forms.ModelChoiceField(queryset=SchoolResultType.objects.all(), empty_label="(Select School Result type)", required=True, widget=forms.Select(
+        attrs={
+            'class': 'form-control input-height',
+        }
+    ))
 
     def clean_school_name(self):
         school_name = self.cleaned_data.get('school_name')
@@ -1021,7 +1021,7 @@ class SchoolInformationForm(forms.ModelForm):
 
     class Meta:
         model = SchoolInformation
-        fields = ('school_name', 'school_username', 'school_email', 'school_logo', 'school_address', 'school_category', 'school_type')
+        fields = ('school_name', 'school_username', 'school_email', 'school_logo', 'school_address', 'school_category', 'school_type', 'school_result_type')
 
 class AcademicSessionForm(forms.ModelForm):
 

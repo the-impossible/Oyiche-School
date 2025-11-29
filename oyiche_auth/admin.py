@@ -16,6 +16,26 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('userType', 'is_active', 'is_staff', 'is_superuser', 'date_joined')
     search_fields = ('username','phone','email',)
     list_per_page = 100
+    fieldsets = (
+        ('Change User', {
+            'fields': ('username', 'password', 'userType')
+        }),
+        ('Personal info', {
+            'fields': ('email', 'phone', 'pic',)
+        }),
+        ('Permissions', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+        }),
+        ('Important dates', {
+            'fields': ('last_login', 'date_joined')
+        }),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'phone', 'userType,' 'password1', 'password2'),
+        }),
+    )
 
     ordering = ('-date_joined',)
     readonly_fields = ('date_joined', 'last_login')

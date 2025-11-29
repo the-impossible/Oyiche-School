@@ -1352,7 +1352,7 @@ class ManageSchoolDetailsView(LoginRequiredMixin, View):
 
                 return redirect('sch:manage_school_details')
             else:
-                
+
                 messages.error(request=request, message=form.errors.as_text())
                 self.context['form'] = form
 

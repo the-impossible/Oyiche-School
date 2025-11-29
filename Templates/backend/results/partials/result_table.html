@@ -16,7 +16,9 @@
               <th>T.Sub</th>
               <th>AVG</th>
               <th>C.AVG</th>
+              {% if school.school_result_type.result_title == 'Position Based Result' %}
               <th>POS</th>
+              {% endif %}
               <th>Action</th>
             </tr>
         </thead>
@@ -46,7 +48,9 @@
                         <td>{{ object.total_subject }}</td>
                         <td>{{ object.student_average }}</td>
                         <td>{{ object.class_average }}</td>
+                        {% if school.school_result_type.result_title == 'Position Based Result' %}
                         <td>{{ object.term_position }}</td>
+                        {% endif %}
                         <td>
                             <a href="{% url "sch:result_preview" object.pk %}" target="_blank" class="btn btn-sm btn-info">
                                 <i class="fa fa-eye"></i> View

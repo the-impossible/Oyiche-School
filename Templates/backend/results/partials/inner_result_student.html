@@ -57,7 +57,9 @@
         <th style="font-size: xx-small !important;">Average</th>
         <th style="font-size: xx-small !important;">Highest</th>
         <th style="font-size: xx-small !important;">Lowest</th>
+        {% if school.school_result_type.result_title == 'Position Based Result' %}
         <th style="font-size: xx-small !important;">Position</th>
+        {% endif %}
         <th style="font-size: xx-small !important;">Grade</th>
         <th style="font-size: xx-small !important;">Remark</th>
       </tr>
@@ -74,7 +76,9 @@
         <td style="font-size: xx-small !important;">{{score.average|default:"N/A"}}</td>   <!-- Average -->
         <td style="font-size: xx-small !important;">{{score.highest_score|default:"N/A"}}</td>   <!-- Highest -->
         <td style="font-size: xx-small !important;">{{score.lowest_score|default:"N/A"}}</td>   <!-- Lowest -->
+        {% if school.school_result_type.result_title == 'Position Based Result' %}
         <td style="font-size: xx-small !important;">{{score.position|default:"N/A"}}</td>   <!-- Position -->
+        {% endif %}
         <td style="font-size: xx-small !important;">{{score.grade.grade_letter|upper|default:"N/A"}}</td>
         <td style="font-size: xx-small !important;">{{score.grade.grade_description|upper|default:"N/A"}}</td>
       </tr>

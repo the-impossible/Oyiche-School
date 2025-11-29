@@ -8,9 +8,9 @@ from oyiche_schMGT.models import *
 @admin.register(SchoolInformation)
 class SchoolInformationAdmin(admin.ModelAdmin):
     autocomplete_fields = ['principal_id', 'school_category', 'school_type']
-    list_display = ['principal_id', 'school_name', 'school_username', 'school_email', 'school_address', 'school_type', 'school_category', 'date_created']
-    list_editable = ['school_email', 'school_address', 'school_type', 'school_category', 'school_username']
-    list_filter = ['date_created', 'school_category', 'school_type']
+    list_display = ['principal_id', 'school_name', 'school_username', 'school_email', 'school_address', 'school_type', 'school_category', 'school_result_type', 'date_created']
+    list_editable = ['school_email', 'school_address', 'school_type', 'school_category', 'school_result_type', 'school_username']
+    list_filter = ['date_created', 'school_category', 'school_type', 'school_result_type']
     list_per_page = 100
     list_select_related = ['principal_id', 'school_category', 'school_type']
 
@@ -174,4 +174,12 @@ class SchoolRemarkAdmin(admin.ModelAdmin):
     search_fields = ['school_info__school_username']
     readonly_fields = ['date_created']
 
-# admin.site.register(ResultType)
+@admin.register(SchoolResultType)
+class SchoolResultTypeAdmin(admin.ModelAdmin):
+    list_display = ['result_id', 'result_title', 'result_description']
+    list_display_links = ['result_id']
+    list_editable = ['result_title', 'result_description']
+    list_per_page = 100
+
+    search_fields = ['result_title', 'result_description']
+    readonly_fields = ['result_id']

@@ -64,7 +64,6 @@
                                                 <button class="btn btn-primary btn-sm" hx-get="{% url "auth:edit_admin" object.pk %}" hx-target="#adminDialog">Edit</button>
 
                                                 <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#deleteAdmin{{forloop.counter}}">Delete</button>
-
                                             </div>
                                         </div>
                                     </div>
@@ -126,41 +125,42 @@
         {% endfor %}
 
         <div class="modal fade" id="createAdmin" tabindex="-1" aria-labelledby="editClass" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="createAdmin">
-            <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
-            <div class="modal-header">
-                <h6 class="modal-title">Create Admin</h6>
-                <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
-            </div>
-            <form action="" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-12">
-                            {% include 'partials/backend/messages.html' %}
-                            {% csrf_token %}
-                            {{form|crispy}}
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="createAdmin">
+                <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+                <div class="modal-header">
+                    <h6 class="modal-title">Create Admin</h6>
+                    <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                </div>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                {% include 'partials/backend/messages.html' %}
+                                {% csrf_token %}
+                                {{form|crispy}}
+                            </div>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-block text-white" name="create">Create Admin</button>
+                    </div>
+                </form>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-block text-white" name="create">Create Admin</button>
-                </div>
-            </form>
             </div>
         </div>
-        </div>
 
-        <div class="modal fade" id="admin" style="display:none;" tabindex="-1" aria-labelledby="admin" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="adminDialog" hx-target="this">
-
+        <div class="modal fade" id="editAdmin" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content" id="adminDialog" hx-target="this">
+                </div>
             </div>
         </div>
 
         <div class="modal fade" id="error" style="display:none;" tabindex="-1" aria-labelledby="error" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="errorDialog" hx-target="this">
-                <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content" style="overflow-x: hidden; white-space: normal;" id="errorDialog" hx-target="this">
                     <div class="modal-header">
                       <h6 class="modal-title text-danger">Error </h6>
                       <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
@@ -188,7 +188,7 @@
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->
 <script>
-	var modal = new bootstrap.Modal(document.getElementById('admin'));
+	var modal = new bootstrap.Modal(document.getElementById('editAdmin'));
 	var modalError = new bootstrap.Modal(document.getElementById('error'));
 
 	htmx.on('htmx:afterSwap', (e) => {

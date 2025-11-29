@@ -179,7 +179,9 @@
                 <th>AVERAGE</th>
                 <th>HIGHEST</th>
                 <th>LOWEST</th>
+                {% if school.school_result_type.result_title == 'Position Based Result' %}
                 <th>POSITION</th>
+                {% endif %}
                 <th>GRADE</th>
                 <th>REMARK</th>
             </tr>
@@ -196,7 +198,9 @@
                 <td>{{ score.average|default:"N/A" }}</td>
                 <td>{{ score.highest_score|default:"N/A" }}</td>
                 <td>{{ score.lowest_score|default:"N/A" }}</td>
+                {% if school.school_result_type.result_title == 'Position Based Result' %}
                 <td>{{ score.position|default:"N/A" }}</td>
+                {% endif %}
                 <td>{{ score.grade.grade_letter|upper|default:"N/A" }}</td>
                 <td>{{ score.grade.grade_description|upper|default:"N/A" }}</td>
             </tr>
@@ -209,16 +213,19 @@
         <table>
             <tr>
                 <td><strong>Total Marks:</strong> {{ object.total_marks_obtained }}</td>
-                <td><strong>Average Score:</strong> {{ object.student_average }}%</td>
+                <td><strong>Total Subjects:</strong> {{ object.total_subject }}</td>
             </tr>
             <tr>
-                <td><strong>Position in Class:</strong> {{ object.term_position|title }} / {{ out_of }}</td>
+                <td><strong>Average Score:</strong> {{ object.student_average }}%</td>
                 <td><strong>Class Average:</strong> {{ object.class_average }}%</td>
             </tr>
+            {% if school.school_result_type.result_title == 'Position Based Result' %}
             <tr>
-                <td><strong>Total Subjects:</strong> {{ object.total_subject }}</td>
+                <td><strong>Position in Class:</strong> {{ object.term_position|title }} / {{ out_of }}</td>
                 <td></td>
             </tr>
+            {% endif %}
+            
             <tr>
                 <td colspan="2"><strong>Class Teacher's Remarks:</strong> {{ object.school_remark.teacher_remark|default:"N/A" }}</td>
             </tr>

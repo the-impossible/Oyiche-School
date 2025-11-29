@@ -143,3 +143,21 @@ file_path = ['assets/student_with_ID_template.xlsx', 'assets/student_without_ID_
 #     with open(path, 'rb') as file:
 #         FilesTemplates.objects.get_or_create(template_type=FileTemplateType.objects.get(template_title=template_types[index]), file=File(file))
 
+# Create School Categories
+school_result_types = [
+    {
+        'result_title': 'Position Based Result',
+        'result_description': 'School that uses position based result'
+    },
+    {
+        'result_title': 'Average Based Result',
+        'result_description': 'School that uses average based result'
+    },
+]
+
+[SchoolResultType.objects.get_or_create(**result) for result in school_result_types]
+
+
+# pip install weasyprint==52.5
+
+# pip install django-weasyprint==1.1.0

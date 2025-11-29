@@ -271,6 +271,7 @@ class AdminEditView(LoginRequiredMixin, View):
         school = get_school(request)
 
         try:
+
             admin_info = SchoolAdminInformation.objects.get(school=school, pk=pk)
             admin_user_info = User.objects.get(user_id=admin_info.user_id)
             admin_form = AdminEditForm(instance=admin_user_info, initial={'password':'', 'gender':admin_info.gender, 'admin_name':admin_info.admin_name}, school=school)

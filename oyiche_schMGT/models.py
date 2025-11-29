@@ -166,6 +166,9 @@ class SchoolInformation(models.Model):
     school_type = models.ForeignKey(
         to="SchoolType", on_delete=models.CASCADE, blank=True, null=True)
 
+    school_result_type = models.ForeignKey(
+        to="SchoolResultType", on_delete=models.CASCADE, blank=True, null=True)
+
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -690,3 +693,17 @@ class SchoolRemark(models.Model):
 
     class Meta:
         verbose_name_plural = 'School Remarks'
+
+
+class SchoolResultType(models.Model):
+
+    result_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    result_title = models.CharField(max_length=100)
+    result_description = models.CharField(
+        max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return self.result_title
+
+    class Meta:
+        verbose_name_plural = 'School Result Type'

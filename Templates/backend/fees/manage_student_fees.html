@@ -124,14 +124,15 @@
 </div>
 
 <div class="modal fade" id="editFee" style="display:none;" tabindex="-1" aria-labelledby="edit" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="editDialog" hx-target="this">
-
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" id="editDialog" hx-target="this">
+        </div>
     </div>
 </div>
 
 <div class="modal fade" id="error" style="display:none;" tabindex="-1" aria-labelledby="error" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="errorDialog" hx-target="this">
-        <div class="modal-content" style="overflow-x: hidden; white-space: normal;">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" >
+        <div class="modal-content" style="overflow-x: hidden; white-space: normal;" id="errorDialog" hx-target="this">
             <div class="modal-header">
               <h6 class="modal-title text-danger">Error </h6>
               <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
