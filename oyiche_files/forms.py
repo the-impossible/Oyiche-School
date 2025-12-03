@@ -9,10 +9,9 @@ from oyiche_auth.models import *
 
 
 class FileHandler:
-    def __init__(self, obj, file_type):
+    def __init__(self, obj):
         self.data = pd.read_excel(obj)
         self.obj = obj
-        self.file_type = file_type
 
     def validate_file(self):
 
@@ -43,19 +42,12 @@ class FileHandler:
                     f'File contains duplicated studentID: {studentID}')
 
             # Check if record is already created on the database
-            if self.file_type in ['Registration']:
-                for index, row in self.data.iterrows():
-                    studentID = row.iloc[0].upper()
+            for index, row in self.data.iterrows():
+                studentID = row.iloc[0].upper()
 
-                    if User.objects.filter(username=studentID).exists():
-                        raise forms.ValidationError(
-                            f'File contains already registered studentID! {studentID}')
-
-        if str(self.file_type) in ['School Fees']:
-            if column_length != 2:
-                raise forms.ValidationError(
-                    f'Invalid School Fees Data Format!')
-
+                if User.objects.filter(username=studentID).exists():
+                    raise forms.ValidationError(
+                        f'File contains already registered studentID! {studentID}')
 
 class FilesManagerForm(forms.ModelForm):
 
@@ -78,13 +70,7 @@ class FilesManagerForm(forms.ModelForm):
         }
     ))
 
-    class_name = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", required=False, widget=forms.Select(
-        attrs={
-            'class': 'form-control input-height',
-        }
-    ))
-
-    file_type = forms.ModelChoiceField(queryset=FileType.objects.all(), empty_label="(Select file type)", required=True,  widget=forms.Select(
+    class_name = forms.ModelChoiceField(queryset=SchoolClasses.objects.none(), empty_label="(Select student class)", widget=forms.Select(
         attrs={
             'class': 'form-control input-height',
         }
@@ -94,12 +80,6 @@ class FilesManagerForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         uploaded_file = cleaned_data.get('file')
-        file_type = cleaned_data.get('file_type')
-        class_name = cleaned_data.get('class_name')
-
-        if str(file_type) == 'Registration' and not class_name:
-            raise forms.ValidationError(
-                "File Type 'Registration' requires student class.")
 
         if not uploaded_file:
             raise forms.ValidationError("No file uploaded.")
@@ -108,7 +88,7 @@ class FilesManagerForm(forms.ModelForm):
             raise forms.ValidationError("Invalid Excel File.")
 
         try:
-            handler = FileHandler(obj=uploaded_file, file_type=file_type)
+            handler = FileHandler(obj=uploaded_file)
             handler.validate_file()
         except Exception as e:
             raise forms.ValidationError(f"File validation failed: {str(e)}")
@@ -117,4 +97,4 @@ class FilesManagerForm(forms.ModelForm):
 
     class Meta:
         model = FilesManager
-        fields = ('file', 'class_name', 'file_type')
+        fields = ('file', 'class_name')

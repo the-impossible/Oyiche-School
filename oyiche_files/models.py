@@ -41,7 +41,7 @@ def path_and_rename(instance, filename):
     path = 'uploads/xslx/'
     ext = filename.split('.')[-1]
 
-    filename = f'{instance.class_name.class_name}_{instance.file_type}.{ext}' if instance.class_name else f'{instance.file_type}.{ext}'
+    filename = f'{instance.class_name.class_name}.{ext}'
     return f'{path}{filename}'
 
 

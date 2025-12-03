@@ -420,8 +420,8 @@ class StudentScores(models.Model):
         try:
 
             # Get First Term, Second Term and Third Term in one query
-            terms = AcademicTerm.objects.filter(school_info=self.school_info).values('term', 'id')
-            term_dict = {term['term']: term['id'] for term in terms}
+            terms = AcademicTerm.objects.filter(school_info=self.school_info).values('term', 'academic_term_id')
+            term_dict = {term['term']: term['academic_term_id'] for term in terms}
 
             if len(term_dict) != 3:
                 raise ValueError("One or More Academic Term is missing!")

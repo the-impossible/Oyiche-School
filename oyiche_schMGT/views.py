@@ -174,8 +174,7 @@ class SchoolFileUploadView(LoginRequiredMixin, ListView):
     def post(self, request, *args, **kwargs):
 
         self.object_list = self.get_queryset()
-        form = FilesManagerForm(data=self.request.POST,
-                                files=self.request.FILES, school=self.school)
+        form = FilesManagerForm(data=self.request.POST, files=self.request.FILES, school=self.school)
 
         if form.is_valid():
             data = form.save(commit=False)
@@ -200,17 +199,17 @@ class BatchCreateView(LoginRequiredMixin, View):
         try:
             uploaded_file = FilesManager.objects.get(pk=file_id)
 
-            if not uploaded_file.used:
-                Creation.create(uploaded_file, get_school(self.request))
+            if uploaded_file.used:
+                messages.error(request, "File has already been used!")
+                return redirect('sch:file_manager')
 
-                uploaded_file.processing_status = "Processing File!"
-                uploaded_file.used = True
-                uploaded_file.save()
-                messages.success(
-                    self.request, "File is been processed check details!!")
+            creation = BatchAccountCreation(uploaded_file, get_school(request))
+            success = creation.create_batch_account()
 
+            if success:
+                messages.success(request, "File processed successfully!")
             else:
-                messages.error(self.request, "File has been Used Already!!")
+                messages.error(request, "File processing failed. Check file details!")
 
         except FilesManager.DoesNotExist:
             messages.error(self.request, "File Not Found!!")
