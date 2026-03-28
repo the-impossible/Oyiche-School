@@ -9,8 +9,13 @@ from django.utils.decorators import method_decorator
 from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str
+from Mail.utils import AppTokenGenerator
+from django.forms import ValidationError
 
 # My app imports
+from Mail.emails.reset_password import ResetPassword
 from oyiche_schMGT.models import *
 from oyiche_auth.forms import *
 from oyiche_schMGT.forms import *
@@ -109,8 +114,113 @@ class LoginView(View):
             messages.error(request, 'All fields are required!!')
             return redirect('auth:login')
 
-class ForgotPasswordView(TemplateView):
+class ForgotPasswordView(View):
+    """Handles user password reset email requests."""
     template_name = "backend/auth/forgot-password.html"
+
+    def get(self, request):
+        """Display Forgot Password page"""
+        return render(request, self.template_name)
+
+    def post(self, request):
+        """Validate email and send reset password link."""
+        email = request.POST.get('email', '').strip().lower()
+
+        if not email:
+            messages.error(request, "Please enter your email address!")
+            return render(request, self.template_name)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.success(
+                request,
+                "If an account with that email exists, a password reset link has been sent."
+            )
+            return redirect('auth:forgot-password')
+
+        # Send Forgot password email
+        ResetPassword(request).send(
+            user=user,
+        )
+        messages.success(request, 'If an account with that email exists, a password reset link has been sent.')
+        return redirect('auth:forgot-password')
+
+class ResetPasswordView(View):
+    """Displays the reset password form after verifying token validity."""
+
+    template_name = "backend/auth/reset_password.html"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.token_generator = AppTokenGenerator()
+
+    def get(self, request, uidb64, token):
+        """Verify reset link and show password reset form."""
+
+        try:
+            # Get uidb64
+            uid = force_str(force_bytes(urlsafe_base64_decode(uidb64)))
+            user = User.objects.get(user_id=uid)
+
+        except (User.DoesNotExist, ValueError, OverflowError, TypeError):
+            user = None
+
+        if user is not None and self.token_generator.check_token(user, token):
+            # Token is Valid
+            context = {'uidb64':uidb64, 'token':token}
+            messages.info(request, 'Create a new password for your account!')
+            return render(request, self.template_name, context)
+        else:
+            # Invalid or Expired Link
+            messages.info(request, 'Link broken or Invalid reset link, Please Request a new one!')
+            return redirect('auth:forgot-password')
+
+    def post(self, request, uidb64, token):
+        """Change the User Password"""
+
+        try:
+            # Decode uid from URL
+            uid = force_str(force_bytes(urlsafe_base64_decode(uidb64)).decode())
+            user = User.objects.get(user_id=uid)
+
+        except (User.DoesNotExist, ValueError, OverflowError, TypeError):
+            user = None
+
+        if not user:
+            messages.error(request, 'Oops user does not exist!')
+            return redirect('auth:forgot-password')
+
+        password1 = request.POST['password']
+        password2 = request.POST['confirmPassword']
+
+        context = {'uidb64':uidb64, 'token':token}
+
+        try:
+            self.validate_password(password1=password1, password2=password2)
+        except ValidationError as e:
+            messages.error(request, e.message)
+            return render(request, self.template_name, context)
+
+        user.set_password(password1)
+        user.save()
+        messages.success(request, 'Password changed successfully! You can now log in with your new password.')
+        return redirect('auth:login')
+
+    def validate_password(self, password1, password2):
+        """Validate password strength and match"""
+
+        if(password1 != password2):
+            raise ValidationError("Passwords do not match!")
+
+        pattern = re.compile(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()[\]{}<>~_+=|:;.,-]).{8,}$'
+        )
+
+        if not pattern.match(password1):
+            raise ValidationError(
+                "Password must be at least 8 characters long, and include uppercase, lowercase, number, and special character."
+            )
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "backend/dashboard.html"

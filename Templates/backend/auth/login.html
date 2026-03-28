@@ -3,6 +3,7 @@
 {% block title %} Login {% endblock title %}
 {% block head %} {% include 'partials/backend/head.html' %} {% endblock head %}
 {% block body %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
 <div class="auth option2">
     <div class="auth_left">
@@ -21,9 +22,10 @@
                     <div class="form-group">
                         <input type="text" class="form-control" id="exampleInputUsername" name="username" aria-describedby="emailHelp" placeholder="Enter schID">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label class="form-label"><a href="{% url 'auth:forgot-password' %}" class="float-right small">I forgot password</a></label>
-                        <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                        <input type="password" name="password" class="form-control" id="password" placeholder="Password">
+                        <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
                     </div>
                     <div class="form-group">
                         <label class="custom-control custom-checkbox">
@@ -41,6 +43,31 @@
     </div>
 </div>
 
+<style>
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 22px;
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 18px;
+}
+</style>
+<script>
+function togglePassword(fieldId, icon) {
+    const input = document.getElementById(fieldId);
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
+        input.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    }
+}
+</script>
 <!-- Start Script -->
 {% include 'partials/backend/script.html' %}
 <!-- End Script -->

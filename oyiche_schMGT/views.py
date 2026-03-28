@@ -1792,6 +1792,7 @@ class ResultPreviewPage(WeasyTemplateResponseMixin, LoginRequiredMixin, DetailVi
     template_name = "backend/results/result_template.html"
     pk_url_kwarg = "performance_id"
     context_object_name = "object"
+    
 
     def get_object(self, queryset=None):
         self.school = get_school(self.request)  # store once

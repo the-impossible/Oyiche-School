@@ -19,12 +19,13 @@ ALLOWED_HOSTS = ['*']
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': 'postgres',
-        'PASSWORD': 'impossible081',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': "oyiche_academy",
+        # 'USER': "the-impossible",
+        'USER': "root",
+        'PASSWORD': "@Rich@rich1",
         'HOST': 'localhost',
-        'PORT': 5432,
+        'PORT': 3306,
     }
 }
 
